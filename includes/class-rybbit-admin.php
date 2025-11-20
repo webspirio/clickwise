@@ -368,7 +368,13 @@ class Rybbit_Admin {
 				<a href="?page=rybbit-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
 			</h2>
 
-			<div class="rybbit-settings-container" style="display: flex; gap: 20px; margin-top: 20px;">
+		<?php if ( $active_tab === 'general' ) : ?>
+			<div class="notice notice-info" style="margin: 15px 0;">
+				<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance (an external service). By configuring and using this plugin, you consent to sending analytics data to your specified Rybbit server. <a href="https://rybbit.com" target="_blank">Learn more about Rybbit Analytics</a> | Please review your Rybbit provider's privacy policy and terms of service.</p>
+			</div>
+		<?php endif; ?>
+
+		<div class="rybbit-settings-container" style="display: flex; gap: 20px; margin-top: 20px;">
 				<div class="rybbit-main-content" style="flex: 3;">
 					<?php if ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
