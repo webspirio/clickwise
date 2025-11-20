@@ -66,7 +66,7 @@ Before submitting a pull request:
 
 Feel free to reach out:
 - Email: [contact@webspirio.com](mailto:contact@webspirio.com)
-- GitHub Issues: [Create an issue](https://github.com/webspirio/rybbit-wordpress-plugin/issues)
+- GitHub Issues: [Create an issue](https://github.com/webspirio/rybbit-wp/issues)
 
 ---
 
