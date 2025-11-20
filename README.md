@@ -57,7 +57,7 @@ Rybbit Analytics for WordPress is a powerful, user-friendly plugin that seamless
 
 ### From GitHub
 
-1. Download the latest release from [GitHub](https://github.com/webspirio/rybbit-wordpress-plugin)
+1. Download the latest release from [GitHub](https://github.com/webspirio/rybbit-wp)
 2. Rename the extracted folder to `rybbit-wp`
 3. Upload the `rybbit-wp` folder to `/wp-content/plugins/`
 4. Activate the plugin through the 'Plugins' menu in WordPress
@@ -164,7 +164,7 @@ The plugin itself doesn't store personal data. Compliance depends on your Rybbit
 
 ### Can I contribute to this plugin?
 
-Absolutely! Visit our [GitHub repository](https://github.com/webspirio/rybbit-wordpress-plugin) and submit pull requests or report issues.
+Absolutely! Visit our [GitHub repository](https://github.com/webspirio/rybbit-wp) and submit pull requests or report issues.
 
 ## Changelog
 

@@ -59,7 +59,7 @@ class Rybbit_Analytics {
 	 */
 	private function set_locale() {
 		load_plugin_textdomain(
-			$this->plugin_name,
+			'rybbit-wp',
 			false,
 			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
 		);
@@ -88,7 +88,7 @@ class Rybbit_Analytics {
 	}
 
 	/**
-	 * Register all of the hooks related to the public-facing functionality.
+	 * Register all of the hooks related to the public-fng functionality.
 	 */
 	private function define_public_hooks() {
 		add_action( 'wp_head', array( $this, 'add_tracking_code' ) );

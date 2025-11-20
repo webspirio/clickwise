@@ -8,7 +8,7 @@
  * Author URI: https://webspirio.com/
  * Contact: contact@webspirio.com
  * License: GPLv2 or later
- * Text Domain: webspirio-rybbit-analytics
+ * Text Domain: rybbit-wp
  */
 
 // If this file is called directly, abort.
