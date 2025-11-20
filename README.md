@@ -130,7 +130,12 @@ The Event Manager is the heart of this plugin. Access it via **Settings > Rybbit
 ## Screenshots
 
 1. **General Settings** - Configure your Rybbit instance connection
+<img width="831" height="502" alt="image" src="https://github.com/user-attachments/assets/1ec64ec0-2e2d-4353-bd33-5cab143b6f44" />
+
 2. **Event Manager** - Manage tracked events with an intuitive interface
+<img width="1183" height="562" alt="image" src="https://github.com/user-attachments/assets/87740e49-bd59-420f-94dc-09f03a6dec05" />
+
+   
 3. **Live Recording Overlay** - Real-time event visualization
 4. **Recording History** - Review past sessions and event details
 5. **Admin Bar Integration** - Quick access to recording controls
