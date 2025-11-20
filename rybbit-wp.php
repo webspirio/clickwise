@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Rybbit Analytics
- * Plugin URI: https://github.com/webspirio/rybbit-wordpress-plugin
+ * Plugin URI: https://github.com/webspirio/rybbit-wp
  * Description: The ultimate Rybbit Analytics integration for WordPress. Tracks pageviews, custom events, form submissions, and more.
  * Version: 2.0.0
  * Author: Webspirio (Oleksandr Chornous)

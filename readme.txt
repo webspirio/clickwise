@@ -1,21 +1,14 @@
-=== Rybbit Analytics ===
-Contributors: webspirio
-Donate link: https://webspirio.com
-Tags: analytics, tracking, events, rybbit, privacy, saas
-Requires at least: 5.0
-Tested up to: 6.4
-Requires PHP: 7.4
-Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+# Rybbit Analytics for WordPress
 
 Connect your WordPress site to Rybbit Analytics for privacy-focused event tracking and comprehensive user behavior insights.
 
-== Description ==
+## Description
 
 **Important: This plugin requires a Rybbit Analytics instance (self-hosted or managed service).**
 
 Rybbit Analytics for WordPress is a powerful, user-friendly plugin that seamlessly integrates Rybbit's analytics platform with your WordPress site. Built by **Webspirio**, this plugin provides comprehensive tracking capabilities with an advanced Event Manager for monitoring and managing user interactions.
+
+**Third-Party Integration Notice:** This is an unofficial integration plugin developed by Webspirio, not an official Rybbit Analytics plugin. For more information about Rybbit Analytics, visit: [https://rybbit.com](https://rybbit.com)
 
 = External Service Requirement =
 
@@ -28,6 +21,10 @@ Rybbit Analytics for WordPress is a powerful, user-friendly plugin that seamless
 * **Terms**: Refer to your Rybbit instance provider's terms of service
 
 For more information about Rybbit Analytics, visit: [https://rybbit.com](https://rybbit.com)
+
+Learn more about the service:
+* Rybbit Analytics: [https://rybbit.com](https://rybbit.com)
+* Documentation: [https://rybbit.com/docs](https://rybbit.com/docs)
 
 By installing, activating, and configuring this plugin with your Rybbit instance details, you consent to sending analytics data to your specified Rybbit server.
 
@@ -110,9 +107,9 @@ Yes, you need either a self-hosted Rybbit Analytics instance or access to a mana
 
 No. All analytics data is sent exclusively to YOUR Rybbit Analytics instance that you configure in the settings. The plugin developers have no access to your data.
 
-= Can I use this with Google Analytics or other analytics tools? =
+= Can I use this alongside Google Analytics or other analytics tools? =
 
-Yes! This plugin works alongside other analytics solutions without conflicts.
+Yes! This plugin works alongside other analytics solutions without conflicts. However, this plugin only sends data to Rybbit Analytics—not to Google Analytics or other platforms.
 
 = How are events recorded? =
 
