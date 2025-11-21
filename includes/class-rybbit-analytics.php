@@ -290,14 +290,14 @@ class Rybbit_Analytics {
 			}
 		}
 
-		// Process prefixes into array
-		$prefixes_array = array_filter( array_map( 'trim', explode( ',', $event_prefixes ) ) );
-		if ( empty( $prefixes_array ) ) {
-			$prefixes_array = array( 'kb-', 'wc-', 'custom-' );
+		// Process event rules - supports old prefixes and new rule-based format
+		$event_rules = $this->process_prefixes_list( $event_prefixes );
+		if ( empty( $event_rules ) ) {
+			$event_rules = array( 'kb-', 'wc-', 'custom-' );
 		}
 
 		wp_localize_script( $this->plugin_name, 'rybbit_config', array(
-			'prefixes'       => $prefixes_array,
+			'event_rules'    => $event_rules,
 			'track_forms'    => (bool) $track_forms,
 			'track_links'    => (bool) $track_links,
 			'dev_mode'       => (bool) $dev_mode,
@@ -354,6 +354,55 @@ class Rybbit_Analytics {
 		} );
 		$patterns = array_map( 'trim', $patterns );
 		return json_encode( array_values( $patterns ), JSON_UNESCAPED_SLASHES );
+	}
+
+	/**
+	 * Helper to process event rules - supports old formats and new rule-based format.
+	 */
+	private function process_prefixes_list( $rules_text ) {
+		if ( empty( $rules_text ) ) {
+			return array();
+		}
+
+		// Try to decode as JSON (new rule-based format)
+		$rules = json_decode( $rules_text, true );
+		if ( is_array( $rules ) && isset( $rules[0] ) && isset( $rules[0]['type'] ) ) {
+			// New rule-based format - convert to JavaScript-compatible array
+			return $this->convert_rules_to_js_format( $rules );
+		}
+
+		// Legacy format - handle both comma and line separated
+		if ( strpos( $rules_text, "\n" ) !== false || strpos( $rules_text, "\r" ) !== false ) {
+			$prefixes = preg_split( '/\r\n|\r|\n/', $rules_text );
+		} else {
+			$prefixes = explode( ',', $rules_text );
+		}
+
+		$prefixes = array_filter( $prefixes, function ( $line ) {
+			return trim( $line ) !== '';
+		} );
+		return array_map( 'trim', $prefixes );
+	}
+
+	/**
+	 * Convert rules array to JavaScript-compatible format for frontend matching.
+	 */
+	private function convert_rules_to_js_format( $rules ) {
+		$js_rules = array();
+
+		foreach ( $rules as $rule ) {
+			if ( empty( $rule['value'] ) || empty( $rule['type'] ) ) {
+				continue;
+			}
+
+			$js_rules[] = array(
+				'type' => $rule['type'],
+				'value' => $rule['value'],
+				'description' => isset( $rule['description'] ) ? $rule['description'] : ''
+			);
+		}
+
+		return $js_rules;
 	}
 
 	/**
