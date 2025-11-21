@@ -29,7 +29,12 @@ jQuery(document).ready(function ($) {
             clickedTab.addClass('nav-tab-active');
 
             // AJAX Navigation
-            fetch(href)
+            fetch(clickedTab.prop('href'), {
+                credentials: 'include',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(response => response.text())
                 .then(html => {
                     const parser = new DOMParser();
@@ -52,6 +57,11 @@ jQuery(document).ready(function ($) {
                     // Re-initialize Pattern UI if present
                     if (window.initClickwisePatternUI) {
                         window.initClickwisePatternUI();
+                    }
+
+                    // Re-initialize Event Rules if present
+                    if (window.initClickwiseEventRules) {
+                        window.initClickwiseEventRules();
                     }
 
                     // Update URL
@@ -112,7 +122,7 @@ jQuery(document).ready(function ($) {
     initTabTransitions();
     fadeInContent();
     adjustContentHeight();
-    initRotatingTips();
+    // initRotatingTips(); // Disabled for consistency
 
     // Adjust height on window resize
     $(window).on('resize', adjustContentHeight);

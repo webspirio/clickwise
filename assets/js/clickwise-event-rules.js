@@ -2,12 +2,12 @@
  * Clickwise Event Rules UI
  * Handles the sophisticated rule-based event matching system
  */
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
     let eventRules = [];
     let editingIndex = -1;
 
     // Initialize the rules UI
-    function initEventRules() {
+    window.initClickwiseEventRules = function () {
         const rulesData = $('.clickwise-rules-data').val();
         try {
             eventRules = rulesData ? JSON.parse(rulesData) : [];
@@ -246,16 +246,16 @@ jQuery(document).ready(function($) {
 
     // Event handlers
     $(document).on('click', '#add-event-rule-btn', addRule);
-    $(document).on('click', '.clickwise-rule-delete-btn', function() {
+    $(document).on('click', '.clickwise-rule-delete-btn', function () {
         deleteRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.clickwise-rule-edit-btn', function() {
+    $(document).on('click', '.clickwise-rule-edit-btn', function () {
         editRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.clickwise-rule-save-btn', function() {
+    $(document).on('click', '.clickwise-rule-save-btn', function () {
         saveRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.clickwise-rule-cancel-btn', function() {
+    $(document).on('click', '.clickwise-rule-cancel-btn', function () {
         cancelEdit(parseInt($(this).data('index')));
     });
 
@@ -263,14 +263,14 @@ jQuery(document).ready(function($) {
     $('#new-rule-type, #new-rule-value').on('input change', updatePreview);
 
     // Enter key in add rule form
-    $('#new-rule-value, #new-rule-desc').on('keypress', function(e) {
+    $('#new-rule-value, #new-rule-desc').on('keypress', function (e) {
         if (e.which === 13) {
             addRule();
         }
     });
 
     // Enter key in edit form
-    $(document).on('keypress', '.rule-value-input, .rule-desc-input', function(e) {
+    $(document).on('keypress', '.rule-value-input, .rule-desc-input', function (e) {
         if (e.which === 13) {
             const index = parseInt($(this).closest('.clickwise-rule-item').data('index'));
             saveRule(index);
@@ -278,7 +278,7 @@ jQuery(document).ready(function($) {
     });
 
     // Escape key to cancel editing
-    $(document).on('keyup', function(e) {
+    $(document).on('keyup', function (e) {
         if (e.which === 27 && editingIndex !== -1) {
             cancelEdit(editingIndex);
         }
@@ -286,6 +286,6 @@ jQuery(document).ready(function($) {
 
     // Initialize when page loads
     if ($('.clickwise-event-rules-container').length > 0) {
-        initEventRules();
+        window.initClickwiseEventRules();
     }
 });
