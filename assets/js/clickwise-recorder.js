@@ -113,14 +113,11 @@
     initOverlay();
 
     function initOverlay() {
-        // Check storage
-        var data = getOverlayData();
-
-        // If recording started but data says closed/finished, reset
-        if (!data.isOpen || data.isFinished) {
-            data = { isOpen: true, isFinished: false, events: [] };
-            saveOverlayData(data);
-        }
+        // Always start fresh when recording mode is active
+        // Clear any previous session data and recorded cache
+        recordedCache = {}; // Clear deduplication cache for new session
+        var data = { isOpen: true, isFinished: false, events: [] };
+        saveOverlayData(data);
 
         createOverlayUI(data);
     }
@@ -321,16 +318,14 @@
 
     // Session Management
     var currentSessionId = null;
+    var recordedCache = {}; // Moved here for proper scope
+
     function getSessionId() {
         if (currentSessionId) return currentSessionId;
 
-        var stored = localStorage.getItem('clickwise_recording_session');
-        if (stored) {
-            currentSessionId = stored;
-        } else {
-            currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('clickwise_recording_session', currentSessionId);
-        }
+        // Always generate new session ID when recording mode starts
+        currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('clickwise_recording_session', currentSessionId);
         return currentSessionId;
     }
 
@@ -340,13 +335,13 @@
     function startNewSession() {
         currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('clickwise_recording_session', currentSessionId);
-        // Clear overlay events
+        // Clear overlay events and recorded cache
+        recordedCache = {}; // Clear deduplication cache for new session
         saveOverlayData({ isOpen: true, isFinished: false, events: [] });
         if (overlayList) overlayList.innerHTML = '';
         return currentSessionId;
     }
 
-    var recordedCache = {};
     function recordEvent(type, name, detail) {
         detail = detail || {};
         var key = type + ':' + name;
