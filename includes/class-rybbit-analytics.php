@@ -31,6 +31,13 @@ class Rybbit_Analytics {
 	protected $version;
 
 	/**
+	 * Queue for server-side events.
+	 *
+	 * @var      array
+	 */
+	protected static $event_queue = array();
+
+	/**
 	 * Define the core functionality of the plugin.
 	 */
 	public function __construct() {
@@ -41,6 +48,7 @@ class Rybbit_Analytics {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_integrations();
 
 		// Add settings link to plugins page
 		$plugin_admin = new Rybbit_Admin( $this->plugin_name, $this->version );
@@ -85,7 +93,7 @@ class Rybbit_Analytics {
 		add_action( 'wp_ajax_rybbit_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
 		add_action( 'wp_ajax_rybbit_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
 		
-
+		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
 	}
 
 	/**
@@ -94,13 +102,98 @@ class Rybbit_Analytics {
 	private function define_public_hooks() {
 		add_action( 'wp_head', array( $this, 'add_tracking_code' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_footer', array( $this, 'print_queued_events' ) );
+		add_shortcode( 'rybbit_event', array( $this, 'render_shortcode' ) );
+	}
+
+	/**
+	 * Register integration hooks.
+	 */
+	private function define_integrations() {
+		add_action( 'wp_login', array( $this, 'hook_user_login' ), 10, 2 );
+		add_action( 'user_register', array( $this, 'hook_user_register' ), 10, 1 );
+	}
+
+	/**
+	 * Create the custom database table for events.
+	 */
+	private function create_events_table() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			event_key varchar(32) NOT NULL,
+			type varchar(50) NOT NULL,
+			name varchar(255) NOT NULL,
+			alias varchar(255) DEFAULT '' NOT NULL,
+			selector text,
+			status varchar(20) DEFAULT 'pending' NOT NULL,
+			first_seen datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			last_seen datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			example_detail longtext,
+			session_id varchar(50),
+			session_timestamp int(11),
+			PRIMARY KEY  (id),
+			UNIQUE KEY event_key (event_key)
+		) $charset_collate;";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+	}
+
+	/**
+	 * Migrate data from wp_options to custom table.
+	 */
+	private function migrate_events_data() {
+		$events = get_option( 'rybbit_discovered_events' );
+		if ( empty( $events ) || ! is_array( $events ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
+
+		foreach ( $events as $key => $event ) {
+			// Check if exists
+			$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE event_key = %s", $key ) );
+			if ( $exists ) {
+				continue;
+			}
+
+			$wpdb->insert(
+				$table_name,
+				array(
+					'event_key'         => $key,
+					'type'              => isset( $event['type'] ) ? $event['type'] : 'custom',
+					'name'              => isset( $event['name'] ) ? $event['name'] : '',
+					'alias'             => isset( $event['alias'] ) ? $event['alias'] : '',
+					'selector'          => isset( $event['selector'] ) ? $event['selector'] : '',
+					'status'            => isset( $event['status'] ) ? $event['status'] : 'pending',
+					'first_seen'        => isset( $event['first_seen'] ) ? date( 'Y-m-d H:i:s', $event['first_seen'] ) : current_time( 'mysql' ),
+					'last_seen'         => isset( $event['last_seen'] ) ? date( 'Y-m-d H:i:s', $event['last_seen'] ) : current_time( 'mysql' ),
+					'example_detail'    => isset( $event['example'] ) ? $event['example'] : '',
+					'session_id'        => isset( $event['session_id'] ) ? $event['session_id'] : null,
+					'session_timestamp' => isset( $event['session_timestamp'] ) ? $event['session_timestamp'] : null,
+				)
+			);
+		}
+
+		// Rename option to avoid re-migration, or delete it. 
+		// Let's rename it for safety backup for now.
+		update_option( 'rybbit_discovered_events_backup', $events );
+		delete_option( 'rybbit_discovered_events' );
 	}
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
 	 */
 	public function run() {
-		// Hooks are registered in the constructor
+		// Create table and migrate on activation/run (simplified for this context)
+		// In a real plugin, this should be on activation hook, but putting it here ensures it runs for the user now.
+		$this->create_events_table();
+		$this->migrate_events_data();
 	}
 
 	/**
@@ -188,9 +281,10 @@ class Rybbit_Analytics {
 			$recording_mode = get_user_meta( get_current_user_id(), 'rybbit_recording_mode', true );
 		}
 
-		$discovered_events = get_option( 'rybbit_discovered_events', array() );
+		// Get managed events from database table
+		$all_events = $this->get_managed_events_for_js();
 		$managed_events = array();
-		foreach ( $discovered_events as $key => $event ) {
+		foreach ( $all_events as $key => $event ) {
 			if ( $event['status'] === 'tracked' ) {
 				$managed_events[] = $event;
 			}
@@ -212,8 +306,39 @@ class Rybbit_Analytics {
 			'ajax_url'       => admin_url( 'admin-ajax.php' ),
 			'admin_url'      => admin_url( 'admin.php?page=rybbit-analytics' ),
 			'nonce'          => wp_create_nonce( 'rybbit_admin_nonce' ), // Reuse admin nonce for recording
-			'events'         => get_option( 'rybbit_discovered_events', array() )
+			'events'         => $this->get_managed_events_for_js()
 		) );
+
+		if ( $recording_mode ) {
+			wp_enqueue_style( 'rybbit-recorder-css', RYBBIT_WP_URL . 'assets/css/rybbit-recorder.css', array(), $this->version );
+			wp_enqueue_script( 'rybbit-recorder-js', RYBBIT_WP_URL . 'assets/js/rybbit-recorder.js', array( $this->plugin_name ), $this->version, true );
+		}
+
+		if ( $dev_mode ) {
+			wp_enqueue_style( 'rybbit-dev-css', RYBBIT_WP_URL . 'assets/css/rybbit-dev.css', array(), $this->version );
+			wp_enqueue_script( 'rybbit-dev-js', RYBBIT_WP_URL . 'assets/js/rybbit-dev.js', array( $this->plugin_name ), $this->version, true );
+		}
+	}
+
+	/**
+	 * Helper to get managed events from DB for JS.
+	 */
+	private function get_managed_events_for_js() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
+		// Check if table exists first to avoid errors on fresh install before migration runs
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
+			return array();
+		}
+		
+		$results = $wpdb->get_results( "SELECT * FROM $table_name", ARRAY_A );
+		$events = array();
+		if ( $results ) {
+			foreach ( $results as $row ) {
+				$events[ $row['event_key'] ] = $row;
+			}
+		}
+		return $events;
 	}
 
 	/**
@@ -229,5 +354,125 @@ class Rybbit_Analytics {
 		} );
 		$patterns = array_map( 'trim', $patterns );
 		return json_encode( array_values( $patterns ), JSON_UNESCAPED_SLASHES );
+	}
+
+	/**
+	 * Track an event from the server-side.
+	 *
+	 * @param string $name       The event name.
+	 * @param array  $properties Optional event properties.
+	 */
+	public static function track_event( $name, $properties = array() ) {
+		if ( empty( $name ) ) {
+			return;
+		}
+		
+		$event = array(
+			'name'       => $name,
+			'properties' => $properties,
+		);
+
+		self::$event_queue[] = $event;
+
+		// Persist if user is logged in (handles redirects)
+		if ( is_user_logged_in() ) {
+			$user_id = get_current_user_id();
+			$transient_key = 'rybbit_event_queue_' . $user_id;
+			$queued = get_transient( $transient_key );
+			if ( ! is_array( $queued ) ) {
+				$queued = array();
+			}
+			$queued[] = $event;
+			set_transient( $transient_key, $queued, 60 );
+		}
+	}
+
+	/**
+	 * Print queued events to the footer.
+	 */
+	public function print_queued_events() {
+		$events = self::$event_queue;
+
+		// Check for persisted events
+		if ( is_user_logged_in() ) {
+			$user_id = get_current_user_id();
+			$transient_key = 'rybbit_event_queue_' . $user_id;
+			$persisted = get_transient( $transient_key );
+			if ( is_array( $persisted ) && ! empty( $persisted ) ) {
+				$events = array_merge( $events, $persisted );
+				delete_transient( $transient_key );
+			}
+		}
+
+		// Deduplicate based on name and properties to avoid double firing if both queue and transient have it (edge case)
+		$events = array_map("unserialize", array_unique(array_map("serialize", $events)));
+
+		if ( empty( $events ) ) {
+			return;
+		}
+
+		echo "<script>\n";
+		echo "window.addEventListener('load', function() {\n";
+		echo "    if (window.rybbit && window.rybbit.event) {\n";
+		foreach ( $events as $event ) {
+			$name_json = json_encode( $event['name'] );
+			$props_json = ! empty( $event['properties'] ) ? json_encode( $event['properties'] ) : '{}';
+			echo "        window.rybbit.event($name_json, $props_json);\n";
+		}
+		echo "    }\n";
+		echo "});\n";
+		echo "</script>\n";
+	}
+
+	/**
+	 * Hook: User Login
+	 */
+	public function hook_user_login( $user_login, $user ) {
+		self::track_event( 'login', array( 'method' => 'wp_login' ) );
+	}
+
+	/**
+	 * Hook: User Register
+	 */
+	public function hook_user_register( $user_id ) {
+		self::track_event( 'signup', array( 'method' => 'user_register' ) );
+	}
+
+	/**
+	 * Shortcode: [rybbit_event]
+	 */
+	public function render_shortcode( $atts, $content = null ) {
+		$a = shortcode_atts( array(
+			'type'   => 'click',
+			'name'   => 'custom_event',
+			'detail' => '',
+			'class'  => '',
+			'tag'    => 'span',
+		), $atts );
+
+		$tag = sanitize_text_field( $a['tag'] );
+		// Allow only safe tags
+		if ( ! in_array( $tag, array( 'span', 'div', 'button', 'a', 'p' ) ) ) {
+			$tag = 'span';
+		}
+
+		$attrs = array(
+			'class'              => esc_attr( $a['class'] ),
+			'data-rybbit-action' => esc_attr( $a['type'] ),
+			'data-rybbit-name'   => esc_attr( $a['name'] ),
+		);
+
+		if ( ! empty( $a['detail'] ) ) {
+			$attrs['data-rybbit-detail'] = esc_attr( $a['detail'] );
+		}
+
+		$attr_str = '';
+		foreach ( $attrs as $k => $v ) {
+			if ( ! empty( $v ) ) {
+				$attr_str .= " $k=\"$v\"";
+			}
+		}
+
+		return "<$tag$attr_str>" . do_shortcode( $content ) . "</$tag>";
 	}
 }
