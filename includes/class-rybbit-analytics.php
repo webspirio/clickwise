@@ -83,6 +83,7 @@ class Rybbit_Analytics {
 		add_action( 'wp_ajax_rybbit_update_event_status', array( $plugin_admin, 'ajax_update_event_status' ) );
 		add_action( 'wp_ajax_rybbit_delete_session', array( $plugin_admin, 'ajax_delete_session' ) );
 		add_action( 'wp_ajax_rybbit_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
+		add_action( 'wp_ajax_rybbit_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
 		
 
 	}
