@@ -1,3 +1,10 @@
+/**
+ * Webspirio Rybbit Analytics Tracker
+ * Author: Webspirio (Oleksandr Chornous)
+ * Contact: contact@webspirio.com
+ * Copyright (c) 2025 Webspirio
+ * Licensed under GPLv2 or later
+ */
 jQuery(document).ready(function ($) {
     $('#rybbit-test-connection').on('click', function () {
         var button = $(this);
@@ -26,6 +33,195 @@ jQuery(document).ready(function ($) {
         }).fail(function () {
             button.prop('disabled', false).text('Test Connection');
             resultSpan.css('color', 'red').text('Request failed. Please try again.');
+        });
+    });
+
+    // --- Dynamic Script Loading ---
+    var rybbitScriptPromise = null;
+    function loadRybbitScript() {
+        if (rybbitScriptPromise) return rybbitScriptPromise;
+
+        rybbitScriptPromise = new Promise(function (resolve, reject) {
+            if (window.rybbit) {
+                resolve();
+                return;
+            }
+
+            if (!rybbit_admin.script_url || !rybbit_admin.site_id) {
+                reject('Script URL or Site ID not configured.');
+                return;
+            }
+
+            // Pre-set configuration to disable auto-tracking if the script supports it via global
+            window.rybbit_config = window.rybbit_config || {};
+            window.rybbit_config.track_pageview = false;
+            window.rybbit_config.manual = true;
+
+            var script = document.createElement('script');
+            script.src = rybbit_admin.script_url;
+            script.setAttribute('data-site-id', rybbit_admin.site_id);
+
+            // Prevent auto-tracking via attributes (best effort)
+            script.setAttribute('data-auto-track-pageview', 'false');
+            script.setAttribute('data-auto-pageview', 'false');
+            script.setAttribute('data-manual', 'true');
+            script.setAttribute('data-track-spa', 'false');
+
+            // Network Interceptor to block Admin Pageviews
+            // This ensures that even if the script tries to send a pageview, we catch it.
+            (function () {
+                // 1. Patch XMLHttpRequest
+                var originalOpen = XMLHttpRequest.prototype.open;
+                var originalSend = XMLHttpRequest.prototype.send;
+
+                XMLHttpRequest.prototype.open = function (method, url) {
+                    this._url = url;
+                    return originalOpen.apply(this, arguments);
+                };
+
+                XMLHttpRequest.prototype.send = function (body) {
+                    if (this._url && (this._url.indexOf('/api/event') !== -1 || this._url.indexOf('rybbit') !== -1)) {
+                        // Check for pageview in body (JSON or form data string)
+                        if (body && typeof body === 'string' && (body.indexOf('pageview') !== -1 || body.indexOf('"type":"pageview"') !== -1)) {
+                            console.log('Rybbit Sandbox: Blocked auto-pageview (XHR).');
+                            // Mock success
+                            Object.defineProperty(this, 'readyState', { value: 4 });
+                            Object.defineProperty(this, 'status', { value: 200 });
+                            if (this.onload) this.onload();
+                            return;
+                        }
+                    }
+                    return originalSend.apply(this, arguments);
+                };
+
+                // 2. Patch fetch
+                var originalFetch = window.fetch;
+                window.fetch = function (input, init) {
+                    var url = typeof input === 'string' ? input : input.url;
+                    if (url && (url.indexOf('/api/event') !== -1 || url.indexOf('rybbit') !== -1)) {
+                        var body = init ? init.body : null;
+                        if (body && typeof body === 'string' && (body.indexOf('pageview') !== -1 || body.indexOf('"type":"pageview"') !== -1)) {
+                            console.log('Rybbit Sandbox: Blocked auto-pageview (Fetch).');
+                            return Promise.resolve(new Response(JSON.stringify({ status: 'blocked' }), { status: 200 }));
+                        }
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
+
+                // 3. Patch sendBeacon
+                var originalSendBeacon = navigator.sendBeacon;
+                navigator.sendBeacon = function (url, data) {
+                    if (url && (url.indexOf('/api/event') !== -1 || url.indexOf('rybbit') !== -1)) {
+                        // Data can be string, Blob, etc.
+                        // If it's a string, check it.
+                        if (typeof data === 'string' && (data.indexOf('pageview') !== -1 || data.indexOf('"type":"pageview"') !== -1)) {
+                            console.log('Rybbit Sandbox: Blocked auto-pageview (Beacon).');
+                            return true;
+                        }
+                        // If Blob, we can't easily read it synchronously, so we might let it pass or block all beacons?
+                        // Let's assume Rybbit uses JSON string or similar.
+                    }
+                    return originalSendBeacon.apply(this, arguments);
+                };
+            })();
+
+            script.defer = true;
+
+            script.onload = function () {
+                // Give it a moment to initialize
+                setTimeout(function () {
+                    if (window.rybbit) {
+                        resolve();
+                    } else {
+                        reject('Script loaded but window.rybbit is undefined.');
+                    }
+                }, 100);
+            };
+
+            script.onerror = function () {
+                reject('Failed to load script from ' + rybbit_admin.script_url);
+            };
+
+            document.head.appendChild(script);
+        });
+
+        return rybbitScriptPromise;
+    }
+
+    function logSandbox(msg, type) {
+        var log = $('#rybbit-sandbox-log');
+        var time = new Date().toLocaleTimeString();
+        var color = type === 'error' ? '#d63638' : (type === 'success' ? '#00a32a' : '#2271b1');
+        var line = $('<div style="margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;"></div>');
+        line.append('<span style="color:#666; margin-right:10px;">[' + time + ']</span>');
+        line.append('<span style="color:' + color + ';">' + msg + '</span>');
+        log.prepend(line);
+    }
+
+    // Send Test Event (General Settings)
+    $('#rybbit-send-test-event').on('click', function () {
+        var button = $(this);
+        var resultSpan = $('#rybbit-test-event-result');
+
+        button.prop('disabled', true).text('Loading...');
+        resultSpan.text('');
+
+        loadRybbitScript().then(function () {
+            button.text('Sending...');
+            try {
+                window.rybbit.event('test_event', {
+                    source: 'wordpress_admin_test',
+                    timestamp: Date.now()
+                });
+
+                setTimeout(function () {
+                    button.prop('disabled', false).text('Send Test Event');
+                    resultSpan.css('color', 'green').text('Event initiated via browser script!');
+                }, 500);
+            } catch (e) {
+                throw e;
+            }
+        }).catch(function (err) {
+            button.prop('disabled', false).text('Send Test Event');
+            resultSpan.css('color', 'red').text(err);
+        });
+    });
+
+    // Sandbox Send Event
+    $('#rybbit-sandbox-send').on('click', function () {
+        var button = $(this);
+        var name = $('#rybbit-sandbox-name').val();
+        var propsStr = $('#rybbit-sandbox-props').val();
+        var props = {};
+
+        if (!name) {
+            alert('Please enter an event name.');
+            return;
+        }
+
+        try {
+            if (propsStr) {
+                props = JSON.parse(propsStr);
+            }
+        } catch (e) {
+            alert('Invalid JSON in properties.');
+            return;
+        }
+
+        button.prop('disabled', true).text('Sending...');
+
+        loadRybbitScript().then(function () {
+            try {
+                window.rybbit.event(name, props);
+                logSandbox('Event "' + name + '" sent successfully.', 'success');
+                logSandbox('Props: ' + JSON.stringify(props), 'info');
+            } catch (e) {
+                logSandbox('Error executing event: ' + e.message, 'error');
+            }
+            button.prop('disabled', false).text('Send Custom Event');
+        }).catch(function (err) {
+            logSandbox('Failed to load script: ' + err, 'error');
+            button.prop('disabled', false).text('Send Custom Event');
         });
     });
 

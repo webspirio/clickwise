@@ -73,7 +73,9 @@ class Rybbit_Admin {
 				wp_localize_script( 'rybbit-admin', 'rybbit_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'rybbit_admin_nonce' ),
-					'events'   => get_option( 'rybbit_discovered_events', array() )
+					'events'   => get_option( 'rybbit_discovered_events', array() ),
+					'script_url' => get_option( 'rybbit_script_url' ),
+					'site_id'    => get_option( 'rybbit_site_id' )
 				) );
 			}
 		}
@@ -365,6 +367,7 @@ class Rybbit_Admin {
 				<a href="?page=rybbit-settings&tab=tracking" class="nav-tab <?php echo $active_tab == 'tracking' ? 'nav-tab-active' : ''; ?>">Tracking</a>
 				<a href="?page=rybbit-settings&tab=events" class="nav-tab <?php echo $active_tab == 'events' ? 'nav-tab-active' : ''; ?>">Events & Forms</a>
 				<a href="?page=rybbit-settings&tab=events_manager" class="nav-tab <?php echo $active_tab == 'events_manager' ? 'nav-tab-active' : ''; ?>">Event Manager</a>
+				<a href="?page=rybbit-settings&tab=sandbox" class="nav-tab <?php echo $active_tab == 'sandbox' ? 'nav-tab-active' : ''; ?>">Sandbox</a>
 				<a href="?page=rybbit-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
 			</h2>
 
@@ -378,6 +381,8 @@ class Rybbit_Admin {
 				<div class="rybbit-main-content" style="flex: 3;">
 					<?php if ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
+					<?php elseif ( $active_tab === 'sandbox' ) : ?>
+						<?php $this->render_sandbox_tab(); ?>
 					<?php else : ?>
 						<form action="options.php" method="post">
 							<?php
@@ -419,6 +424,41 @@ class Rybbit_Admin {
 		<?php
 	}
 
+	public function render_sandbox_tab() {
+		?>
+		<div class="rybbit-sandbox">
+			<h3>Event Sandbox</h3>
+			<p>Use this tool to test custom events and verify that your tracking configuration is working correctly.</p>
+			
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="rybbit-sandbox-name">Event Name</label></th>
+					<td>
+						<input type="text" id="rybbit-sandbox-name" class="regular-text" value="custom_event" placeholder="e.g. signup_click">
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="rybbit-sandbox-props">Event Properties (JSON)</label></th>
+					<td>
+						<textarea id="rybbit-sandbox-props" rows="5" cols="50" class="large-text code" placeholder='{"key": "value"}'><?php echo "{\n    \"test_mode\": true,\n    \"source\": \"admin_sandbox\"\n}"; ?></textarea>
+						<p class="description">Enter valid JSON object.</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">Actions</th>
+					<td>
+						<button type="button" id="rybbit-sandbox-send" class="button button-primary">Send Custom Event</button>
+					</td>
+				</tr>
+			</table>
+
+			<div id="rybbit-sandbox-log" style="margin-top: 20px; background: #f0f0f1; padding: 15px; border: 1px solid #c3c4c7; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
+				<div style="color: #666; font-style: italic;">Ready to send events...</div>
+			</div>
+		</div>
+		<?php
+	}
+
 	public function render_text_field( $args ) {
 		$id = $args['id'];
 		$type = isset( $args['type'] ) ? $args['type'] : 'text';
@@ -428,6 +468,10 @@ class Rybbit_Admin {
 		if ( $id === 'rybbit_script_url' ) {
 			echo " <button type='button' id='rybbit-test-connection' class='button'>Test Connection</button>";
 			echo " <span id='rybbit-test-result'></span>";
+		}
+		if ( $id === 'rybbit_site_id' ) {
+			echo " <button type='button' id='rybbit-send-test-event' class='button'>Send Test Event</button>";
+			echo " <span id='rybbit-test-event-result'></span>";
 		}
 		if ( $desc ) echo "<p class='description'>$desc</p>";
 	}
