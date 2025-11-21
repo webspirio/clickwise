@@ -16,32 +16,84 @@
 
 /* Tab wrapper improvements */
 .nav-tab-wrapper {
-    border-bottom: 1px solid #ccd0d4;
-    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    margin-bottom: 20px !important;
+    display: flex;
+    gap: 10px;
+    padding-top: 10px;
 }
 
 .nav-tab {
     transition: all 0.2s ease-in-out;
+    border: none !important;
+    background: transparent;
+    margin: 0 !important;
+    border-radius: 20px !important;
+    /* Pill shape */
+    padding: 8px 16px !important;
+    font-weight: 500;
+    color: #64748b;
+    /* Slate 500 */
 }
 
 .nav-tab:hover {
-    background-color: #f0f0f1;
-    color: #2271b1;
+    background-color: #f1f5f9;
+    /* Slate 100 */
+    color: #0f172a;
+    /* Slate 900 */
+}
+
+.nav-tab-active,
+.nav-tab-active:hover {
+    background-color: #1f2937 !important;
+    /* Gray 800 */
+    color: #fff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Content area styling */
 .clickwise-content-area {
     background: #fff;
     border: 1px solid #ccd0d4;
-    border-top: none;
+    border-radius: 12px;
     padding: 20px;
     min-height: 500px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
 
 /* Form improvements */
 .clickwise-settings-container .form-table {
     margin-top: 0;
+}
+
+/* Align save buttons */
+.clickwise-form-header .button-primary,
+.clickwise-form-footer .button-primary {
+    transition: all 0.2s ease-in-out;
+    background: linear-gradient(135deg, #2271b1 0%, #135e96 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 6px 24px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    box-shadow: 0 4px 6px rgba(34, 113, 177, 0.2) !important;
+    text-shadow: none !important;
+    height: auto !important;
+    line-height: 2.2 !important;
+}
+
+.clickwise-form-header .button-primary:hover,
+.clickwise-form-footer .button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(34, 113, 177, 0.3) !important;
+    background: linear-gradient(135deg, #135e96 0%, #0a4b78 100%) !important;
+}
+
+.clickwise-form-header .button-primary:active,
+.clickwise-form-footer .button-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(34, 113, 177, 0.2) !important;
 }
 
 .clickwise-settings-container .form-table th {
@@ -116,10 +168,12 @@
     background: #fff;
     padding: 20px;
     border: 1px solid #ccd0d4;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    border-radius: 12px;
+    margin-top: 20px;
 }
 
 .clickwise-sidebar-content {
@@ -176,4 +230,63 @@
 /* Ensure consistent spacing */
 .clickwise-settings-container>* {
     margin-bottom: 0;
+}
+
+/* Handler Single Card Layout */
+.clickwise-handler-single-card {
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.clickwise-handler-single-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Handler configuration sections */
+.handler-single-config {
+    transition: opacity 0.3s ease-in-out, pointer-events 0.3s ease-in-out;
+}
+
+/* Test button styling */
+.clickwise-handler-single-card .button {
+    transition: all 0.2s ease-in-out;
+}
+
+.clickwise-handler-single-card .button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.clickwise-handler-single-card .button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Ensure handler cards respect content area boundaries */
+.clickwise-content-area .clickwise-handler-single-card {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Responsive adjustments for handler cards */
+@media (max-width: 1200px) {
+    .clickwise-handler-single-card {
+        margin-left: 10px;
+        margin-right: 10px;
+        width: calc(100% - 20px);
+    }
+}
+
+@media (max-width: 782px) {
+    .clickwise-handler-single-card {
+        margin-left: 5px;
+        margin-right: 5px;
+        width: calc(100% - 10px);
+        padding: 20px !important;
+    }
 }
