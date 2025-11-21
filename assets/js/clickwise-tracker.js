@@ -11,6 +11,29 @@
     var config = window.clickwise_config || {};
 
     /**
+     * Send event to all enabled analytics handlers
+     */
+    function sendToHandlers(eventName, properties) {
+        properties = properties || {};
+
+        // Send to Rybbit if enabled
+        if (config.handlers && config.handlers.rybbit && config.handlers.rybbit.enabled) {
+            if (window.rybbit && typeof window.rybbit.event === 'function') {
+                window.rybbit.event(eventName, properties);
+            }
+        }
+
+        // Send to Google Analytics if enabled
+        if (config.handlers && config.handlers.ga && config.handlers.ga.enabled) {
+            if (window.gtag && typeof window.gtag === 'function') {
+                // Sanitize event name for GA (alphanumeric and underscores only)
+                var gaEventName = eventName.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 40);
+                window.gtag('event', gaEventName, properties);
+            }
+        }
+    }
+
+    /**
      * Event Rule Matching
      * Checks if an event name matches any of the configured rules.
      */
@@ -85,14 +108,11 @@
     EventTarget.prototype.dispatchEvent = function (event) {
         if (event instanceof CustomEvent) {
             if (matchesEventRules(event.type)) {
-                // Note: We rely on the global monkey patch in Dev Mode to log this
-                if (window.rybbit && typeof window.rybbit.event === 'function') {
-                    window.rybbit.event(event.type, {
-                        detail: typeof event.detail === 'object'
-                            ? JSON.stringify(event.detail)
-                            : String(event.detail || '')
-                    });
-                }
+                sendToHandlers(event.type, {
+                    detail: typeof event.detail === 'object'
+                        ? JSON.stringify(event.detail)
+                        : String(event.detail || '')
+                });
             }
         }
         return originalDispatchEvent.call(this, event);
@@ -107,13 +127,11 @@
             var formName = form.getAttribute('name') || form.getAttribute('id') || 'unknown_form';
             var formClass = form.getAttribute('class') || '';
 
-            if (window.rybbit && typeof window.rybbit.event === 'function') {
-                window.rybbit.event('form_submit', {
-                    form_name: formName,
-                    form_class: formClass,
-                    page: window.location.href
-                });
-            }
+            sendToHandlers('form_submit', {
+                form_name: formName,
+                form_class: formClass,
+                page: window.location.href
+            });
         }, true); // Capture phase
     }
 
@@ -126,12 +144,10 @@
             if (link && link.href) {
                 var url = new URL(link.href);
                 if (url.hostname !== window.location.hostname) {
-                    if (window.rybbit && typeof window.rybbit.event === 'function') {
-                        window.rybbit.event('outbound_link_click', {
-                            url: link.href,
-                            text: link.innerText.trim()
-                        });
-                    }
+                    sendToHandlers('outbound_link_click', {
+                        url: link.href,
+                        text: link.innerText.trim()
+                    });
                 }
             }
         }, true);
@@ -151,11 +167,9 @@
             if (rule.type === 'form_submit' && rule.name === name) match = true;
 
             if (match) {
-                if (window.rybbit && typeof window.rybbit.event === 'function') {
-                    // Use alias if available, otherwise original name
-                    var eventName = rule.alias || rule.name;
-                    window.rybbit.event(eventName, detail);
-                }
+                // Use alias if available, otherwise original name
+                var eventName = rule.alias || rule.name;
+                sendToHandlers(eventName, detail);
             }
         });
     }
@@ -244,9 +258,7 @@
                 detail.text = target.innerText.trim();
             }
 
-            if (window.rybbit && typeof window.rybbit.event === 'function') {
-                window.rybbit.event(name, detail);
-            }
+            sendToHandlers(name, detail);
         }
     }, true);
 
