@@ -75,12 +75,14 @@ class Rybbit_Admin {
 		// Enqueue on settings page AND frontend (for admin bar)
 		if ( 'settings_page_rybbit-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
+			wp_enqueue_style( 'rybbit-admin-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_style( 'rybbit-admin-bar-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin-bar.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_style( 'rybbit-pattern-ui-css', RYBBIT_WP_URL . 'assets/css/rybbit-pattern-ui.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_style( 'rybbit-event-rules-css', RYBBIT_WP_URL . 'assets/css/rybbit-event-rules.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_script( 'rybbit-admin', RYBBIT_WP_URL . 'assets/js/rybbit-admin.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 			wp_enqueue_script( 'rybbit-pattern-ui', RYBBIT_WP_URL . 'assets/js/rybbit-pattern-ui.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 			wp_enqueue_script( 'rybbit-event-rules', RYBBIT_WP_URL . 'assets/js/rybbit-event-rules.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
+			wp_enqueue_script( 'rybbit-tab-transitions', RYBBIT_WP_URL . 'assets/js/rybbit-tab-transitions.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 				wp_localize_script( 'rybbit-admin', 'rybbit_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'rybbit_admin_nonce' ),
@@ -452,8 +454,9 @@ class Rybbit_Admin {
 			</script>
 		<?php endif; ?>
 
-		<div class="rybbit-settings-container" style="display: flex; gap: 20px; margin-top: 20px;">
-				<div class="rybbit-main-content" style="flex: 3;">
+		<div class="rybbit-settings-container">
+				<div class="rybbit-main-content">
+					<div class="rybbit-content-area rybbit-tab-content">
 					<?php if ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
 					<?php elseif ( $active_tab === 'sandbox' ) : ?>
@@ -478,9 +481,10 @@ class Rybbit_Admin {
 							?>
 						</form>
 					<?php endif; ?>
+					</div>
 				</div>
-				
-				<div class="rybbit-sidebar" style="flex: 1; background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+
+				<div class="rybbit-sidebar">
 					<h3>Quick Tips</h3>
 					<ul>
 						<li><strong>Site ID:</strong> Found in your Rybbit dashboard.</li>

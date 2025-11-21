@@ -1,0 +1,130 @@
+/* Rybbit Admin Interface Styles */
+
+/* Smooth tab transitions and prevent layout jiggling */
+.rybbit-settings-container {
+    min-height: 600px;
+    transition: min-height 0.2s ease-in-out;
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.rybbit-main-content {
+    min-height: 500px;
+    flex: 3;
+}
+
+/* Tab wrapper improvements */
+.nav-tab-wrapper {
+    border-bottom: 1px solid #ccd0d4;
+    margin-bottom: 0 !important;
+}
+
+.nav-tab {
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-tab:hover {
+    background-color: #f0f0f1;
+    color: #2271b1;
+}
+
+/* Content area styling */
+.rybbit-content-area {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    padding: 20px;
+    min-height: 500px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Form improvements */
+.rybbit-settings-container .form-table {
+    margin-top: 0;
+}
+
+.rybbit-settings-container .form-table th {
+    padding-left: 0;
+    width: 200px;
+}
+
+/* Loading state for smooth transitions */
+.rybbit-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Event Manager specific improvements */
+.rybbit-event-manager-container {
+    min-height: 500px;
+}
+
+/* Sandbox tab improvements */
+.rybbit-sandbox-container {
+    min-height: 400px;
+}
+
+/* Advanced tab improvements */
+.rybbit-advanced-container {
+    min-height: 300px;
+}
+
+/* Prevent flash of content */
+.rybbit-tab-content {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.rybbit-tab-content.loading {
+    opacity: 0.8;
+}
+
+/* Notice improvements */
+#rybbit-service-notice {
+    transition: all 0.3s ease-in-out;
+    margin-bottom: 0 !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 782px) {
+    .rybbit-settings-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rybbit-main-content {
+        min-height: 400px;
+    }
+
+    .nav-tab-wrapper {
+        border-bottom: none;
+    }
+
+    .nav-tab {
+        display: block;
+        margin: 0 0 -1px 0;
+        border-radius: 0;
+    }
+}
+
+/* Fix sidebar jiggling */
+.rybbit-sidebar {
+    min-height: 500px;
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+/* Smooth height transitions for dynamic content */
+.rybbit-dynamic-content {
+    transition: height 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+/* Ensure consistent spacing */
+.rybbit-settings-container > * {
+    margin-bottom: 0;
+}
