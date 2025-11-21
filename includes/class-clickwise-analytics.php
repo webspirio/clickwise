@@ -92,6 +92,7 @@ class Clickwise_Analytics {
 		add_action( 'wp_ajax_clickwise_delete_session', array( $plugin_admin, 'ajax_delete_session' ) );
 		add_action( 'wp_ajax_clickwise_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
 		add_action( 'wp_ajax_clickwise_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
+		add_action( 'wp_ajax_clickwise_test_handler', array( $plugin_admin, 'ajax_test_handler' ) );
 		add_action( 'wp_ajax_clickwise_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
 		
 		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
@@ -201,10 +202,29 @@ class Clickwise_Analytics {
 	 * Add the Clickwise tracking code to the site header.
 	 */
 	public function add_tracking_code() {
-		// Get options with defaults
-		$script_url         = get_option( 'clickwise_script_url', 'https://tracking.example.com/api/script.js' );
-		$site_id            = get_option( 'clickwise_site_id', '' );
-		$api_version        = get_option( 'clickwise_api_version', 'v1' );
+		// Check which handlers are enabled
+		$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
+		$ga_enabled = get_option( 'clickwise_ga_enabled' );
+
+		// Add Rybbit tracking code if enabled
+		if ( $rybbit_enabled ) {
+			$this->add_rybbit_tracking_code();
+		}
+
+		// Add Google Analytics tracking code if enabled
+		if ( $ga_enabled ) {
+			$this->add_ga_tracking_code();
+		}
+	}
+
+	/**
+	 * Add Rybbit tracking code.
+	 */
+	private function add_rybbit_tracking_code() {
+		// Get Rybbit handler options with fallbacks to old option names
+		$script_url         = get_option( 'clickwise_rybbit_script_url', get_option( 'clickwise_script_url', 'https://tracking.example.com/api/script.js' ) );
+		$site_id            = get_option( 'clickwise_rybbit_site_id', get_option( 'clickwise_site_id', '' ) );
+		$api_version        = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v1' ) );
 		$track_pgv          = get_option( 'clickwise_track_pgv', true );
 		$track_spa          = get_option( 'clickwise_track_spa', true );
 		$track_query        = get_option( 'clickwise_track_query', true );
@@ -266,6 +286,28 @@ class Clickwise_Analytics {
 	}
 
 	/**
+	 * Add Google Analytics tracking code.
+	 */
+	private function add_ga_tracking_code() {
+		$ga_measurement_id = get_option( 'clickwise_ga_measurement_id', '' );
+
+		if ( empty( $ga_measurement_id ) ) {
+			return;
+		}
+
+		// Add Google Analytics gtag script
+		echo "<!-- Google Analytics -->\n";
+		echo "<script async src=\"https://www.googletagmanager.com/gtag/js?id=" . esc_attr( $ga_measurement_id ) . "\"></script>\n";
+		echo "<script>\n";
+		echo "  window.dataLayer = window.dataLayer || [];\n";
+		echo "  function gtag(){dataLayer.push(arguments);}\n";
+		echo "  gtag('js', new Date());\n";
+		echo "  gtag('config', '" . esc_js( $ga_measurement_id ) . "');\n";
+		echo "</script>\n";
+		echo "<!-- End Google Analytics -->\n";
+	}
+
+	/**
 	 * Enqueue the frontend tracking script.
 	 */
 	public function enqueue_scripts() {
@@ -297,17 +339,31 @@ class Clickwise_Analytics {
 			$event_rules = array( 'kb-', 'wc-', 'custom-' );
 		}
 
+		// Get handler settings
+		$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
+		$ga_enabled = get_option( 'clickwise_ga_enabled' );
+		$ga_measurement_id = get_option( 'clickwise_ga_measurement_id', '' );
+
 		wp_localize_script( $this->plugin_name, 'clickwise_config', array(
-			'event_rules'    => $event_rules,
-			'track_forms'    => (bool) $track_forms,
-			'track_links'    => (bool) $track_links,
-			'dev_mode'       => (bool) $dev_mode,
-			'recording_mode' => (bool) $recording_mode,
-			'managed_events' => $managed_events,
-			'ajax_url'       => admin_url( 'admin-ajax.php' ),
-			'admin_url'      => admin_url( 'admin.php?page=clickwise-settings' ),
-			'nonce'          => wp_create_nonce( 'clickwise_admin_nonce' ), // Reuse admin nonce for recording
-			'events'         => $this->get_managed_events_for_js()
+			'event_rules'        => $event_rules,
+			'track_forms'        => (bool) $track_forms,
+			'track_links'        => (bool) $track_links,
+			'dev_mode'           => (bool) $dev_mode,
+			'recording_mode'     => (bool) $recording_mode,
+			'managed_events'     => $managed_events,
+			'ajax_url'           => admin_url( 'admin-ajax.php' ),
+			'admin_url'          => admin_url( 'admin.php?page=clickwise-settings' ),
+			'nonce'              => wp_create_nonce( 'clickwise_admin_nonce' ),
+			'events'             => $this->get_managed_events_for_js(),
+			'handlers'           => array(
+				'rybbit' => array(
+					'enabled' => (bool) $rybbit_enabled
+				),
+				'ga' => array(
+					'enabled' => (bool) $ga_enabled,
+					'measurement_id' => $ga_measurement_id
+				)
+			)
 		) );
 
 		if ( $recording_mode ) {
@@ -461,17 +517,50 @@ class Clickwise_Analytics {
 			return;
 		}
 
+		// Check which handlers are enabled
+		$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
+		$ga_enabled = get_option( 'clickwise_ga_enabled' );
+
 		echo "<script>\n";
 		echo "window.addEventListener('load', function() {\n";
-		echo "    if (window.rybbit && window.rybbit.event) {\n";
-		foreach ( $events as $event ) {
-			$name_json = json_encode( $event['name'] );
-			$props_json = ! empty( $event['properties'] ) ? json_encode( $event['properties'] ) : '{}';
-			echo "        window.rybbit.event($name_json, $props_json);\n";
+
+		// Send to Rybbit if enabled
+		if ( $rybbit_enabled ) {
+			echo "    if (window.rybbit && window.rybbit.event) {\n";
+			foreach ( $events as $event ) {
+				$name_json = json_encode( $event['name'] );
+				$props_json = ! empty( $event['properties'] ) ? json_encode( $event['properties'] ) : '{}';
+				echo "        window.rybbit.event($name_json, $props_json);\n";
+			}
+			echo "    }\n";
 		}
-		echo "    }\n";
+
+		// Send to Google Analytics if enabled and configured
+		if ( $ga_enabled ) {
+			$ga_measurement_id = get_option( 'clickwise_ga_measurement_id' );
+			if ( $ga_measurement_id ) {
+				echo "    if (window.gtag) {\n";
+				foreach ( $events as $event ) {
+					$event_name = $this->sanitize_ga_event_name( $event['name'] );
+					$event_params = ! empty( $event['properties'] ) ? json_encode( $event['properties'] ) : '{}';
+					echo "        window.gtag('event', '$event_name', $event_params);\n";
+				}
+				echo "    }\n";
+			}
+		}
+
 		echo "});\n";
 		echo "</script>\n";
+	}
+
+	/**
+	 * Sanitize event name for Google Analytics.
+	 */
+	private function sanitize_ga_event_name( $name ) {
+		// GA event names must be alphanumeric and underscores only, max 40 chars
+		$name = preg_replace( '/[^a-zA-Z0-9_]/', '_', $name );
+		$name = substr( $name, 0, 40 );
+		return $name;
 	}
 
 	/**
