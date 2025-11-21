@@ -92,6 +92,7 @@ class Rybbit_Analytics {
 		add_action( 'wp_ajax_rybbit_delete_session', array( $plugin_admin, 'ajax_delete_session' ) );
 		add_action( 'wp_ajax_rybbit_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
 		add_action( 'wp_ajax_rybbit_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
+		add_action( 'wp_ajax_rybbit_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
 		
 		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
 	}

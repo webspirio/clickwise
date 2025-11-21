@@ -436,10 +436,20 @@ class Rybbit_Admin {
 				<a href="?page=rybbit-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
 			</h2>
 
-		<?php if ( $active_tab === 'general' ) : ?>
-			<div class="notice notice-info" style="margin: 15px 0;">
+		<?php if ( ! get_user_meta( get_current_user_id(), 'rybbit_dismiss_service_notice', true ) ) : ?>
+			<div id="rybbit-service-notice" class="notice notice-info is-dismissible" style="margin: 15px 0;">
 				<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance (an external service). By configuring and using this plugin, you consent to sending analytics data to your specified Rybbit server. <a href="https://rybbit.com" target="_blank">Learn more about Rybbit Analytics</a> | Please review your Rybbit provider's privacy policy and terms of service.</p>
+				<button type="button" class="notice-dismiss" onclick="rybbitDismissNotice()"><span class="screen-reader-text">Dismiss this notice.</span></button>
 			</div>
+			<script>
+			function rybbitDismissNotice() {
+				jQuery.post(ajaxurl, {
+					action: 'rybbit_dismiss_service_notice'
+				}, function() {
+					jQuery('#rybbit-service-notice').fadeOut();
+				});
+			}
+			</script>
 		<?php endif; ?>
 
 		<div class="rybbit-settings-container" style="display: flex; gap: 20px; margin-top: 20px;">
@@ -1020,5 +1030,20 @@ class Rybbit_Admin {
 		}
 
 		return $rules;
+	}
+
+	/**
+	 * AJAX handler for dismissing the service notice
+	 */
+	public function ajax_dismiss_service_notice() {
+		// Check nonce for security (optional but recommended)
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Unauthorized' );
+		}
+
+		// Store the dismissal in user meta
+		update_user_meta( get_current_user_id(), 'rybbit_dismiss_service_notice', true );
+
+		wp_send_json_success();
 	}
 }
