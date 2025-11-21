@@ -1,4 +1,4 @@
-#rybbit-live-overlay {
+#clickwise-live-overlay {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -17,12 +17,12 @@
     transition: opacity 0.3s;
 }
 
-#rybbit-live-overlay.minimized {
+#clickwise-live-overlay.minimized {
     height: 40px;
     overflow: hidden;
 }
 
-#rybbit-live-overlay-header {
+#clickwise-live-overlay-header {
     padding: 10px 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
@@ -33,7 +33,7 @@
     cursor: move;
 }
 
-#rybbit-live-overlay-list {
+#clickwise-live-overlay-list {
     flex: 1;
     overflow-y: auto;
     margin: 0;
@@ -42,14 +42,14 @@
     font-size: 12px;
 }
 
-#rybbit-live-overlay-list li {
+#clickwise-live-overlay-list li {
     margin-bottom: 6px;
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     word-wrap: break-word;
 }
 
-#rybbit-live-overlay-footer {
+#clickwise-live-overlay-footer {
     padding: 10px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
@@ -58,7 +58,7 @@
     gap: 8px;
 }
 
-.rybbit-overlay-btn {
+.clickwise-overlay-btn {
     display: block;
     width: 100%;
     border: none;
@@ -71,11 +71,11 @@
     text-align: center;
 }
 
-.rybbit-btn-stop { background: #d63638; color: #fff; }
-.rybbit-btn-start { background: #00a32a; color: #fff; }
-.rybbit-btn-history { background: #2271b1; color: #fff; }
+.clickwise-btn-stop { background: #d63638; color: #fff; }
+.clickwise-btn-start { background: #00a32a; color: #fff; }
+.clickwise-btn-history { background: #2271b1; color: #fff; }
 
-.rybbit-overlay-close {
+.clickwise-overlay-close {
     background: none;
     border: none;
     color: #fff;
@@ -85,9 +85,9 @@
     opacity: 0.7;
     padding: 0;
 }
-.rybbit-overlay-close:hover { opacity: 1; }
+.clickwise-overlay-close:hover { opacity: 1; }
 
-.rybbit-overlay-minimize {
+.clickwise-overlay-minimize {
     background: none;
     border: none;
     color: #fff;
@@ -98,4 +98,4 @@
     padding: 0;
     margin-right: 10px;
 }
-.rybbit-overlay-minimize:hover { opacity: 1; }
+.clickwise-overlay-minimize:hover { opacity: 1; }

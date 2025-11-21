@@ -1,4 +1,4 @@
-# Rybbit Analytics for WordPress
+# Clickwise Analytics for WordPress
 
 **Privacy-focused WordPress analytics plugin with advanced event tracking and live recording features.**
 
@@ -35,9 +35,9 @@ Connect your WordPress site to [Rybbit Analytics](https://rybbit.com) for compre
 
 ## 🚀 Quick Start
 
-1. **Install** from WordPress plugins or [GitHub](https://github.com/webspirio/rybbit-wp)
+1. **Install** from WordPress plugins or [GitHub](https://github.com/webspirio/clickwise-wp)
 2. **Activate** the plugin
-3. **Configure** at Settings → Rybbit Analytics
+3. **Configure** at Settings → Clickwise Analytics
    - Add your Rybbit Script URL
    - Add your Site ID
    - Click "Test Connection"
@@ -83,7 +83,7 @@ Connect your WordPress site to [Rybbit Analytics](https://rybbit.com) for compre
 
 ## 🤝 Contributing
 
-We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md) and visit the [GitHub repository](https://github.com/webspirio/rybbit-wp).
+We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md) and visit the [GitHub repository](https://github.com/webspirio/clickwise-wp).
 
 ## ❓ FAQ
 
@@ -114,7 +114,7 @@ GPLv2 or later. See [LICENSE](LICENSE) file.
 
 ## 💬 Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/webspirio/rybbit-wp/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/webspirio/clickwise-wp/issues)
 - **Email**: contact@webspirio.com
 - **Documentation**: [rybbit.com/docs](https://rybbit.com/docs)
 

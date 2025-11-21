@@ -8,13 +8,13 @@
  *
  * Author: Webspirio (Oleksandr Chornous)
  * Contact: contact@webspirio.com
- * @subpackage Rybbit_Analytics/includes
+ * @subpackage Clickwise_Analytics/includes
  * @author     Webspirio (Oleksandr Chornous) <contact@webspirio.com>
  *
  * Copyright (c) 2025 Webspirio
  * Licensed under GPLv2 or later
  */
-class Rybbit_Analytics {
+class Clickwise_Analytics {
 
 	/**
 	 * The unique identifier of this plugin.
@@ -41,8 +41,8 @@ class Rybbit_Analytics {
 	 * Define the core functionality of the plugin.
 	 */
 	public function __construct() {
-		$this->plugin_name = 'webspirio-rybbit-analytics';
-		$this->version     = RYBBIT_WP_VERSION;
+		$this->plugin_name = 'clickwise-analytics';
+		$this->version     = CLICKWISE_VERSION;
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -51,15 +51,15 @@ class Rybbit_Analytics {
 		$this->define_integrations();
 
 		// Add settings link to plugins page
-		$plugin_admin = new Rybbit_Admin( $this->plugin_name, $this->version );
-		add_filter( 'plugin_action_links_' . plugin_basename( RYBBIT_WP_PATH . 'webspirio-rybbit-analytics.php' ), array( $plugin_admin, 'add_settings_link' ) );
+		$plugin_admin = new Clickwise_Admin( $this->plugin_name, $this->version );
+		add_filter( 'plugin_action_links_' . plugin_basename( CLICKWISE_PATH . 'clickwise.php' ), array( $plugin_admin, 'add_settings_link' ) );
 	}
 
 	/**
 	 * Load the required dependencies for this plugin.
 	 */
 	private function load_dependencies() {
-		require_once RYBBIT_WP_PATH . 'includes/class-rybbit-admin.php';
+		require_once CLICKWISE_PATH . 'includes/class-clickwise-admin.php';
 	}
 
 	/**
@@ -67,7 +67,7 @@ class Rybbit_Analytics {
 	 */
 	private function set_locale() {
 		load_plugin_textdomain(
-			'rybbit-wp',
+			'clickwise',
 			false,
 			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
 		);
@@ -77,7 +77,7 @@ class Rybbit_Analytics {
 	 * Register all of the hooks related to the admin area functionality.
 	 */
 	private function define_admin_hooks() {
-		$plugin_admin = new Rybbit_Admin( $this->plugin_name, $this->version );
+		$plugin_admin = new Clickwise_Admin( $this->plugin_name, $this->version );
 
 		add_action( 'admin_menu', array( $plugin_admin, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $plugin_admin, 'register_settings' ) );
@@ -85,14 +85,14 @@ class Rybbit_Analytics {
 		add_action( 'wp_enqueue_scripts', array( $plugin_admin, 'enqueue_admin_scripts' ) ); // For admin bar on frontend
 		add_action( 'admin_bar_menu', array( $plugin_admin, 'add_admin_bar_menu' ), 999 );
 		
-		add_action( 'wp_ajax_rybbit_test_connection', array( $plugin_admin, 'ajax_test_connection' ) );
-		add_action( 'wp_ajax_rybbit_toggle_recording', array( $plugin_admin, 'ajax_toggle_recording' ) );
-		add_action( 'wp_ajax_rybbit_record_event', array( $plugin_admin, 'ajax_record_event' ) );
-		add_action( 'wp_ajax_rybbit_update_event_status', array( $plugin_admin, 'ajax_update_event_status' ) );
-		add_action( 'wp_ajax_rybbit_delete_session', array( $plugin_admin, 'ajax_delete_session' ) );
-		add_action( 'wp_ajax_rybbit_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
-		add_action( 'wp_ajax_rybbit_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
-		add_action( 'wp_ajax_rybbit_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
+		add_action( 'wp_ajax_clickwise_test_connection', array( $plugin_admin, 'ajax_test_connection' ) );
+		add_action( 'wp_ajax_clickwise_toggle_recording', array( $plugin_admin, 'ajax_toggle_recording' ) );
+		add_action( 'wp_ajax_clickwise_record_event', array( $plugin_admin, 'ajax_record_event' ) );
+		add_action( 'wp_ajax_clickwise_update_event_status', array( $plugin_admin, 'ajax_update_event_status' ) );
+		add_action( 'wp_ajax_clickwise_delete_session', array( $plugin_admin, 'ajax_delete_session' ) );
+		add_action( 'wp_ajax_clickwise_bulk_action', array( $plugin_admin, 'ajax_bulk_action' ) );
+		add_action( 'wp_ajax_clickwise_send_test_event', array( $plugin_admin, 'ajax_send_test_event' ) );
+		add_action( 'wp_ajax_clickwise_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
 		
 		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
 	}
@@ -104,7 +104,7 @@ class Rybbit_Analytics {
 		add_action( 'wp_head', array( $this, 'add_tracking_code' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'print_queued_events' ) );
-		add_shortcode( 'rybbit_event', array( $this, 'render_shortcode' ) );
+		add_shortcode( 'clickwise_event', array( $this, 'render_shortcode' ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Rybbit_Analytics {
 	 */
 	private function create_events_table() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -148,13 +148,13 @@ class Rybbit_Analytics {
 	 * Migrate data from wp_options to custom table.
 	 */
 	private function migrate_events_data() {
-		$events = get_option( 'rybbit_discovered_events' );
+		$events = get_option( 'clickwise_discovered_events' );
 		if ( empty( $events ) || ! is_array( $events ) ) {
 			return;
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		foreach ( $events as $key => $event ) {
 			// Check if exists
@@ -183,8 +183,8 @@ class Rybbit_Analytics {
 
 		// Rename option to avoid re-migration, or delete it. 
 		// Let's rename it for safety backup for now.
-		update_option( 'rybbit_discovered_events_backup', $events );
-		delete_option( 'rybbit_discovered_events' );
+		update_option( 'clickwise_discovered_events_backup', $events );
+		delete_option( 'clickwise_discovered_events' );
 	}
 
 	/**
@@ -198,21 +198,21 @@ class Rybbit_Analytics {
 	}
 
 	/**
-	 * Add the Rybbit tracking code to the site header.
+	 * Add the Clickwise tracking code to the site header.
 	 */
 	public function add_tracking_code() {
 		// Get options with defaults
-		$script_url         = get_option( 'rybbit_script_url', 'https://tracking.example.com/api/script.js' );
-		$site_id            = get_option( 'rybbit_site_id', '' );
-		$api_version        = get_option( 'rybbit_api_version', 'v1' );
-		$track_pgv          = get_option( 'rybbit_track_pgv', true );
-		$track_spa          = get_option( 'rybbit_track_spa', true );
-		$track_query        = get_option( 'rybbit_track_query', true );
-		$track_errors       = get_option( 'rybbit_track_errors', false );
-		$session_replay     = get_option( 'rybbit_session_replay', false );
-		$skip_patterns_text = get_option( 'rybbit_skip_patterns', '' );
-		$mask_patterns_text = get_option( 'rybbit_mask_patterns', '' );
-		$debounce           = get_option( 'rybbit_debounce', 500 );
+		$script_url         = get_option( 'clickwise_script_url', 'https://tracking.example.com/api/script.js' );
+		$site_id            = get_option( 'clickwise_site_id', '' );
+		$api_version        = get_option( 'clickwise_api_version', 'v1' );
+		$track_pgv          = get_option( 'clickwise_track_pgv', true );
+		$track_spa          = get_option( 'clickwise_track_spa', true );
+		$track_query        = get_option( 'clickwise_track_query', true );
+		$track_errors       = get_option( 'clickwise_track_errors', false );
+		$session_replay     = get_option( 'clickwise_session_replay', false );
+		$skip_patterns_text = get_option( 'clickwise_skip_patterns', '' );
+		$mask_patterns_text = get_option( 'clickwise_mask_patterns', '' );
+		$debounce           = get_option( 'clickwise_debounce', 500 );
 
 		// Validate script URL
 		if ( empty( $script_url ) || ! filter_var( $script_url, FILTER_VALIDATE_URL ) ) {
@@ -269,17 +269,17 @@ class Rybbit_Analytics {
 	 * Enqueue the frontend tracking script.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_name, RYBBIT_WP_URL . 'assets/js/rybbit-tracker.js', array(), $this->version, true );
+		wp_enqueue_script( $this->plugin_name, CLICKWISE_URL . 'assets/js/clickwise-tracker.js', array(), $this->version, true );
 
 		// Pass settings to JS
-		$event_prefixes = get_option( 'rybbit_event_prefixes', 'kb-, wc-, custom-' );
-		$track_forms    = get_option( 'rybbit_track_forms', true );
-		$track_links    = get_option( 'rybbit_track_links', true );
-		$dev_mode       = get_option( 'rybbit_dev_mode', false ) && current_user_can( 'manage_options' );
+		$event_prefixes = get_option( 'clickwise_event_prefixes', 'kb-, wc-, custom-' );
+		$track_forms    = get_option( 'clickwise_track_forms', true );
+		$track_links    = get_option( 'clickwise_track_links', true );
+		$dev_mode       = get_option( 'clickwise_dev_mode', false ) && current_user_can( 'manage_options' );
 		
 		$recording_mode = false;
 		if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-			$recording_mode = get_user_meta( get_current_user_id(), 'rybbit_recording_mode', true );
+			$recording_mode = get_user_meta( get_current_user_id(), 'clickwise_recording_mode', true );
 		}
 
 		// Get managed events from database table
@@ -297,7 +297,7 @@ class Rybbit_Analytics {
 			$event_rules = array( 'kb-', 'wc-', 'custom-' );
 		}
 
-		wp_localize_script( $this->plugin_name, 'rybbit_config', array(
+		wp_localize_script( $this->plugin_name, 'clickwise_config', array(
 			'event_rules'    => $event_rules,
 			'track_forms'    => (bool) $track_forms,
 			'track_links'    => (bool) $track_links,
@@ -305,19 +305,19 @@ class Rybbit_Analytics {
 			'recording_mode' => (bool) $recording_mode,
 			'managed_events' => $managed_events,
 			'ajax_url'       => admin_url( 'admin-ajax.php' ),
-			'admin_url'      => admin_url( 'admin.php?page=rybbit-analytics' ),
-			'nonce'          => wp_create_nonce( 'rybbit_admin_nonce' ), // Reuse admin nonce for recording
+			'admin_url'      => admin_url( 'admin.php?page=clickwise-settings' ),
+			'nonce'          => wp_create_nonce( 'clickwise_admin_nonce' ), // Reuse admin nonce for recording
 			'events'         => $this->get_managed_events_for_js()
 		) );
 
 		if ( $recording_mode ) {
-			wp_enqueue_style( 'rybbit-recorder-css', RYBBIT_WP_URL . 'assets/css/rybbit-recorder.css', array(), $this->version );
-			wp_enqueue_script( 'rybbit-recorder-js', RYBBIT_WP_URL . 'assets/js/rybbit-recorder.js', array( $this->plugin_name ), $this->version, true );
+			wp_enqueue_style( 'clickwise-recorder-css', CLICKWISE_URL . 'assets/css/clickwise-recorder.css', array(), $this->version );
+			wp_enqueue_script( 'clickwise-recorder-js', CLICKWISE_URL . 'assets/js/clickwise-recorder.js', array( $this->plugin_name ), $this->version, true );
 		}
 
 		if ( $dev_mode ) {
-			wp_enqueue_style( 'rybbit-dev-css', RYBBIT_WP_URL . 'assets/css/rybbit-dev.css', array(), $this->version );
-			wp_enqueue_script( 'rybbit-dev-js', RYBBIT_WP_URL . 'assets/js/rybbit-dev.js', array( $this->plugin_name ), $this->version, true );
+			wp_enqueue_style( 'clickwise-dev-css', CLICKWISE_URL . 'assets/css/clickwise-dev.css', array(), $this->version );
+			wp_enqueue_script( 'clickwise-dev-js', CLICKWISE_URL . 'assets/js/clickwise-dev.js', array( $this->plugin_name ), $this->version, true );
 		}
 	}
 
@@ -326,7 +326,7 @@ class Rybbit_Analytics {
 	 */
 	private function get_managed_events_for_js() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 		// Check if table exists first to avoid errors on fresh install before migration runs
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
 			return array();
@@ -427,7 +427,7 @@ class Rybbit_Analytics {
 		// Persist if user is logged in (handles redirects)
 		if ( is_user_logged_in() ) {
 			$user_id = get_current_user_id();
-			$transient_key = 'rybbit_event_queue_' . $user_id;
+			$transient_key = 'clickwise_event_queue_' . $user_id;
 			$queued = get_transient( $transient_key );
 			if ( ! is_array( $queued ) ) {
 				$queued = array();
@@ -446,7 +446,7 @@ class Rybbit_Analytics {
 		// Check for persisted events
 		if ( is_user_logged_in() ) {
 			$user_id = get_current_user_id();
-			$transient_key = 'rybbit_event_queue_' . $user_id;
+			$transient_key = 'clickwise_event_queue_' . $user_id;
 			$persisted = get_transient( $transient_key );
 			if ( is_array( $persisted ) && ! empty( $persisted ) ) {
 				$events = array_merge( $events, $persisted );
@@ -489,7 +489,7 @@ class Rybbit_Analytics {
 	}
 
 	/**
-	 * Shortcode: [rybbit_event]
+	 * Shortcode: [clickwise_event]
 	 */
 	public function render_shortcode( $atts, $content = null ) {
 		$a = shortcode_atts( array(
@@ -508,12 +508,12 @@ class Rybbit_Analytics {
 
 		$attrs = array(
 			'class'              => esc_attr( $a['class'] ),
-			'data-rybbit-action' => esc_attr( $a['type'] ),
-			'data-rybbit-name'   => esc_attr( $a['name'] ),
+			'data-clickwise-action' => esc_attr( $a['type'] ),
+			'data-clickwise-name'   => esc_attr( $a['name'] ),
 		);
 
 		if ( ! empty( $a['detail'] ) ) {
-			$attrs['data-rybbit-detail'] = esc_attr( $a['detail'] );
+			$attrs['data-clickwise-detail'] = esc_attr( $a['detail'] );
 		}
 
 		$attr_str = '';

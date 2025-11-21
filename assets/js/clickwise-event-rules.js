@@ -1,5 +1,5 @@
 /**
- * Rybbit Event Rules UI
+ * Clickwise Event Rules UI
  * Handles the sophisticated rule-based event matching system
  */
 jQuery(document).ready(function($) {
@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 
     // Initialize the rules UI
     function initEventRules() {
-        const rulesData = $('.rybbit-rules-data').val();
+        const rulesData = $('.clickwise-rules-data').val();
         try {
             eventRules = rulesData ? JSON.parse(rulesData) : [];
         } catch (e) {
@@ -21,11 +21,11 @@ jQuery(document).ready(function($) {
 
     // Render the rules list
     function renderRulesList() {
-        const container = $('.rybbit-rules-list');
+        const container = $('.clickwise-rules-list');
 
         if (eventRules.length === 0) {
             container.html(`
-                <div class="rybbit-rules-empty">
+                <div class="clickwise-rules-empty">
                     <div class="dashicons dashicons-admin-settings"></div>
                     <h4>No Event Rules Defined</h4>
                     <p>Add your first rule below to start automatically tracking custom events.</p>
@@ -46,13 +46,13 @@ jQuery(document).ready(function($) {
             }[rule.type] || 'Prefix';
 
             html += `
-                <div class="rybbit-rule-item" data-index="${index}">
-                    <span class="rybbit-rule-type ${typeClass}">${typeLabel}</span>
-                    <div class="rybbit-rule-content">
-                        <div class="rybbit-rule-value">${escapeHtml(rule.value || '')}</div>
-                        ${rule.description ? `<div class="rybbit-rule-description">${escapeHtml(rule.description)}</div>` : ''}
+                <div class="clickwise-rule-item" data-index="${index}">
+                    <span class="clickwise-rule-type ${typeClass}">${typeLabel}</span>
+                    <div class="clickwise-rule-content">
+                        <div class="clickwise-rule-value">${escapeHtml(rule.value || '')}</div>
+                        ${rule.description ? `<div class="clickwise-rule-description">${escapeHtml(rule.description)}</div>` : ''}
                     </div>
-                    <div class="rybbit-rule-edit-form">
+                    <div class="clickwise-rule-edit-form">
                         <select class="rule-type-select">
                             <option value="prefix" ${rule.type === 'prefix' ? 'selected' : ''}>Prefix</option>
                             <option value="contains" ${rule.type === 'contains' ? 'selected' : ''}>Contains</option>
@@ -63,17 +63,17 @@ jQuery(document).ready(function($) {
                         <input type="text" class="rule-value-input" value="${escapeHtml(rule.value || '')}" placeholder="Rule value">
                         <input type="text" class="rule-desc-input" value="${escapeHtml(rule.description || '')}" placeholder="Description (optional)">
                     </div>
-                    <div class="rybbit-rule-actions">
-                        <button type="button" class="rybbit-rule-edit-btn" data-index="${index}">
+                    <div class="clickwise-rule-actions">
+                        <button type="button" class="clickwise-rule-edit-btn" data-index="${index}">
                             <span class="dashicons dashicons-edit-page"></span> Edit
                         </button>
-                        <button type="button" class="rybbit-rule-delete-btn" data-index="${index}">
+                        <button type="button" class="clickwise-rule-delete-btn" data-index="${index}">
                             <span class="dashicons dashicons-trash"></span> Delete
                         </button>
                     </div>
-                    <div class="rybbit-rule-edit-actions">
-                        <button type="button" class="button button-primary rybbit-rule-save-btn" data-index="${index}">Save</button>
-                        <button type="button" class="button rybbit-rule-cancel-btn" data-index="${index}">Cancel</button>
+                    <div class="clickwise-rule-edit-actions">
+                        <button type="button" class="button button-primary clickwise-rule-save-btn" data-index="${index}">Save</button>
+                        <button type="button" class="button clickwise-rule-cancel-btn" data-index="${index}">Cancel</button>
                     </div>
                 </div>
             `;
@@ -85,7 +85,7 @@ jQuery(document).ready(function($) {
 
     // Save rules to hidden field
     function saveRulesToField() {
-        $('.rybbit-rules-data').val(JSON.stringify(eventRules));
+        $('.clickwise-rules-data').val(JSON.stringify(eventRules));
     }
 
     // Add new rule
@@ -142,12 +142,12 @@ jQuery(document).ready(function($) {
         }
 
         editingIndex = index;
-        $(`.rybbit-rule-item[data-index="${index}"]`).addClass('editing');
+        $(`.clickwise-rule-item[data-index="${index}"]`).addClass('editing');
     }
 
     // Save edited rule
     function saveRule(index) {
-        const item = $(`.rybbit-rule-item[data-index="${index}"]`);
+        const item = $(`.clickwise-rule-item[data-index="${index}"]`);
         const type = item.find('.rule-type-select').val();
         const value = item.find('.rule-value-input').val().trim();
         const description = item.find('.rule-desc-input').val().trim();
@@ -178,7 +178,7 @@ jQuery(document).ready(function($) {
     // Cancel edit
     function cancelEdit(index) {
         editingIndex = -1;
-        $(`.rybbit-rule-item[data-index="${index}"]`).removeClass('editing');
+        $(`.clickwise-rule-item[data-index="${index}"]`).removeClass('editing');
     }
 
     // Update live preview
@@ -225,7 +225,7 @@ jQuery(document).ready(function($) {
     function showSuccessMessage(message) {
         // Create a temporary success message
         const successEl = $(`<div class="notice notice-success is-dismissible" style="margin: 10px 0;"><p>${message}</p></div>`);
-        $('.rybbit-event-rules-container').prepend(successEl);
+        $('.clickwise-event-rules-container').prepend(successEl);
 
         setTimeout(() => {
             successEl.fadeOut(() => successEl.remove());
@@ -246,16 +246,16 @@ jQuery(document).ready(function($) {
 
     // Event handlers
     $(document).on('click', '#add-event-rule-btn', addRule);
-    $(document).on('click', '.rybbit-rule-delete-btn', function() {
+    $(document).on('click', '.clickwise-rule-delete-btn', function() {
         deleteRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.rybbit-rule-edit-btn', function() {
+    $(document).on('click', '.clickwise-rule-edit-btn', function() {
         editRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.rybbit-rule-save-btn', function() {
+    $(document).on('click', '.clickwise-rule-save-btn', function() {
         saveRule(parseInt($(this).data('index')));
     });
-    $(document).on('click', '.rybbit-rule-cancel-btn', function() {
+    $(document).on('click', '.clickwise-rule-cancel-btn', function() {
         cancelEdit(parseInt($(this).data('index')));
     });
 
@@ -272,7 +272,7 @@ jQuery(document).ready(function($) {
     // Enter key in edit form
     $(document).on('keypress', '.rule-value-input, .rule-desc-input', function(e) {
         if (e.which === 13) {
-            const index = parseInt($(this).closest('.rybbit-rule-item').data('index'));
+            const index = parseInt($(this).closest('.clickwise-rule-item').data('index'));
             saveRule(index);
         }
     });
@@ -285,7 +285,7 @@ jQuery(document).ready(function($) {
     });
 
     // Initialize when page loads
-    if ($('.rybbit-event-rules-container').length > 0) {
+    if ($('.clickwise-event-rules-container').length > 0) {
         initEventRules();
     }
 });

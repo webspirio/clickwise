@@ -1,13 +1,13 @@
-/* Rybbit Event Rules UI */
-.rybbit-event-rules-container {
+/* Clickwise Event Rules UI */
+.clickwise-event-rules-container {
     max-width: 800px;
 }
 
-.rybbit-rules-list {
+.clickwise-rules-list {
     margin-bottom: 20px;
 }
 
-.rybbit-rule-item {
+.clickwise-rule-item {
     display: flex;
     align-items: center;
     padding: 12px;
@@ -18,12 +18,12 @@
     position: relative;
 }
 
-.rybbit-rule-item:hover {
+.clickwise-rule-item:hover {
     border-color: #0073aa;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.rybbit-rule-type {
+.clickwise-rule-type {
     display: inline-block;
     padding: 4px 8px;
     border-radius: 3px;
@@ -36,40 +36,40 @@
     flex-shrink: 0;
 }
 
-.rybbit-rule-type.prefix { background: #e7f3ff; color: #0073aa; }
-.rybbit-rule-type.contains { background: #f0f8e7; color: #5b9a00; }
-.rybbit-rule-type.exact { background: #fff2e7; color: #d68100; }
-.rybbit-rule-type.regex { background: #ffe7e7; color: #cc1818; }
-.rybbit-rule-type.pattern { background: #f3e7ff; color: #8224aa; }
+.clickwise-rule-type.prefix { background: #e7f3ff; color: #0073aa; }
+.clickwise-rule-type.contains { background: #f0f8e7; color: #5b9a00; }
+.clickwise-rule-type.exact { background: #fff2e7; color: #d68100; }
+.clickwise-rule-type.regex { background: #ffe7e7; color: #cc1818; }
+.clickwise-rule-type.pattern { background: #f3e7ff; color: #8224aa; }
 
-.rybbit-rule-content {
+.clickwise-rule-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.rybbit-rule-value {
+.clickwise-rule-value {
     font-family: monospace;
     font-weight: bold;
     color: #333;
     font-size: 14px;
 }
 
-.rybbit-rule-description {
+.clickwise-rule-description {
     color: #666;
     font-size: 12px;
     font-style: italic;
 }
 
-.rybbit-rule-actions {
+.clickwise-rule-actions {
     display: flex;
     gap: 5px;
     flex-shrink: 0;
 }
 
-.rybbit-rule-edit-btn,
-.rybbit-rule-delete-btn {
+.clickwise-rule-edit-btn,
+.clickwise-rule-delete-btn {
     padding: 4px 8px;
     border: none;
     border-radius: 3px;
@@ -81,84 +81,84 @@
     gap: 3px;
 }
 
-.rybbit-rule-edit-btn {
+.clickwise-rule-edit-btn {
     background: #0073aa;
     color: white;
 }
 
-.rybbit-rule-edit-btn:hover {
+.clickwise-rule-edit-btn:hover {
     background: #005a87;
     color: white;
 }
 
-.rybbit-rule-delete-btn {
+.clickwise-rule-delete-btn {
     background: #d63638;
     color: white;
 }
 
-.rybbit-rule-delete-btn:hover {
+.clickwise-rule-delete-btn:hover {
     background: #b32d2e;
     color: white;
 }
 
 /* Edit Mode */
-.rybbit-rule-item.editing {
+.clickwise-rule-item.editing {
     border-color: #0073aa;
     background: #f0f8ff;
 }
 
-.rybbit-rule-item.editing .rybbit-rule-content {
+.clickwise-rule-item.editing .clickwise-rule-content {
     display: none;
 }
 
-.rybbit-rule-item.editing .rybbit-rule-actions {
+.clickwise-rule-item.editing .clickwise-rule-actions {
     display: none;
 }
 
-.rybbit-rule-edit-form {
+.clickwise-rule-edit-form {
     display: none;
     flex: 1;
     gap: 10px;
     align-items: center;
 }
 
-.rybbit-rule-item.editing .rybbit-rule-edit-form {
+.clickwise-rule-item.editing .clickwise-rule-edit-form {
     display: flex;
 }
 
-.rybbit-rule-edit-form select,
-.rybbit-rule-edit-form input[type="text"] {
+.clickwise-rule-edit-form select,
+.clickwise-rule-edit-form input[type="text"] {
     padding: 4px 6px;
     border: 1px solid #ddd;
     border-radius: 3px;
     font-size: 12px;
 }
 
-.rybbit-rule-edit-form .rule-type-select {
+.clickwise-rule-edit-form .rule-type-select {
     min-width: 100px;
 }
 
-.rybbit-rule-edit-form .rule-value-input {
+.clickwise-rule-edit-form .rule-value-input {
     flex: 1;
     min-width: 0;
 }
 
-.rybbit-rule-edit-form .rule-desc-input {
+.clickwise-rule-edit-form .rule-desc-input {
     flex: 1;
     min-width: 0;
 }
 
-.rybbit-rule-edit-actions {
+.clickwise-rule-edit-actions {
     display: none;
     gap: 5px;
 }
 
-.rybbit-rule-item.editing .rybbit-rule-edit-actions {
+.clickwise-rule-item.editing .clickwise-rule-edit-actions {
     display: flex;
 }
 
 /* Empty State */
-.rybbit-rules-empty {
+.clickwise-rules-empty {
     text-align: center;
     padding: 40px 20px;
     color: #666;
@@ -167,7 +167,7 @@
     background: #f9f9f9;
 }
 
-.rybbit-rules-empty .dashicons {
+.clickwise-rules-empty .dashicons {
     font-size: 48px;
     margin-bottom: 10px;
     opacity: 0.3;
@@ -180,19 +180,19 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .rybbit-rule-item {
+    .clickwise-rule-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
 
-    .rybbit-rule-edit-form {
+    .clickwise-rule-edit-form {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .rybbit-rule-edit-form select,
-    .rybbit-rule-edit-form input[type="text"] {
+    .clickwise-rule-edit-form select,
+    .clickwise-rule-edit-form input[type="text"] {
         width: 100%;
     }
 }
