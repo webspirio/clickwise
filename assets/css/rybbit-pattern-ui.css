@@ -1,0 +1,65 @@
+.rybbit-pattern-wrapper {
+    max-width: 600px;
+    margin-top: 5px;
+}
+
+.rybbit-pattern-list {
+    list-style: none;
+    margin: 0 0 10px 0;
+    padding: 0;
+    border: 1px solid #ccd0d4;
+    background: #fff;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.rybbit-pattern-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.rybbit-pattern-item:last-child {
+    border-bottom: none;
+}
+
+.rybbit-pattern-item:hover {
+    background-color: #f6f7f7;
+}
+
+.rybbit-pattern-text {
+    font-family: monospace;
+    color: #3c434a;
+}
+
+.rybbit-remove-pattern {
+    color: #d63638;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 5px;
+}
+
+.rybbit-remove-pattern:hover {
+    color: #b32d2e;
+}
+
+.rybbit-pattern-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.rybbit-pattern-input-group input {
+    flex: 1;
+}
+
+.rybbit-empty-list-message {
+    padding: 15px;
+    text-align: center;
+    color: #646970;
+    font-style: italic;
+}

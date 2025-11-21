@@ -39,12 +39,18 @@ class Rybbit_Admin {
 		}
 
 		$is_recording = get_user_meta( get_current_user_id(), 'rybbit_recording_mode', true );
-		$title = $is_recording ? '<span style="color: #d63638; font-weight: bold;">● Recording Events</span>' : 'Rybbit Analytics';
+		$title = $is_recording ? '● Recording Events' : 'Rybbit Analytics';
+		
+		$meta = array();
+		if ( $is_recording ) {
+			$meta['class'] = 'rybbit-recording-active';
+		}
 
 		$wp_admin_bar->add_node( array(
 			'id'    => 'rybbit-analytics',
 			'title' => $title,
 			'href'  => admin_url( 'options-general.php?page=rybbit-settings&tab=events_manager' ),
+			'meta'  => $meta
 		) );
 
 		$wp_admin_bar->add_node( array(
@@ -69,11 +75,14 @@ class Rybbit_Admin {
 		// Enqueue on settings page AND frontend (for admin bar)
 		if ( 'settings_page_rybbit-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-				wp_enqueue_script( 'rybbit-admin', RYBBIT_WP_URL . 'assets/js/rybbit-admin.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
+			wp_enqueue_style( 'rybbit-admin-bar-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin-bar.css', array(), RYBBIT_WP_VERSION );
+			wp_enqueue_style( 'rybbit-pattern-ui-css', RYBBIT_WP_URL . 'assets/css/rybbit-pattern-ui.css', array(), RYBBIT_WP_VERSION );
+			wp_enqueue_script( 'rybbit-admin', RYBBIT_WP_URL . 'assets/js/rybbit-admin.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
+			wp_enqueue_script( 'rybbit-pattern-ui', RYBBIT_WP_URL . 'assets/js/rybbit-pattern-ui.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 				wp_localize_script( 'rybbit-admin', 'rybbit_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'rybbit_admin_nonce' ),
-					'events'   => get_option( 'rybbit_discovered_events', array() ),
+					'events'   => $this->get_events_for_admin_js(),
 					'script_url' => get_option( 'rybbit_script_url' ),
 					'site_id'    => get_option( 'rybbit_site_id' )
 				) );
@@ -105,138 +114,160 @@ class Rybbit_Admin {
 
 	public function ajax_record_event() {
 		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
 		}
 
 		$event_data = isset( $_POST['event'] ) ? $_POST['event'] : array();
-		if ( empty( $event_data ) || empty( $event_data['name'] ) ) {
+		if ( empty( $event_data ) || empty( $event_data['type'] ) || empty( $event_data['detail'] ) ) {
 			wp_send_json_error( 'Invalid event data' );
 		}
 
-		$user_id = get_current_user_id();
-		$session_id = get_user_meta( $user_id, 'rybbit_current_session_id', true );
-		if ( ! $session_id ) {
-			$session_id = 'manual_' . date('Ymd'); // Fallback
-		}
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
 
-		$events = get_option( 'rybbit_discovered_events', array() );
-		$key = md5( $event_data['name'] . ( isset( $event_data['selector'] ) ? $event_data['selector'] : '' ) );
+		$type     = sanitize_text_field( $event_data['type'] );
+		$detail   = $event_data['detail']; // Already an object/array from JS
+		$selector = isset( $event_data['selector'] ) ? sanitize_text_field( $event_data['selector'] ) : '';
+		
+		// Generate a unique key for the event based on type and selector (or name if custom)
+		// For clicks/forms, selector is key. For custom events, type is key.
+		$key_string = $type . '|' . $selector;
+		$event_key  = md5( $key_string );
 
-		if ( ! isset( $events[ $key ] ) ) {
-			$events[ $key ] = array(
-				'type'      => sanitize_text_field( wp_unslash( $event_data['type'] ) ),
-				'name'      => sanitize_text_field( wp_unslash( $event_data['name'] ) ),
-				'selector'  => isset( $event_data['selector'] ) ? sanitize_text_field( wp_unslash( $event_data['selector'] ) ) : '',
-				'first_seen'=> time(),
-				'last_seen' => time(),
-				'status'    => 'pending', // pending, tracked, ignored
-				'example'   => isset( $event_data['detail'] ) ? sanitize_text_field( wp_unslash( $event_data['detail'] ) ) : '',
-				'session_id' => $session_id,
-				'session_timestamp' => time()
+		// Check if exists
+		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_key = %s", $event_key ), ARRAY_A );
+
+		$now = current_time( 'mysql' );
+		$session_id = uniqid( 'sess_' ); // Simple session ID for grouping in this context
+
+		if ( $existing ) {
+			// Update last seen
+			$wpdb->update(
+				$table_name,
+				array(
+					'last_seen' => $now,
+					'example_detail' => json_encode( $detail ) // Update example with latest
+				),
+				array( 'id' => $existing['id'] )
 			);
-			update_option( 'rybbit_discovered_events', $events );
-			wp_send_json_success( 'Event recorded' );
+			$status = $existing['status'];
 		} else {
-			$events[ $key ]['last_seen'] = time();
-			// Do not overwrite session_id to keep history context
-			update_option( 'rybbit_discovered_events', $events );
-			wp_send_json_success( 'Event updated' );
+			// Insert new
+			$wpdb->insert(
+				$table_name,
+				array(
+					'event_key'      => $event_key,
+					'type'           => $type,
+					'name'           => $type, // Default name
+					'alias'          => '',
+					'selector'       => $selector,
+					'status'         => 'pending',
+					'first_seen'     => $now,
+					'last_seen'      => $now,
+					'example_detail' => json_encode( $detail ),
+					'session_id'     => $session_id,
+					'session_timestamp' => time()
+				)
+			);
+			$status = 'pending';
 		}
+
+		wp_send_json_success( array( 'status' => $status, 'key' => $event_key ) );
 	}
 
 	public function ajax_update_event_status() {
 		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
 		}
 
-		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
+		$key    = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
 		$status = isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : '';
-		$alias = isset( $_POST['alias'] ) ? sanitize_text_field( $_POST['alias'] ) : '';
+		$alias  = isset( $_POST['alias'] ) ? sanitize_text_field( $_POST['alias'] ) : '';
 
-		if ( empty( $key ) || ! in_array( $status, array( 'tracked', 'ignored', 'pending' ) ) ) {
-			wp_send_json_error( 'Invalid data' );
+		if ( empty( $key ) || empty( $status ) ) {
+			wp_send_json_error( 'Missing parameters' );
 		}
 
-		$events = get_option( 'rybbit_discovered_events', array() );
-		if ( isset( $events[ $key ] ) ) {
-			$events[ $key ]['status'] = $status;
-			if ( isset( $_POST['alias'] ) ) {
-				$events[ $key ]['alias'] = $alias;
-			}
-			update_option( 'rybbit_discovered_events', $events );
-			wp_send_json_success( 'Status updated' );
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
+
+		$data = array( 'status' => $status );
+		if ( isset( $_POST['alias'] ) ) {
+			$data['alias'] = $alias;
 		}
 
-		wp_send_json_error( 'Event not found' );
+		$updated = $wpdb->update(
+			$table_name,
+			$data,
+			array( 'event_key' => $key )
+		);
+
+		if ( $updated !== false ) {
+			wp_send_json_success( 'Event updated' );
+		} else {
+			wp_send_json_error( 'Update failed' );
+		}
 	}
 
 	public function ajax_delete_session() {
 		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
 		}
 
 		$session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : '';
+
 		if ( empty( $session_id ) ) {
-			wp_send_json_error( 'Invalid session ID' );
+			wp_send_json_error( 'Missing session ID' );
 		}
 
-		$events = get_option( 'rybbit_discovered_events', array() );
-		$count_deleted = 0;
-		$count_unlinked = 0;
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
 
-		foreach ( $events as $key => &$event ) {
-			// Check if event belongs to this session
-			if ( isset( $event['session_id'] ) && $event['session_id'] === $session_id ) {
-				// If Pending -> Delete it
-				if ( ! isset( $event['status'] ) || $event['status'] === 'pending' ) {
-					unset( $events[ $key ] );
-					$count_deleted++;
-				} else {
-					// If Tracked or Ignored -> Keep it, but remove from this session (unlink)
-					unset( $event['session_id'] );
-					unset( $event['session_timestamp'] );
-					$count_unlinked++;
-				}
-			}
-		}
+		$wpdb->delete(
+			$table_name,
+			array( 'session_id' => $session_id )
+		);
 
-		update_option( 'rybbit_discovered_events', $events );
-		wp_send_json_success( "Deleted $count_deleted pending events. Preserved $count_unlinked tracked/ignored events." );
+		wp_send_json_success( 'Session deleted' );
 	}
 
 	public function ajax_bulk_action() {
 		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
 		}
 
-		$keys = isset( $_POST['keys'] ) ? (array) $_POST['keys'] : array();
 		$action = isset( $_POST['bulk_action'] ) ? sanitize_text_field( $_POST['bulk_action'] ) : '';
+		$keys   = isset( $_POST['keys'] ) ? $_POST['keys'] : array();
 
-		if ( empty( $keys ) || empty( $action ) ) {
-			wp_send_json_error( 'Invalid data' );
+		if ( empty( $action ) || empty( $keys ) || ! is_array( $keys ) ) {
+			wp_send_json_error( 'Invalid request' );
 		}
 
-		$events = get_option( 'rybbit_discovered_events', array() );
-		$count = 0;
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
 
-		foreach ( $keys as $key ) {
-			if ( ! isset( $events[ $key ] ) ) continue;
+		$sanitized_keys = array_map( 'sanitize_text_field', $keys );
+		// Prepare IN clause
+		$placeholders = implode( ',', array_fill( 0, count( $sanitized_keys ), '%s' ) );
 
-			if ( $action === 'delete' ) {
-				unset( $events[ $key ] );
-				$count++;
-			} elseif ( in_array( $action, array( 'tracked', 'ignored', 'pending' ) ) ) {
-				$events[ $key ]['status'] = $action;
-				$count++;
-			}
+		if ( $action === 'delete' ) {
+			$sql = "DELETE FROM $table_name WHERE event_key IN ($placeholders)";
+			$wpdb->query( $wpdb->prepare( $sql, $sanitized_keys ) );
+		} elseif ( in_array( $action, array( 'track', 'ignore', 'pending' ) ) ) {
+			$sql = "UPDATE $table_name SET status = %s WHERE event_key IN ($placeholders)";
+			$params = array_merge( array( $action ), $sanitized_keys );
+			$wpdb->query( $wpdb->prepare( $sql, $params ) );
 		}
 
-		update_option( 'rybbit_discovered_events', $events );
-		wp_send_json_success( "Processed $count events." );
+		wp_send_json_success( 'Bulk action completed' );
 	}
 
 	public function ajax_test_connection() {
@@ -318,10 +349,26 @@ class Rybbit_Admin {
 		// --- Tab: Tracking ---
 		add_settings_section( 'rybbit_tracking_section', 'Standard Tracking', null, 'rybbit-settings-tracking' );
 
-		add_settings_field( 'rybbit_track_pgv', 'Pageviews', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 'id' => 'rybbit_track_pgv', 'label' => 'Track initial pageview' ) );
-		add_settings_field( 'rybbit_track_spa', 'SPA Support', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 'id' => 'rybbit_track_spa', 'label' => 'Track virtual pageviews on History API changes' ) );
-		add_settings_field( 'rybbit_track_query', 'Query Parameters', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 'id' => 'rybbit_track_query', 'label' => 'Include URL query parameters in tracking' ) );
-		add_settings_field( 'rybbit_track_errors', 'JavaScript Errors', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 'id' => 'rybbit_track_errors', 'label' => 'Automatically track JavaScript errors' ) );
+		add_settings_field( 'rybbit_track_pgv', 'Pageviews', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
+			'id' => 'rybbit_track_pgv', 
+			'label' => 'Track initial pageview',
+			'desc' => 'Automatically track a pageview event when a page loads. Disable this if you want to manually trigger pageviews.'
+		) );
+		add_settings_field( 'rybbit_track_spa', 'SPA Support', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
+			'id' => 'rybbit_track_spa', 
+			'label' => 'Track virtual pageviews on History API changes',
+			'desc' => 'Enable this for Single Page Applications (SPAs) to track pageviews when the URL changes without a full reload.'
+		) );
+		add_settings_field( 'rybbit_track_query', 'Query Parameters', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
+			'id' => 'rybbit_track_query', 
+			'label' => 'Include URL query parameters in tracking',
+			'desc' => 'If enabled, the full URL with query parameters (e.g., ?utm_source=google) will be recorded. Useful for marketing attribution.'
+		) );
+		add_settings_field( 'rybbit_track_errors', 'JavaScript Errors', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
+			'id' => 'rybbit_track_errors', 
+			'label' => 'Automatically track JavaScript errors',
+			'desc' => 'Capture uncaught JavaScript exceptions and send them as error events to Rybbit.'
+		) );
 
 		// --- Tab: Events & Forms ---
 		add_settings_section( 'rybbit_events_section', 'Events & Interactions', null, 'rybbit-settings-events' );
@@ -330,27 +377,43 @@ class Rybbit_Admin {
 			'id' => 'rybbit_event_prefixes', 
 			'desc' => 'Comma-separated list of event prefixes to automatically track (e.g., "kb-, wc-, custom-").' 
 		) );
-		add_settings_field( 'rybbit_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 'id' => 'rybbit_track_forms', 'label' => 'Automatically track form submissions' ) );
-		add_settings_field( 'rybbit_track_links', 'Outbound Links', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 'id' => 'rybbit_track_links', 'label' => 'Track clicks on external links' ) );
+		add_settings_field( 'rybbit_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
+			'id' => 'rybbit_track_forms', 
+			'label' => 'Automatically track form submissions',
+			'desc' => 'Detects standard HTML form submissions and records them as events.'
+		) );
+		add_settings_field( 'rybbit_track_links', 'Outbound Links', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
+			'id' => 'rybbit_track_links', 
+			'label' => 'Track clicks on external links',
+			'desc' => 'Records clicks on links that lead to other domains.'
+		) );
 
 		// --- Tab: Advanced ---
 		add_settings_section( 'rybbit_advanced_section', 'Advanced Configuration', null, 'rybbit-settings-advanced' );
 
-		add_settings_field( 'rybbit_skip_patterns', 'Skip Patterns', array( $this, 'render_textarea_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
+		add_settings_field( 'rybbit_skip_patterns', 'Skip Patterns', array( $this, 'render_pattern_list_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
 			'id' => 'rybbit_skip_patterns', 
-			'desc' => 'URL patterns to exclude from tracking (one per line). Use * for wildcards.' 
+			'desc' => 'URL patterns to exclude from tracking. Use * for wildcards (e.g., /admin/*).' 
 		) );
-		add_settings_field( 'rybbit_mask_patterns', 'Mask Patterns', array( $this, 'render_textarea_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
+		add_settings_field( 'rybbit_mask_patterns', 'Mask Patterns', array( $this, 'render_pattern_list_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
 			'id' => 'rybbit_mask_patterns', 
-			'desc' => 'URL patterns to mask/anonymize in reports (one per line).' 
+			'desc' => 'URL patterns to mask/anonymize in reports (e.g., /user/*).' 
 		) );
 		add_settings_field( 'rybbit_debounce', 'Debounce (ms)', array( $this, 'render_text_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
 			'id' => 'rybbit_debounce', 
 			'type' => 'number',
 			'desc' => 'Delay in milliseconds before sending events (default: 500).'
 		) );
-		add_settings_field( 'rybbit_session_replay', 'Session Replay', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 'id' => 'rybbit_session_replay', 'label' => 'Enable session replay recording (High resource usage)' ) );
-		add_settings_field( 'rybbit_dev_mode', 'Development Mode', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 'id' => 'rybbit_dev_mode', 'label' => 'Enable debug logging and visual notifications' ) );
+		add_settings_field( 'rybbit_session_replay', 'Session Replay', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
+			'id' => 'rybbit_session_replay', 
+			'label' => 'Enable session replay recording (High resource usage)',
+			'desc' => 'Records user interactions for session replay. <strong>Warning:</strong> This can increase bandwidth usage and impact client performance.'
+		) );
+		add_settings_field( 'rybbit_dev_mode', 'Development Mode', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
+			'id' => 'rybbit_dev_mode', 
+			'label' => 'Enable debug logging and visual notifications',
+			'desc' => 'Shows event "toasts" on the frontend and logs detailed info to the browser console. Only visible to admins.'
+		) );
 	}
 
 	public function display_options_page() {
@@ -484,11 +547,33 @@ class Rybbit_Admin {
 		if ( $desc ) echo "<p class='description'>$desc</p>";
 	}
 
+	public function render_pattern_list_field( $args ) {
+		$id = $args['id'];
+		$value = get_option( $id );
+		$desc = isset( $args['desc'] ) ? $args['desc'] : '';
+		
+		echo '<div class="rybbit-pattern-ui-container">';
+		echo '<textarea name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="rybbit-pattern-source" style="display:none;">' . esc_textarea( $value ) . '</textarea>';
+		
+		echo '<div class="rybbit-pattern-wrapper">';
+		echo '<ul class="rybbit-pattern-list"></ul>';
+		echo '<div class="rybbit-pattern-input-group">';
+		echo '<input type="text" class="regular-text rybbit-new-pattern-input" placeholder="Enter pattern (e.g. /blog/*)">';
+		echo '<button type="button" class="button rybbit-add-pattern-btn">Add Pattern</button>';
+		echo '</div>';
+		echo '</div>';
+		
+		if ( $desc ) echo "<p class='description'>$desc</p>";
+		echo '</div>';
+	}
+
 	public function render_checkbox_field( $args ) {
 		$id = $args['id'];
 		$value = get_option( $id );
 		$label = isset( $args['label'] ) ? $args['label'] : '';
+		$desc = isset( $args['desc'] ) ? $args['desc'] : '';
 		echo "<label><input type='checkbox' name='$id' id='$id' value='1' " . checked( 1, $value, false ) . "> $label</label>";
+		if ( $desc ) echo "<p class='description'>$desc</p>";
 	}
 
 	public function render_select_field( $args ) {
@@ -505,279 +590,124 @@ class Rybbit_Admin {
 	}
 
 	public function render_events_manager_tab() {
-		$events = get_option( 'rybbit_discovered_events', array() );
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
 		
-		// Group events
-		$tracked_events = array();
-		$ignored_events = array();
-		$sessions = array();
-
-		foreach ( $events as $key => $event ) {
-			$event['key'] = $key; // Ensure key is available
-			
-			// Status Lists
-			if ( isset( $event['status'] ) ) {
-				if ( $event['status'] === 'tracked' ) {
-					$tracked_events[] = $event;
-				} elseif ( $event['status'] === 'ignored' ) {
-					$ignored_events[] = $event;
-				}
-			}
-
-			// Session grouping (History)
-			// Only show sessions if they have an ID. Events unlinked from sessions (via delete) won't show here.
-			if ( isset( $event['session_id'] ) ) {
-				$sess_id = $event['session_id'];
-				if ( ! isset( $sessions[ $sess_id ] ) ) {
-					$sessions[ $sess_id ] = array(
-						'id' => $sess_id,
-						'timestamp' => isset( $event['session_timestamp'] ) ? $event['session_timestamp'] : 0,
-						'events' => array()
-					);
-				}
-				$sessions[ $sess_id ]['events'][] = $event;
-			}
+		// Check if table exists
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
+			echo '<div class="notice notice-error"><p>Database table not found. Please reactivate the plugin.</p></div>';
+			return;
 		}
 
-		// Sort sessions by timestamp desc
-		usort( $sessions, function($a, $b) {
-			return $b['timestamp'] - $a['timestamp'];
-		});
+		$events = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY last_seen DESC", ARRAY_A );
 
-		?>
-		<div class="rybbit-manager-tabs" style="margin-bottom: 20px; border-bottom: 1px solid #ccc;">
-			<a href="#" class="rybbit-sub-tab active" data-target="rybbit-tracked-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; border:1px solid #ccc; border-bottom:none; background:#fff; margin-bottom:-1px;">Tracked Events</a>
-			<a href="#" class="rybbit-sub-tab" data-target="rybbit-ignored-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Ignored Events</a>
-			<a href="#" class="rybbit-sub-tab" data-target="rybbit-history-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Recording History</a>
-		</div>
+		echo '<div class="rybbit-events-manager">';
+		echo '<h3>Discovered Events</h3>';
+		echo '<p>These events were discovered while Recording Mode was active.</p>';
 
-		<!-- TRACKED EVENTS VIEW -->
-		<div id="rybbit-tracked-view" class="rybbit-sub-view">
-			<h3>Active Tracked Events</h3>
-			<form class="rybbit-bulk-form" method="post">
-				<div class="tablenav top">
-					<div class="alignleft actions bulkactions">
-						<select name="bulk_action">
-							<option value="-1">Bulk Actions</option>
-							<option value="ignored">Ignore</option>
-							<option value="delete">Delete</option>
-						</select>
-						<button type="button" class="button action rybbit-apply-bulk">Apply</button>
-					</div>
-				</div>
-				<table class="widefat fixed striped">
-					<thead>
-						<tr>
-							<td id="cb" class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
-							<th>Event Name (Alias)</th>
-							<th>Original Name</th>
-							<th>Type</th>
-							<th>Selector</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $tracked_events ) ) : ?>
-							<tr><td colspan="6">No tracked events yet.</td></tr>
-						<?php else : ?>
-							<?php foreach ( $tracked_events as $event ) : ?>
-								<tr>
-									<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
-									<td><strong><?php echo esc_html( isset($event['alias']) && $event['alias'] ? $event['alias'] : $event['name'] ); ?></strong></td>
-									<td><?php echo esc_html( $event['name'] ); ?></td>
-									<td><?php echo esc_html( $event['type'] ); ?></td>
-									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
-									<td>
-										<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</form>
-		</div>
+		if ( empty( $events ) ) {
+			echo '<p>No events recorded yet. Turn on Recording Mode and interact with your site.</p>';
+		} else {
+			echo '<form id="rybbit-bulk-action-form">';
+			echo '<div class="tablenav top">';
+			echo '<div class="alignleft actions bulkactions">';
+			echo '<select name="bulk_action" id="bulk-action-selector-top">';
+			echo '<option value="-1">Bulk Actions</option>';
+			echo '<option value="track">Mark as Track</option>';
+			echo '<option value="ignore">Mark as Ignore</option>';
+			echo '<option value="pending">Mark as Pending</option>';
+			echo '<option value="delete">Delete</option>';
+			echo '</select>';
+			echo '<input type="submit" id="doaction" class="button action" value="Apply">';
+			echo '</div>';
+			echo '</div>';
 
-		<!-- IGNORED EVENTS VIEW -->
-		<div id="rybbit-ignored-view" class="rybbit-sub-view" style="display:none;">
-			<h3>Ignored Events</h3>
-			<form class="rybbit-bulk-form" method="post">
-				<div class="tablenav top">
-					<div class="alignleft actions bulkactions">
-						<select name="bulk_action">
-							<option value="-1">Bulk Actions</option>
-							<option value="tracked">Track</option>
-							<option value="delete">Delete</option>
-						</select>
-						<button type="button" class="button action rybbit-apply-bulk">Apply</button>
-					</div>
-				</div>
-				<table class="widefat fixed striped">
-					<thead>
-						<tr>
-							<td class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
-							<th>Original Name</th>
-							<th>Type</th>
-							<th>Selector</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $ignored_events ) ) : ?>
-							<tr><td colspan="5">No ignored events.</td></tr>
-						<?php else : ?>
-							<?php foreach ( $ignored_events as $event ) : ?>
-								<tr>
-									<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
-									<td><?php echo esc_html( $event['name'] ); ?></td>
-									<td><?php echo esc_html( $event['type'] ); ?></td>
-									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
-									<td>
-										<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</form>
-		</div>
+			echo '<table class="wp-list-table widefat fixed striped">';
+			echo '<thead><tr>';
+			echo '<td id="cb" class="manage-column column-cb check-column"><input type="checkbox" id="cb-select-all-1"></td>';
+			echo '<th>Status</th>';
+			echo '<th>Type</th>';
+			echo '<th>Name / Selector</th>';
+			echo '<th>Alias (Rename)</th>';
+			echo '<th>Example Detail</th>';
+			echo '<th>Last Seen</th>';
+			echo '<th>Actions</th>';
+			echo '</tr></thead>';
+			echo '<tbody>';
 
-		<!-- RECORDING HISTORY VIEW -->
-		<div id="rybbit-history-view" class="rybbit-sub-view" style="display:none;">
-			<h3>Recording History</h3>
-			<?php if ( empty( $sessions ) ) : ?>
-				<p>No recording history found.</p>
-			<?php else : ?>
-				<?php foreach ( $sessions as $session ) : ?>
-					<div class="rybbit-session-block" style="border: 1px solid #ccd0d4; background: #fff; margin-bottom: 20px;">
-						<div class="rybbit-session-header" style="padding: 10px 15px; background: #f9f9f9; border-bottom: 1px solid #ccd0d4; display:flex; justify-content:space-between; align-items:center;">
-							<div>
-								<strong>Session: <?php echo esc_html( $session['id'] === 'legacy' ? 'Legacy / Manual' : date( 'F j, Y @ g:i a', $session['timestamp'] ) ); ?></strong>
-								<span class="count" style="color:#666; margin-left:10px;">(<?php echo count( $session['events'] ); ?> events)</span>
-							</div>
-							<div>
-								<button type="button" class="button rybbit-delete-session" data-session="<?php echo esc_attr( $session['id'] ); ?>" style="color: #a00; border-color: #a00;">Delete Session</button>
-							</div>
-						</div>
-						<div class="rybbit-session-content" style="padding: 0;">
-							<form class="rybbit-bulk-form" method="post">
-								<div class="tablenav top" style="padding: 10px;">
-									<div class="alignleft actions bulkactions">
-										<select name="bulk_action">
-											<option value="-1">Bulk Actions</option>
-											<option value="tracked">Track</option>
-											<option value="ignored">Ignore</option>
-											<option value="delete">Delete</option>
-										</select>
-										<button type="button" class="button action rybbit-apply-bulk">Apply</button>
-									</div>
-								</div>
-								<table class="widefat fixed striped" style="border:none; box-shadow:none;">
-									<thead>
-										<tr>
-											<td class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
-											<th>Status</th>
-											<th>Name</th>
-											<th>Type</th>
-											<th>Actions</th>
-										</tr>
-									</thead>
-									<tbody>
-										<?php foreach ( $session['events'] as $event ) : ?>
-											<tr data-status="<?php echo esc_attr( $event['status'] ); ?>">
-												<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
-												<td>
-													<?php if ( $event['status'] === 'tracked' ) : ?>
-														<span class="dashicons dashicons-yes" style="color:green;"></span> <strong style="color:green;">Tracked</strong>
-													<?php elseif ( $event['status'] === 'ignored' ) : ?>
-														<span class="dashicons dashicons-no" style="color:red;"></span> <span style="color:red;">Ignored</span>
-													<?php else : ?>
-														<span class="dashicons dashicons-minus" style="color:orange;"></span> Pending
-													<?php endif; ?>
-												</td>
-												<td>
-													<?php echo esc_html( $event['name'] ); ?>
-													<?php if ( isset($event['alias']) && $event['alias'] ) : ?>
-														<br><small style="color:#666;">Alias: <?php echo esc_html( $event['alias'] ); ?></small>
-													<?php endif; ?>
-												</td>
-												<td><?php echo esc_html( $event['type'] ); ?></td>
-												<td>
-													<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details</button>
-												</td>
-											</tr>
-										<?php endforeach; ?>
-									</tbody>
-								</table>
-							</form>
-						</div>
-					</div>
-				<?php endforeach; ?>
-			<?php endif; ?>
-		</div>
-
-
-		<!-- Event Details Modal -->
-		<div id="rybbit-event-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items: center; justify-content: center;">
-			<div class="rybbit-modal-content" style="background:#fff; width:700px; max-width:90%; max-height:90vh; overflow-y:auto; padding:0; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); position:relative; display:flex; flex-direction:column;">
+			foreach ( $events as $event ) {
+				$key = $event['event_key'];
+				$status_label = ucfirst( $event['status'] );
+				$status_class = 'status-' . $event['status'];
 				
-				<div class="rybbit-modal-header" style="padding: 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-					<h2 style="margin:0;">Event Details</h2>
-					<button type="button" id="rybbit-modal-close-x" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666; line-height:1;">&times;</button>
-				</div>
+				// Format detail JSON for display
+				$detail_json = $event['example_detail'];
+				$detail_display = '';
+				if ( ! empty( $detail_json ) ) {
+					$detail_obj = json_decode( $detail_json, true );
+					if ( $detail_obj && is_array( $detail_obj ) ) {
+						foreach ( $detail_obj as $k => $v ) {
+							if ( is_array( $v ) || is_object( $v ) ) $v = json_encode( $v );
+							$detail_display .= "<strong>$k:</strong> " . esc_html( substr( $v, 0, 50 ) ) . "<br>";
+						}
+					} else {
+						$detail_display = esc_html( substr( $detail_json, 0, 100 ) );
+					}
+				}
 
-				<div class="rybbit-modal-body" style="padding: 20px; overflow-y:auto;">
-					<table class="form-table" style="margin:0;">
-						<tr>
-							<th style="width:150px;">Type</th>
-							<td id="modal-event-type"></td>
-						</tr>
-						<tr>
-							<th>Original Name</th>
-							<td id="modal-event-name"></td>
-						</tr>
-						<tr>
-							<th>Selector</th>
-							<td id="modal-event-selector"></td>
-						</tr>
-						<tr>
-							<th>Example Detail</th>
-							<td><pre id="modal-event-detail" style="background:#f6f7f7; padding:15px; border:1px solid #dcdcde; border-radius:4px; overflow:auto; max-height:200px; font-family:monospace; white-space:pre-wrap; word-wrap:break-word;"></pre></td>
-						</tr>
-						<tr>
-							<th>User-Friendly Name (Alias)</th>
-							<td>
-								<input type="text" id="modal-event-alias" class="regular-text" placeholder="e.g. Signup Button Click" style="width:100%;">
-								<p class="description">If set, this name will be sent to Rybbit instead of the original name.</p>
-							</td>
-						</tr>
-						<tr>
-							<th>Status</th>
-							<td>
-								<select id="modal-event-status">
-									<option value="pending">Pending</option>
-									<option value="tracked">Tracked</option>
-									<option value="ignored">Ignored</option>
-								</select>
-							</td>
-						</tr>
-					</table>
-				</div>
+				echo '<tr>';
+				echo '<th scope="row" class="check-column"><input type="checkbox" name="event_keys[]" value="' . esc_attr( $key ) . '"></th>';
+				echo "<td><span class='rybbit-status-badge $status_class'>$status_label</span></td>";
+				echo '<td>' . esc_html( $event['type'] ) . '</td>';
+				echo '<td>';
+				if ( $event['type'] === 'custom' ) {
+					echo '<strong>' . esc_html( $event['name'] ) . '</strong>';
+				} else {
+					echo '<code>' . esc_html( $event['selector'] ) . '</code>';
+				}
+				echo '</td>';
+				echo '<td>';
+				echo '<input type="text" class="rybbit-alias-input" data-key="' . esc_attr( $key ) . '" value="' . esc_attr( $event['alias'] ) . '" placeholder="e.g. Signup Button">';
+				echo ' <button type="button" class="button button-small rybbit-save-alias" data-key="' . esc_attr( $key ) . '">Save</button>';
+				echo '</td>';
+				echo '<td class="rybbit-detail-cell"><div class="rybbit-detail-content">' . $detail_display . '</div></td>';
+				echo '<td>' . esc_html( $event['last_seen'] ) . '</td>';
+				echo '<td>';
+				echo '<select class="rybbit-status-select" data-key="' . esc_attr( $key ) . '">';
+				echo '<option value="pending" ' . selected( $event['status'], 'pending', false ) . '>Pending</option>';
+				echo '<option value="track" ' . selected( $event['status'], 'track', false ) . '>Track</option>';
+				echo '<option value="ignore" ' . selected( $event['status'], 'ignore', false ) . '>Ignore</option>';
+				echo '</select>';
+				echo '</td>';
+				echo '</tr>';
+			}
 
-				<div class="rybbit-modal-footer" style="padding: 20px; border-top: 1px solid #eee; text-align:right; background:#fcfcfc; border-radius:0 0 8px 8px;">
-					<button type="button" class="button" id="rybbit-modal-cancel">Cancel</button>
-					<button type="button" class="button button-primary" id="rybbit-modal-save">Save Changes</button>
-				</div>
-			</div>
-		</div>
-		<style>
-			#modal-event-detail .string { color: #008000; }
-			#modal-event-detail .number { color: #0000ff; }
-			#modal-event-detail .boolean { color: #b22222; }
-			#modal-event-detail .null { color: #808080; }
-			#modal-event-detail .key { color: #a52a2a; font-weight: bold; }
-		</style>
-		<?php
+			echo '</tbody>';
+			echo '</table>';
+			echo '</form>';
+		}
+		echo '</div>';
+	}
+
+	/**
+	 * Helper to get events from database table for admin JS.
+	 */
+	private function get_events_for_admin_js() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rybbit_events';
+
+		// Check if table exists first to avoid errors on fresh install
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
+			return array();
+		}
+
+		$results = $wpdb->get_results( "SELECT * FROM $table_name", ARRAY_A );
+		$events = array();
+		if ( $results ) {
+			foreach ( $results as $row ) {
+				$events[ $row['event_key'] ] = $row;
+			}
+		}
+		return $events;
 	}
 }
