@@ -6,6 +6,31 @@
  * Licensed under GPLv2 or later
  */
 jQuery(document).ready(function ($) {
+    // --- Modal Logic ---
+    var initialModalState = {};
+    var modalMouseDownTarget = null;
+
+    function getModalState() {
+        return {
+            alias: $('#modal-event-alias').val(),
+            status: $('#modal-event-status').val()
+        };
+    }
+
+    function hasUnsavedChanges() {
+        var currentState = getModalState();
+        return JSON.stringify(currentState) !== JSON.stringify(initialModalState);
+    }
+
+    function closeModal() {
+        if (hasUnsavedChanges()) {
+            if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
+                return;
+            }
+        }
+        $('#rybbit-event-modal').fadeOut();
+    }
+
     $('#rybbit-test-connection').on('click', function () {
         var button = $(this);
         var url = $('#rybbit_script_url').val();
