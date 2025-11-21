@@ -1,6 +1,6 @@
-# Contributing to Rybbit Analytics for WordPress
+# Contributing to Clickwise Analytics for WordPress
 
-Thank you for your interest in contributing to Rybbit Analytics for WordPress! We welcome contributions from the community.
+Thank you for your interest in contributing to Clickwise Analytics for WordPress! We welcome contributions from the community.
 
 ## How to Contribute
 
@@ -51,7 +51,7 @@ Before submitting a pull request:
 
 ## Development Setup
 
-1. Clone the repository to your `/wp-content/plugins/` directory as `rybbit-wp`
+1. Clone the repository to your `/wp-content/plugins/` directory as `clickwise-wp`
 2. Activate the plugin in WordPress
 3. Enable Development Mode in the plugin settings for debugging
 
@@ -66,8 +66,8 @@ Before submitting a pull request:
 
 Feel free to reach out:
 - Email: [contact@webspirio.com](mailto:contact@webspirio.com)
-- GitHub Issues: [Create an issue](https://github.com/webspirio/rybbit-wp/issues)
+- GitHub Issues: [Create an issue](https://github.com/webspirio/clickwise-wp/issues)
 
 ---
 
-**Thank you for helping make Rybbit Analytics for WordPress better!**
+**Thank you for helping make Clickwise Analytics for WordPress better!**

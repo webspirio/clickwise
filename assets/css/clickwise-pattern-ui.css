@@ -1,9 +1,9 @@
-.rybbit-pattern-wrapper {
+.clickwise-pattern-wrapper {
     max-width: 600px;
     margin-top: 5px;
 }
 
-.rybbit-pattern-list {
+.clickwise-pattern-list {
     list-style: none;
     margin: 0 0 10px 0;
     padding: 0;
@@ -14,7 +14,7 @@
     overflow-y: auto;
 }
 
-.rybbit-pattern-item {
+.clickwise-pattern-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -22,20 +22,20 @@
     border-bottom: 1px solid #f0f0f1;
 }
 
-.rybbit-pattern-item:last-child {
+.clickwise-pattern-item:last-child {
     border-bottom: none;
 }
 
-.rybbit-pattern-item:hover {
+.clickwise-pattern-item:hover {
     background-color: #f6f7f7;
 }
 
-.rybbit-pattern-text {
+.clickwise-pattern-text {
     font-family: monospace;
     color: #3c434a;
 }
 
-.rybbit-remove-pattern {
+.clickwise-remove-pattern {
     color: #d63638;
     cursor: pointer;
     text-decoration: none;
@@ -44,20 +44,20 @@
     padding: 0 5px;
 }
 
-.rybbit-remove-pattern:hover {
+.clickwise-remove-pattern:hover {
     color: #b32d2e;
 }
 
-.rybbit-pattern-input-group {
+.clickwise-pattern-input-group {
     display: flex;
     gap: 10px;
 }
 
-.rybbit-pattern-input-group input {
+.clickwise-pattern-input-group input {
     flex: 1;
 }
 
-.rybbit-empty-list-message {
+.clickwise-empty-list-message {
     padding: 15px;
     text-align: center;
     color: #646970;

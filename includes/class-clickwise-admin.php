@@ -6,14 +6,14 @@
  * @link       https://webspirio.com
  * @since      1.0.0
  *
- * @package    Webspirio_Rybbit_Analytics
- * @subpackage Webspirio_Rybbit_Analytics/includes
+ * @package    Webspirio_Clickwise_Analytics
+ * @subpackage Webspirio_Clickwise_Analytics/includes
  * @author     Webspirio (Oleksandr Chornous) <contact@webspirio.com>
  *
  * Copyright (c) 2025 Webspirio
  * Licensed under GPLv2 or later
  */
-class Rybbit_Admin {
+class Clickwise_Admin {
 
 	private $plugin_name;
 	private $version;
@@ -25,10 +25,10 @@ class Rybbit_Admin {
 
 	public function add_admin_menu() {
 		add_options_page(
-			'Rybbit Analytics',
-			'Rybbit Analytics',
+			'Clickwise Analytics',
+			'Clickwise Analytics',
 			'manage_options',
-			'rybbit-settings',
+			'clickwise-settings',
 			array( $this, 'display_options_page' )
 		);
 	}
@@ -38,86 +38,86 @@ class Rybbit_Admin {
 			return;
 		}
 
-		$is_recording = get_user_meta( get_current_user_id(), 'rybbit_recording_mode', true );
-		$title = $is_recording ? '● Recording Events' : 'Rybbit Analytics';
+		$is_recording = get_user_meta( get_current_user_id(), 'clickwise_recording_mode', true );
+		$title = $is_recording ? '● Recording Events' : 'Clickwise Analytics';
 		
 		$meta = array();
 		if ( $is_recording ) {
-			$meta['class'] = 'rybbit-recording-active';
+			$meta['class'] = 'clickwise-recording-active';
 		}
 
 		$wp_admin_bar->add_node( array(
-			'id'    => 'rybbit-analytics',
+			'id'    => 'clickwise-analytics',
 			'title' => $title,
-			'href'  => admin_url( 'options-general.php?page=rybbit-settings&tab=events_manager' ),
+			'href'  => admin_url( 'options-general.php?page=clickwise-settings&tab=events_manager' ),
 			'meta'  => $meta
 		) );
 
 		$wp_admin_bar->add_node( array(
-			'id'     => 'rybbit-toggle-recording',
-			'parent' => 'rybbit-analytics',
+			'id'     => 'clickwise-toggle-recording',
+			'parent' => 'clickwise-analytics',
 			'title'  => $is_recording ? 'Stop Recording' : 'Start Recording',
 			'href'   => '#',
 			'meta'   => array(
-				'onclick' => 'rybbitToggleRecording(event)',
+				'onclick' => 'clickwiseToggleRecording(event)',
 			),
 		) );
 
 		$wp_admin_bar->add_node( array(
-			'id'     => 'rybbit-manage-events',
-			'parent' => 'rybbit-analytics',
+			'id'     => 'clickwise-manage-events',
+			'parent' => 'clickwise-analytics',
 			'title'  => 'Manage Events',
-			'href'   => admin_url( 'options-general.php?page=rybbit-settings&tab=events_manager' ),
+			'href'   => admin_url( 'options-general.php?page=clickwise-settings&tab=events_manager' ),
 		) );
 	}
 
 	public function enqueue_admin_scripts( $hook ) {
 		// Enqueue on settings page AND frontend (for admin bar)
-		if ( 'settings_page_rybbit-settings' === $hook || ! is_admin() ) {
+		if ( 'settings_page_clickwise-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-			wp_enqueue_style( 'rybbit-admin-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin.css', array(), RYBBIT_WP_VERSION );
-			wp_enqueue_style( 'rybbit-admin-bar-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin-bar.css', array(), RYBBIT_WP_VERSION );
-			wp_enqueue_style( 'rybbit-pattern-ui-css', RYBBIT_WP_URL . 'assets/css/rybbit-pattern-ui.css', array(), RYBBIT_WP_VERSION );
-			wp_enqueue_style( 'rybbit-event-rules-css', RYBBIT_WP_URL . 'assets/css/rybbit-event-rules.css', array(), RYBBIT_WP_VERSION );
-			wp_enqueue_script( 'rybbit-admin', RYBBIT_WP_URL . 'assets/js/rybbit-admin.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
-			wp_enqueue_script( 'rybbit-pattern-ui', RYBBIT_WP_URL . 'assets/js/rybbit-pattern-ui.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
-			wp_enqueue_script( 'rybbit-event-rules', RYBBIT_WP_URL . 'assets/js/rybbit-event-rules.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
-			wp_enqueue_script( 'rybbit-tab-transitions', RYBBIT_WP_URL . 'assets/js/rybbit-tab-transitions.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
-				wp_localize_script( 'rybbit-admin', 'rybbit_admin', array(
+			wp_enqueue_style( 'clickwise-admin-css', CLICKWISE_URL . 'assets/css/clickwise-admin.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_style( 'clickwise-admin-bar-css', CLICKWISE_URL . 'assets/css/clickwise-admin-bar.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_style( 'clickwise-pattern-ui-css', CLICKWISE_URL . 'assets/css/clickwise-pattern-ui.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_style( 'clickwise-event-rules-css', CLICKWISE_URL . 'assets/css/clickwise-event-rules.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_script( 'clickwise-admin', CLICKWISE_URL . 'assets/js/clickwise-admin.js', array( 'jquery' ), CLICKWISE_VERSION, true );
+			wp_enqueue_script( 'clickwise-pattern-ui', CLICKWISE_URL . 'assets/js/clickwise-pattern-ui.js', array( 'jquery' ), CLICKWISE_VERSION, true );
+			wp_enqueue_script( 'clickwise-event-rules', CLICKWISE_URL . 'assets/js/clickwise-event-rules.js', array( 'jquery' ), CLICKWISE_VERSION, true );
+			wp_enqueue_script( 'clickwise-tab-transitions', CLICKWISE_URL . 'assets/js/clickwise-tab-transitions.js', array( 'jquery' ), CLICKWISE_VERSION, true );
+				wp_localize_script( 'clickwise-admin', 'clickwise_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'rybbit_admin_nonce' ),
+					'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
 					'events'   => $this->get_events_for_admin_js(),
-					'script_url' => get_option( 'rybbit_script_url' ),
-					'site_id'    => get_option( 'rybbit_site_id' )
+					'script_url' => get_option( 'clickwise_script_url' ),
+					'site_id'    => get_option( 'clickwise_site_id' )
 				) );
 			}
 		}
 	}
 
 	public function ajax_toggle_recording() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
 		}
 
 		$user_id = get_current_user_id();
-		$current = get_user_meta( $user_id, 'rybbit_recording_mode', true );
+		$current = get_user_meta( $user_id, 'clickwise_recording_mode', true );
 		$new_state = ! $current;
 		
-		update_user_meta( $user_id, 'rybbit_recording_mode', $new_state );
+		update_user_meta( $user_id, 'clickwise_recording_mode', $new_state );
 
 		if ( $new_state ) {
 			// Start new session
 			$session_id = uniqid( 'sess_' );
-			update_user_meta( $user_id, 'rybbit_current_session_id', $session_id );
-			update_user_meta( $user_id, 'rybbit_current_session_start', time() );
+			update_user_meta( $user_id, 'clickwise_current_session_id', $session_id );
+			update_user_meta( $user_id, 'clickwise_current_session_start', time() );
 		}
 
 		wp_send_json_success( $new_state );
 	}
 
 	public function ajax_record_event() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
@@ -129,12 +129,14 @@ class Rybbit_Admin {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		$type     = sanitize_text_field( $event_data['type'] );
 		$detail   = $event_data['detail']; // Already an object/array from JS
 		$selector = isset( $event_data['selector'] ) ? sanitize_text_field( $event_data['selector'] ) : '';
 		
+		$name = isset( $event_data['name'] ) ? sanitize_text_field( $event_data['name'] ) : $type;
+
 		// Generate a unique key for the event based on type and selector (or name if custom)
 		// For clicks/forms, selector is key. For custom events, type is key.
 		$key_string = $type . '|' . $selector;
@@ -144,7 +146,11 @@ class Rybbit_Admin {
 		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_key = %s", $event_key ), ARRAY_A );
 
 		$now = current_time( 'mysql' );
-		$session_id = uniqid( 'sess_' ); // Simple session ID for grouping in this context
+		
+		// Use provided session ID or generate new one
+		$session_id = isset( $_POST['session_id'] ) && ! empty( $_POST['session_id'] ) 
+			? sanitize_text_field( $_POST['session_id'] ) 
+			: uniqid( 'sess_' );
 
 		if ( $existing ) {
 			// Update last seen
@@ -152,7 +158,10 @@ class Rybbit_Admin {
 				$table_name,
 				array(
 					'last_seen' => $now,
-					'example_detail' => json_encode( $detail ) // Update example with latest
+					'example_detail' => json_encode( $detail ), // Update example with latest
+					// Optionally update name if it was generic before? 
+					// Let's update name if the existing one is just the type (generic) and we have a better one now
+					'name' => ($existing['name'] === $existing['type'] && $name !== $type) ? $name : $existing['name']
 				),
 				array( 'id' => $existing['id'] )
 			);
@@ -164,7 +173,7 @@ class Rybbit_Admin {
 				array(
 					'event_key'      => $event_key,
 					'type'           => $type,
-					'name'           => $type, // Default name
+					'name'           => $name,
 					'alias'          => '',
 					'selector'       => $selector,
 					'status'         => 'pending',
@@ -182,7 +191,7 @@ class Rybbit_Admin {
 	}
 
 	public function ajax_update_event_status() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
@@ -197,7 +206,7 @@ class Rybbit_Admin {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		$data = array( 'status' => $status );
 		if ( isset( $_POST['alias'] ) ) {
@@ -218,7 +227,7 @@ class Rybbit_Admin {
 	}
 
 	public function ajax_delete_session() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
@@ -231,7 +240,7 @@ class Rybbit_Admin {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		$wpdb->delete(
 			$table_name,
@@ -242,7 +251,7 @@ class Rybbit_Admin {
 	}
 
 	public function ajax_bulk_action() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
@@ -256,7 +265,7 @@ class Rybbit_Admin {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		$sanitized_keys = array_map( 'sanitize_text_field', $keys );
 		// Prepare IN clause
@@ -275,7 +284,7 @@ class Rybbit_Admin {
 	}
 
 	public function ajax_test_connection() {
-		check_ajax_referer( 'rybbit_admin_nonce', 'nonce' );
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( 'Permission denied' );
@@ -303,118 +312,118 @@ class Rybbit_Admin {
 	}
 
 	public function add_settings_link( $links ) {
-		$settings_link = '<a href="options-general.php?page=rybbit-settings">Settings</a>';
+		$settings_link = '<a href="options-general.php?page=clickwise-settings">Settings</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
 	}
 
 	public function register_settings() {
 		// --- General Settings ---
-		register_setting( 'rybbit-settings-general', 'rybbit_script_url' );
-		register_setting( 'rybbit-settings-general', 'rybbit_site_id' );
-		register_setting( 'rybbit-settings-general', 'rybbit_api_version' );
+		register_setting( 'clickwise-settings-general', 'clickwise_script_url' );
+		register_setting( 'clickwise-settings-general', 'clickwise_site_id' );
+		register_setting( 'clickwise-settings-general', 'clickwise_api_version' );
 
 		// --- Tracking Settings ---
-		register_setting( 'rybbit-settings-tracking', 'rybbit_track_pgv' );
-		register_setting( 'rybbit-settings-tracking', 'rybbit_track_spa' );
-		register_setting( 'rybbit-settings-tracking', 'rybbit_track_query' );
-		register_setting( 'rybbit-settings-tracking', 'rybbit_track_errors' );
+		register_setting( 'clickwise-settings-tracking', 'clickwise_track_pgv' );
+		register_setting( 'clickwise-settings-tracking', 'clickwise_track_spa' );
+		register_setting( 'clickwise-settings-tracking', 'clickwise_track_query' );
+		register_setting( 'clickwise-settings-tracking', 'clickwise_track_errors' );
 
 		// --- Events Settings ---
-		register_setting( 'rybbit-settings-events', 'rybbit_event_prefixes' );
-		register_setting( 'rybbit-settings-events', 'rybbit_track_forms' );
-		register_setting( 'rybbit-settings-events', 'rybbit_track_links' );
+		register_setting( 'clickwise-settings-events', 'clickwise_event_prefixes' );
+		register_setting( 'clickwise-settings-events', 'clickwise_track_forms' );
+		register_setting( 'clickwise-settings-events', 'clickwise_track_links' );
 
 		// --- Advanced Settings ---
-		register_setting( 'rybbit-settings-advanced', 'rybbit_skip_patterns' );
-		register_setting( 'rybbit-settings-advanced', 'rybbit_mask_patterns' );
-		register_setting( 'rybbit-settings-advanced', 'rybbit_debounce' );
-		register_setting( 'rybbit-settings-advanced', 'rybbit_session_replay' );
-		register_setting( 'rybbit-settings-advanced', 'rybbit_dev_mode' );
+		register_setting( 'clickwise-settings-advanced', 'clickwise_skip_patterns' );
+		register_setting( 'clickwise-settings-advanced', 'clickwise_mask_patterns' );
+		register_setting( 'clickwise-settings-advanced', 'clickwise_debounce' );
+		register_setting( 'clickwise-settings-advanced', 'clickwise_session_replay' );
+		register_setting( 'clickwise-settings-advanced', 'clickwise_dev_mode' );
 
 		// --- Tab: General ---
-		add_settings_section( 'rybbit_general_section', 'General Configuration', null, 'rybbit-settings-general' );
+		add_settings_section( 'clickwise_general_section', 'General Configuration', null, 'clickwise-settings-general' );
 		
-		add_settings_field( 'rybbit_script_url', 'Script URL', array( $this, 'render_text_field' ), 'rybbit-settings-general', 'rybbit_general_section', array( 
-			'id' => 'rybbit_script_url', 
+		add_settings_field( 'clickwise_script_url', 'Script URL', array( $this, 'render_text_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
+			'id' => 'clickwise_script_url', 
 			'type' => 'url',
 			'desc' => 'The URL to your Rybbit tracking script (e.g., https://tracking.example.com/api/script.js).'
 		) );
-		add_settings_field( 'rybbit_site_id', 'Site ID', array( $this, 'render_text_field' ), 'rybbit-settings-general', 'rybbit_general_section', array( 
-			'id' => 'rybbit_site_id',
+		add_settings_field( 'clickwise_site_id', 'Site ID', array( $this, 'render_text_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
+			'id' => 'clickwise_site_id',
 			'desc' => 'Your unique Site ID found in the Rybbit dashboard.'
 		) );
-		add_settings_field( 'rybbit_api_version', 'API Version', array( $this, 'render_select_field' ), 'rybbit-settings-general', 'rybbit_general_section', array( 
-			'id' => 'rybbit_api_version', 
+		add_settings_field( 'clickwise_api_version', 'API Version', array( $this, 'render_select_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
+			'id' => 'clickwise_api_version', 
 			'options' => array( 'v1' => 'v1 (Legacy)', 'v2' => 'v2 (Modern)' ),
 			'desc' => 'Select the API version compatible with your Rybbit instance.'
 		) );
 
 		// --- Tab: Tracking ---
-		add_settings_section( 'rybbit_tracking_section', 'Standard Tracking', null, 'rybbit-settings-tracking' );
+		add_settings_section( 'clickwise_tracking_section', 'Standard Tracking', null, 'clickwise-settings-tracking' );
 
-		add_settings_field( 'rybbit_track_pgv', 'Pageviews', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
-			'id' => 'rybbit_track_pgv', 
+		add_settings_field( 'clickwise_track_pgv', 'Pageviews', array( $this, 'render_checkbox_field' ), 'clickwise-settings-tracking', 'clickwise_tracking_section', array( 
+			'id' => 'clickwise_track_pgv', 
 			'label' => 'Track initial pageview',
 			'desc' => 'Automatically track a pageview event when a page loads. Disable this if you want to manually trigger pageviews.'
 		) );
-		add_settings_field( 'rybbit_track_spa', 'SPA Support', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
-			'id' => 'rybbit_track_spa', 
+		add_settings_field( 'clickwise_track_spa', 'SPA Support', array( $this, 'render_checkbox_field' ), 'clickwise-settings-tracking', 'clickwise_tracking_section', array( 
+			'id' => 'clickwise_track_spa', 
 			'label' => 'Track virtual pageviews on History API changes',
 			'desc' => 'Enable this for Single Page Applications (SPAs) to track pageviews when the URL changes without a full reload.'
 		) );
-		add_settings_field( 'rybbit_track_query', 'Query Parameters', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
-			'id' => 'rybbit_track_query', 
+		add_settings_field( 'clickwise_track_query', 'Query Parameters', array( $this, 'render_checkbox_field' ), 'clickwise-settings-tracking', 'clickwise_tracking_section', array( 
+			'id' => 'clickwise_track_query', 
 			'label' => 'Include URL query parameters in tracking',
 			'desc' => 'If enabled, the full URL with query parameters (e.g., ?utm_source=google) will be recorded. Useful for marketing attribution.'
 		) );
-		add_settings_field( 'rybbit_track_errors', 'JavaScript Errors', array( $this, 'render_checkbox_field' ), 'rybbit-settings-tracking', 'rybbit_tracking_section', array( 
-			'id' => 'rybbit_track_errors', 
+		add_settings_field( 'clickwise_track_errors', 'JavaScript Errors', array( $this, 'render_checkbox_field' ), 'clickwise-settings-tracking', 'clickwise_tracking_section', array( 
+			'id' => 'clickwise_track_errors', 
 			'label' => 'Automatically track JavaScript errors',
 			'desc' => 'Capture uncaught JavaScript exceptions and send them as error events to Rybbit.'
 		) );
 
 		// --- Tab: Events & Forms ---
-		add_settings_section( 'rybbit_events_section', 'Events & Interactions', null, 'rybbit-settings-events' );
+		add_settings_section( 'clickwise_events_section', 'Events & Interactions', null, 'clickwise-settings-events' );
 
-		add_settings_field( 'rybbit_event_prefixes', 'Custom Event Rules', array( $this, 'render_event_rules_field' ), 'rybbit-settings-events', 'rybbit_events_section', array(
-			'id' => 'rybbit_event_prefixes',
+		add_settings_field( 'clickwise_event_prefixes', 'Custom Event Rules', array( $this, 'render_event_rules_field' ), 'clickwise-settings-events', 'clickwise_events_section', array(
+			'id' => 'clickwise_event_prefixes',
 			'desc' => 'Define flexible rules to automatically track events. Support for prefixes, contains, patterns, exact matches, and regex.'
 		) );
-		add_settings_field( 'rybbit_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
-			'id' => 'rybbit_track_forms', 
+		add_settings_field( 'clickwise_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'clickwise-settings-events', 'clickwise_events_section', array( 
+			'id' => 'clickwise_track_forms', 
 			'label' => 'Automatically track form submissions',
 			'desc' => 'Detects standard HTML form submissions and records them as events.'
 		) );
-		add_settings_field( 'rybbit_track_links', 'Outbound Links', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
-			'id' => 'rybbit_track_links', 
+		add_settings_field( 'clickwise_track_links', 'Outbound Links', array( $this, 'render_checkbox_field' ), 'clickwise-settings-events', 'clickwise_events_section', array( 
+			'id' => 'clickwise_track_links', 
 			'label' => 'Track clicks on external links',
 			'desc' => 'Records clicks on links that lead to other domains.'
 		) );
 
 		// --- Tab: Advanced ---
-		add_settings_section( 'rybbit_advanced_section', 'Advanced Configuration', null, 'rybbit-settings-advanced' );
+		add_settings_section( 'clickwise_advanced_section', 'Advanced Configuration', null, 'clickwise-settings-advanced' );
 
-		add_settings_field( 'rybbit_skip_patterns', 'Skip Patterns', array( $this, 'render_pattern_list_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
-			'id' => 'rybbit_skip_patterns', 
+		add_settings_field( 'clickwise_skip_patterns', 'Skip Patterns', array( $this, 'render_pattern_list_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
+			'id' => 'clickwise_skip_patterns', 
 			'desc' => 'URL patterns to exclude from tracking. Use * for wildcards (e.g., /admin/*).' 
 		) );
-		add_settings_field( 'rybbit_mask_patterns', 'Mask Patterns', array( $this, 'render_pattern_list_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
-			'id' => 'rybbit_mask_patterns', 
+		add_settings_field( 'clickwise_mask_patterns', 'Mask Patterns', array( $this, 'render_pattern_list_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
+			'id' => 'clickwise_mask_patterns', 
 			'desc' => 'URL patterns to mask/anonymize in reports (e.g., /user/*).' 
 		) );
-		add_settings_field( 'rybbit_debounce', 'Debounce (ms)', array( $this, 'render_text_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
-			'id' => 'rybbit_debounce', 
+		add_settings_field( 'clickwise_debounce', 'Debounce (ms)', array( $this, 'render_text_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
+			'id' => 'clickwise_debounce', 
 			'type' => 'number',
 			'desc' => 'Delay in milliseconds before sending events (default: 500).'
 		) );
-		add_settings_field( 'rybbit_session_replay', 'Session Replay', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
-			'id' => 'rybbit_session_replay', 
+		add_settings_field( 'clickwise_session_replay', 'Session Replay', array( $this, 'render_checkbox_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
+			'id' => 'clickwise_session_replay', 
 			'label' => 'Enable session replay recording (High resource usage)',
 			'desc' => 'Records user interactions for session replay. <strong>Warning:</strong> This can increase bandwidth usage and impact client performance.'
 		) );
-		add_settings_field( 'rybbit_dev_mode', 'Development Mode', array( $this, 'render_checkbox_field' ), 'rybbit-settings-advanced', 'rybbit_advanced_section', array( 
-			'id' => 'rybbit_dev_mode', 
+		add_settings_field( 'clickwise_dev_mode', 'Development Mode', array( $this, 'render_checkbox_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
+			'id' => 'clickwise_dev_mode', 
 			'label' => 'Enable debug logging and visual notifications',
 			'desc' => 'Shows event "toasts" on the frontend and logs detailed info to the browser console. Only visible to admins.'
 		) );
@@ -427,36 +436,38 @@ class Rybbit_Admin {
 		$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
 		?>
 		<div class="wrap">
-			<h1>Rybbit Analytics <span style="font-size: 0.5em; color: #666; font-weight: normal;">by <a href="https://webspirio.com" target="_blank" style="color: #666; text-decoration: none;">Webspirio</a></span></h1>
+			<h1>Clickwise Analytics <span style="font-size: 0.5em; color: #666; font-weight: normal;">by <a href="https://webspirio.com" target="_blank" style="color: #666; text-decoration: none;">Webspirio</a></span></h1>
 			
 			<h2 class="nav-tab-wrapper">
-				<a href="?page=rybbit-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
-				<a href="?page=rybbit-settings&tab=tracking" class="nav-tab <?php echo $active_tab == 'tracking' ? 'nav-tab-active' : ''; ?>">Tracking</a>
-				<a href="?page=rybbit-settings&tab=events" class="nav-tab <?php echo $active_tab == 'events' ? 'nav-tab-active' : ''; ?>">Events & Forms</a>
-				<a href="?page=rybbit-settings&tab=events_manager" class="nav-tab <?php echo $active_tab == 'events_manager' ? 'nav-tab-active' : ''; ?>">Event Manager</a>
-				<a href="?page=rybbit-settings&tab=sandbox" class="nav-tab <?php echo $active_tab == 'sandbox' ? 'nav-tab-active' : ''; ?>">Sandbox</a>
-				<a href="?page=rybbit-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
+				<a href="?page=clickwise-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
+				<a href="?page=clickwise-settings&tab=tracking" class="nav-tab <?php echo $active_tab == 'tracking' ? 'nav-tab-active' : ''; ?>">Tracking</a>
+				<a href="?page=clickwise-settings&tab=events" class="nav-tab <?php echo $active_tab == 'events' ? 'nav-tab-active' : ''; ?>">Events & Forms</a>
+				<a href="?page=clickwise-settings&tab=events_manager" class="nav-tab <?php echo $active_tab == 'events_manager' ? 'nav-tab-active' : ''; ?>">Event Manager</a>
+				<a href="?page=clickwise-settings&tab=sandbox" class="nav-tab <?php echo $active_tab == 'sandbox' ? 'nav-tab-active' : ''; ?>">Sandbox</a>
+				<a href="?page=clickwise-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
 			</h2>
 
-		<?php if ( ! get_user_meta( get_current_user_id(), 'rybbit_dismiss_service_notice', true ) ) : ?>
-			<div id="rybbit-service-notice" class="notice notice-info is-dismissible" style="margin: 15px 0;">
-				<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance (an external service). By configuring and using this plugin, you consent to sending analytics data to your specified Rybbit server. <a href="https://rybbit.com" target="_blank">Learn more about Rybbit Analytics</a> | Please review your Rybbit provider's privacy policy and terms of service.</p>
-				<button type="button" class="notice-dismiss" onclick="rybbitDismissNotice()"><span class="screen-reader-text">Dismiss this notice.</span></button>
-			</div>
+		<?php if ( ! get_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true ) ) : ?>
+		<div id="clickwise-service-notice" class="notice notice-info is-dismissible" style="margin: 15px 0;">
+			<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance (an external service). By configuring and using this plugin, you consent to sending analytics data to your specified Rybbit server. <a href="https://rybbit.com" target="_blank">Learn more about Rybbit Analytics</a> | Please review your Rybbit provider's privacy policy and terms of service.</p>
+			<button type="button" class="notice-dismiss" onclick="clickwiseDismissNotice()">
+				<span class="screen-reader-text">Dismiss this notice.</span>
+			</button>
+		</div>
 			<script>
-			function rybbitDismissNotice() {
+			function clickwiseDismissNotice() {
 				jQuery.post(ajaxurl, {
-					action: 'rybbit_dismiss_service_notice'
+					action: 'clickwise_dismiss_service_notice'
 				}, function() {
-					jQuery('#rybbit-service-notice').fadeOut();
+					jQuery('#clickwise-service-notice').fadeOut();
 				});
 			}
 			</script>
 		<?php endif; ?>
 
-		<div class="rybbit-settings-container">
-				<div class="rybbit-main-content">
-					<div class="rybbit-content-area rybbit-tab-content">
+		<div class="clickwise-settings-container">
+				<div class="clickwise-main-content">
+					<div class="clickwise-content-area clickwise-tab-content">
 					<?php if ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
 					<?php elseif ( $active_tab === 'sandbox' ) : ?>
@@ -465,17 +476,17 @@ class Rybbit_Admin {
 						<form action="options.php" method="post">
 							<?php
 							if ( $active_tab == 'general' ) {
-								settings_fields( 'rybbit-settings-general' );
-								do_settings_sections( 'rybbit-settings-general' );
+								settings_fields( 'clickwise-settings-general' );
+								do_settings_sections( 'clickwise-settings-general' );
 							} elseif ( $active_tab == 'tracking' ) {
-								settings_fields( 'rybbit-settings-tracking' );
-								do_settings_sections( 'rybbit-settings-tracking' );
+								settings_fields( 'clickwise-settings-tracking' );
+								do_settings_sections( 'clickwise-settings-tracking' );
 							} elseif ( $active_tab == 'events' ) {
-								settings_fields( 'rybbit-settings-events' );
-								do_settings_sections( 'rybbit-settings-events' );
+								settings_fields( 'clickwise-settings-events' );
+								do_settings_sections( 'clickwise-settings-events' );
 							} elseif ( $active_tab == 'advanced' ) {
-								settings_fields( 'rybbit-settings-advanced' );
-								do_settings_sections( 'rybbit-settings-advanced' );
+								settings_fields( 'clickwise-settings-advanced' );
+								do_settings_sections( 'clickwise-settings-advanced' );
 							}
 							submit_button();
 							?>
@@ -484,19 +495,51 @@ class Rybbit_Admin {
 					</div>
 				</div>
 
-				<div class="rybbit-sidebar">
-					<h3>Quick Tips</h3>
-					<ul>
-						<li><strong>Site ID:</strong> Found in your Rybbit dashboard.</li>
-						<li><strong>Events:</strong> Use prefixes like <code>kb-</code> to track specific custom events.</li>
-						<li><strong>Testing:</strong> Use the browser console to verify events.</li>
-					</ul>
-					<hr>
-					<p><small>Plugin developed by <a href="https://webspirio.com" target="_blank" style="text-decoration: none;"><strong>Webspirio</strong></a><br>Oleksandr Chornous<br><a href="mailto:contact@webspirio.com">contact@webspirio.com</a></small></p>
-					<p>
-						<a href="https://rybbit.com/docs" target="_blank" class="button button-secondary">View Documentation</a>
-						<a href="https://webspirio.com" target="_blank" class="button button-secondary">Visit Webspirio</a>
-					</p>
+				<div class="clickwise-sidebar">
+					<div class="clickwise-sidebar-content">
+						<h3>💡 Quick Tips</h3>
+						<div id="clickwise-tips-content">
+							<?php $this->render_tab_tips( $active_tab ); ?>
+						</div>
+						<hr>
+						<div class="clickwise-fun-fact" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #0073aa;">
+							<small><strong>🎯 Pro Tip:</strong> <span id="clickwise-rotating-tip"><?php echo $this->get_random_tip(); ?></span></small>
+						</div>
+					</div>
+
+					<div class="clickwise-sidebar-footer">
+						<hr>
+						<div class="clickwise-actions" style="margin-bottom: 15px;">
+							<a href="https://clickwise.com/docs" target="_blank" class="button button-secondary" style="width: 100%; text-align: center; margin-bottom: 8px;">📚 View Documentation</a>
+							<a href="https://github.com/webspirio/clickwise-wp/issues" target="_blank" class="button button-secondary" style="width: 100%; text-align: center; margin-bottom: 8px;">
+								<span class="clickwise-github-icon" style="display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: text-top;">
+									<svg viewBox="0 0 16 16" fill="currentColor">
+										<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+									</svg>
+								</span>Report Issue
+							</a>
+						</div>
+
+						<div class="clickwise-credits" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;">
+							<div class="webspirio-logo" style="margin-bottom: 10px;">
+								<svg width="80" height="24" viewBox="0 0 200 60" style="margin-bottom: 8px;">
+									<rect x="0" y="15" width="30" height="30" rx="4" fill="#0073aa"/>
+									<rect x="35" y="10" width="25" height="40" rx="3" fill="#2271b1"/>
+									<rect x="65" y="5" width="20" height="50" rx="2" fill="#005a87"/>
+									<text x="95" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">Webspirio</text>
+								</svg>
+							</div>
+							<div style="font-size: 11px; color: #666; line-height: 1.4;">
+								<strong>Plugin developed by</strong><br>
+								<a href="https://webspirio.com" target="_blank" style="color: #0073aa; text-decoration: none; font-weight: bold;">Webspirio</a><br>
+								<span style="color: #888;">Oleksandr Chornous</span><br>
+								<a href="mailto:contact@webspirio.com" style="color: #0073aa; text-decoration: none;">contact@webspirio.com</a>
+							</div>
+							<div style="margin-top: 8px; font-size: 10px; color: #999;">
+								<a href="https://webspirio.com" target="_blank" style="color: #0073aa; text-decoration: none;">🌐 Visit Website</a>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -505,33 +548,33 @@ class Rybbit_Admin {
 
 	public function render_sandbox_tab() {
 		?>
-		<div class="rybbit-sandbox">
+		<div class="clickwise-sandbox">
 			<h3>Event Sandbox</h3>
 			<p>Use this tool to test custom events and verify that your tracking configuration is working correctly.</p>
 			
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="rybbit-sandbox-name">Event Name</label></th>
+					<th scope="row"><label for="clickwise-sandbox-name">Event Name</label></th>
 					<td>
-						<input type="text" id="rybbit-sandbox-name" class="regular-text" value="custom_event" placeholder="e.g. signup_click">
+						<input type="text" id="clickwise-sandbox-name" class="regular-text" value="custom_event" placeholder="e.g. signup_click">
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="rybbit-sandbox-props">Event Properties (JSON)</label></th>
+					<th scope="row"><label for="clickwise-sandbox-props">Event Properties (JSON)</label></th>
 					<td>
-						<textarea id="rybbit-sandbox-props" rows="5" cols="50" class="large-text code" placeholder='{"key": "value"}'><?php echo "{\n    \"test_mode\": true,\n    \"source\": \"admin_sandbox\"\n}"; ?></textarea>
+						<textarea id="clickwise-sandbox-props" rows="5" cols="50" class="large-text code" placeholder='{"key": "value"}'><?php echo "{\n    \"test_mode\": true,\n    \"source\": \"admin_sandbox\"\n}"; ?></textarea>
 						<p class="description">Enter valid JSON object.</p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">Actions</th>
 					<td>
-						<button type="button" id="rybbit-sandbox-send" class="button button-primary">Send Custom Event</button>
+						<button type="button" id="clickwise-sandbox-send" class="button button-primary">Send Custom Event</button>
 					</td>
 				</tr>
 			</table>
 
-			<div id="rybbit-sandbox-log" style="margin-top: 20px; background: #f0f0f1; padding: 15px; border: 1px solid #c3c4c7; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
+			<div id="clickwise-sandbox-log" style="margin-top: 20px; background: #f0f0f1; padding: 15px; border: 1px solid #c3c4c7; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
 				<div style="color: #666; font-style: italic;">Ready to send events...</div>
 			</div>
 		</div>
@@ -544,13 +587,13 @@ class Rybbit_Admin {
 		$value = get_option( $id );
 		$desc = isset( $args['desc'] ) ? $args['desc'] : '';
 		echo "<input type='$type' name='$id' id='$id' value='" . esc_attr( $value ) . "' class='regular-text'>";
-		if ( $id === 'rybbit_script_url' ) {
-			echo " <button type='button' id='rybbit-test-connection' class='button'>Test Connection</button>";
-			echo " <span id='rybbit-test-result'></span>";
+		if ( $id === 'clickwise_script_url' ) {
+			echo " <button type='button' id='clickwise-test-connection' class='button'>Test Connection</button>";
+			echo " <span id='clickwise-test-result'></span>";
 		}
-		if ( $id === 'rybbit_site_id' ) {
-			echo " <button type='button' id='rybbit-send-test-event' class='button'>Send Test Event</button>";
-			echo " <span id='rybbit-test-event-result'></span>";
+		if ( $id === 'clickwise_site_id' ) {
+			echo " <button type='button' id='clickwise-send-test-event' class='button'>Send Test Event</button>";
+			echo " <span id='clickwise-test-event-result'></span>";
 		}
 		if ( $desc ) echo "<p class='description'>$desc</p>";
 	}
@@ -572,14 +615,14 @@ class Rybbit_Admin {
 		$placeholder = 'Enter pattern (e.g. /blog/*)';
 		$button_text = 'Add Pattern';
 
-		echo '<div class="rybbit-pattern-ui-container">';
-		echo '<textarea name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="rybbit-pattern-source" style="display:none;">' . esc_textarea( $value ) . '</textarea>';
+		echo '<div class="clickwise-pattern-ui-container">';
+		echo '<textarea name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="clickwise-pattern-source" style="display:none;">' . esc_textarea( $value ) . '</textarea>';
 
-		echo '<div class="rybbit-pattern-wrapper">';
-		echo '<ul class="rybbit-pattern-list"></ul>';
-		echo '<div class="rybbit-pattern-input-group">';
-		echo '<input type="text" class="regular-text rybbit-new-pattern-input" placeholder="' . esc_attr( $placeholder ) . '">';
-		echo '<button type="button" class="button rybbit-add-pattern-btn">' . esc_html( $button_text ) . '</button>';
+		echo '<div class="clickwise-pattern-wrapper">';
+		echo '<ul class="clickwise-pattern-list"></ul>';
+		echo '<div class="clickwise-pattern-input-group">';
+		echo '<input type="text" class="regular-text clickwise-new-pattern-input" placeholder="' . esc_attr( $placeholder ) . '">';
+		echo '<button type="button" class="button clickwise-add-pattern-btn">' . esc_html( $button_text ) . '</button>';
 		echo '</div>';
 		echo '</div>';
 
@@ -595,12 +638,12 @@ class Rybbit_Admin {
 		// Convert old format to new format for backward compatibility
 		$rules = $this->convert_legacy_prefixes_to_rules( $value );
 
-		echo '<div class="rybbit-event-rules-container">';
-		echo '<input type="hidden" name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="rybbit-rules-data" value="' . esc_attr( json_encode( $rules ) ) . '">';
+		echo '<div class="clickwise-event-rules-container">';
+		echo '<input type="hidden" name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="clickwise-rules-data" value="' . esc_attr( json_encode( $rules ) ) . '">';
 
-		echo '<div class="rybbit-rules-list"></div>';
+		echo '<div class="clickwise-rules-list"></div>';
 
-		echo '<div class="rybbit-add-rule-section" style="margin-top: 15px; padding: 15px; border: 2px dashed #c3c4c7; border-radius: 4px; background: #f9f9f9;">';
+		echo '<div class="clickwise-add-rule-section" style="margin-top: 15px; padding: 15px; border: 2px dashed #c3c4c7; border-radius: 4px; background: #f9f9f9;">';
 		echo '<h4 style="margin-top: 0;">Add New Rule</h4>';
 		echo '<table class="form-table" style="margin: 0;">';
 		echo '<tr>';
@@ -637,7 +680,7 @@ class Rybbit_Admin {
 
 		if ( $desc ) echo "<p class='description'>$desc</p>";
 
-		echo '<div class="rybbit-rule-examples" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
+		echo '<div class="clickwise-rule-examples" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
 		echo '<strong>Examples:</strong>';
 		echo '<ul style="margin: 5px 0;">';
 		echo '<li><strong>Prefix:</strong> "kb-" → matches "kb-button-click", "kb-form-submit"</li>';
@@ -675,7 +718,7 @@ class Rybbit_Admin {
 
 	public function render_events_manager_tab() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		// Check if table exists
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
@@ -741,16 +784,16 @@ class Rybbit_Admin {
 		});
 
 		?>
-		<div class="rybbit-manager-tabs" style="margin-bottom: 20px; border-bottom: 1px solid #ccc;">
-			<a href="#" class="rybbit-sub-tab active" data-target="rybbit-tracked-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; border:1px solid #ccc; border-bottom:none; background:#fff; margin-bottom:-1px;">Tracked Events</a>
-			<a href="#" class="rybbit-sub-tab" data-target="rybbit-ignored-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Ignored Events</a>
-			<a href="#" class="rybbit-sub-tab" data-target="rybbit-history-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Recording History</a>
+		<div class="clickwise-manager-tabs" style="margin-bottom: 20px; border-bottom: 1px solid #ccc;">
+			<a href="#" class="clickwise-sub-tab active" data-target="clickwise-tracked-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; border:1px solid #ccc; border-bottom:none; background:#fff; margin-bottom:-1px;">Tracked Events</a>
+			<a href="#" class="clickwise-sub-tab" data-target="clickwise-ignored-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Ignored Events</a>
+			<a href="#" class="clickwise-sub-tab" data-target="clickwise-history-view" style="text-decoration:none; padding: 10px 20px; display:inline-block; background:#f1f1f1; color:#555;">Recording History</a>
 		</div>
 
 		<!-- TRACKED EVENTS VIEW -->
-		<div id="rybbit-tracked-view" class="rybbit-sub-view">
+		<div id="clickwise-tracked-view" class="clickwise-sub-view">
 			<h3>Active Tracked Events</h3>
-			<form class="rybbit-bulk-form" method="post">
+			<form class="clickwise-bulk-form" method="post">
 				<div class="tablenav top">
 					<div class="alignleft actions bulkactions">
 						<select name="bulk_action">
@@ -758,13 +801,13 @@ class Rybbit_Admin {
 							<option value="ignored">Ignore</option>
 							<option value="delete">Delete</option>
 						</select>
-						<button type="button" class="button action rybbit-apply-bulk">Apply</button>
+						<button type="button" class="button action clickwise-apply-bulk">Apply</button>
 					</div>
 				</div>
 				<table class="widefat fixed striped">
 					<thead>
 						<tr>
-							<td id="cb" class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
+							<td id="cb" class="manage-column column-cb check-column"><input type="checkbox" class="clickwise-select-all"></td>
 							<th>Event Name (Alias)</th>
 							<th>Original Name</th>
 							<th>Type</th>
@@ -784,7 +827,7 @@ class Rybbit_Admin {
 									<td><?php echo esc_html( $event['type'] ); ?></td>
 									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
 									<td>
-										<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+										<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -795,9 +838,9 @@ class Rybbit_Admin {
 		</div>
 
 		<!-- IGNORED EVENTS VIEW -->
-		<div id="rybbit-ignored-view" class="rybbit-sub-view" style="display:none;">
+		<div id="clickwise-ignored-view" class="clickwise-sub-view" style="display:none;">
 			<h3>Ignored Events</h3>
-			<form class="rybbit-bulk-form" method="post">
+			<form class="clickwise-bulk-form" method="post">
 				<div class="tablenav top">
 					<div class="alignleft actions bulkactions">
 						<select name="bulk_action">
@@ -805,13 +848,13 @@ class Rybbit_Admin {
 							<option value="tracked">Track</option>
 							<option value="delete">Delete</option>
 						</select>
-						<button type="button" class="button action rybbit-apply-bulk">Apply</button>
+						<button type="button" class="button action clickwise-apply-bulk">Apply</button>
 					</div>
 				</div>
 				<table class="widefat fixed striped">
 					<thead>
 						<tr>
-							<td class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
+							<td class="manage-column column-cb check-column"><input type="checkbox" class="clickwise-select-all"></td>
 							<th>Original Name</th>
 							<th>Type</th>
 							<th>Selector</th>
@@ -829,7 +872,7 @@ class Rybbit_Admin {
 									<td><?php echo esc_html( $event['type'] ); ?></td>
 									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
 									<td>
-										<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+										<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -840,24 +883,24 @@ class Rybbit_Admin {
 		</div>
 
 		<!-- RECORDING HISTORY VIEW -->
-		<div id="rybbit-history-view" class="rybbit-sub-view" style="display:none;">
+		<div id="clickwise-history-view" class="clickwise-sub-view" style="display:none;">
 			<h3>Recording History</h3>
 			<?php if ( empty( $sessions ) ) : ?>
 				<p>No recording history found.</p>
 			<?php else : ?>
 				<?php foreach ( $sessions as $session ) : ?>
-					<div class="rybbit-session-block" style="border: 1px solid #ccd0d4; background: #fff; margin-bottom: 20px;">
-						<div class="rybbit-session-header" style="padding: 10px 15px; background: #f9f9f9; border-bottom: 1px solid #ccd0d4; display:flex; justify-content:space-between; align-items:center;">
+					<div class="clickwise-session-block" style="border: 1px solid #ccd0d4; background: #fff; margin-bottom: 20px;">
+						<div class="clickwise-session-header" style="padding: 10px 15px; background: #f9f9f9; border-bottom: 1px solid #ccd0d4; display:flex; justify-content:space-between; align-items:center;">
 							<div>
 								<strong>Session: <?php echo esc_html( $session['id'] === 'legacy' ? 'Legacy / Manual' : date( 'F j, Y @ g:i a', $session['timestamp'] ) ); ?></strong>
 								<span class="count" style="color:#666; margin-left:10px;">(<?php echo count( $session['events'] ); ?> events)</span>
 							</div>
 							<div>
-								<button type="button" class="button rybbit-delete-session" data-session="<?php echo esc_attr( $session['id'] ); ?>" style="color: #a00; border-color: #a00;">Delete Session</button>
+								<button type="button" class="button clickwise-delete-session" data-session="<?php echo esc_attr( $session['id'] ); ?>" style="color: #a00; border-color: #a00;">Delete Session</button>
 							</div>
 						</div>
-						<div class="rybbit-session-content" style="padding: 0;">
-							<form class="rybbit-bulk-form" method="post">
+						<div class="clickwise-session-content" style="padding: 0;">
+							<form class="clickwise-bulk-form" method="post">
 								<div class="tablenav top" style="padding: 10px;">
 									<div class="alignleft actions bulkactions">
 										<select name="bulk_action">
@@ -866,13 +909,13 @@ class Rybbit_Admin {
 											<option value="ignored">Ignore</option>
 											<option value="delete">Delete</option>
 										</select>
-										<button type="button" class="button action rybbit-apply-bulk">Apply</button>
+										<button type="button" class="button action clickwise-apply-bulk">Apply</button>
 									</div>
 								</div>
 								<table class="widefat fixed striped" style="border:none; box-shadow:none;">
 									<thead>
 										<tr>
-											<td class="manage-column column-cb check-column"><input type="checkbox" class="rybbit-select-all"></td>
+											<td class="manage-column column-cb check-column"><input type="checkbox" class="clickwise-select-all"></td>
 											<th>Status</th>
 											<th>Name</th>
 											<th>Type</th>
@@ -900,7 +943,7 @@ class Rybbit_Admin {
 												</td>
 												<td><?php echo esc_html( $event['type'] ); ?></td>
 												<td>
-													<button type="button" class="button rybbit-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details</button>
+													<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details</button>
 												</td>
 											</tr>
 										<?php endforeach; ?>
@@ -914,15 +957,15 @@ class Rybbit_Admin {
 		</div>
 
 		<!-- EVENT DETAILS MODAL -->
-		<div id="rybbit-event-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items: center; justify-content: center;">
-			<div class="rybbit-modal-content" style="background:#fff; width:700px; max-width:90%; max-height:90vh; overflow-y:auto; padding:0; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); position:relative; display:flex; flex-direction:column;">
+		<div id="clickwise-event-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items: center; justify-content: center;">
+			<div class="clickwise-modal-content" style="background:#fff; width:700px; max-width:90%; max-height:90vh; overflow-y:auto; padding:0; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); position:relative; display:flex; flex-direction:column;">
 
-				<div class="rybbit-modal-header" style="padding: 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+				<div class="clickwise-modal-header" style="padding: 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
 					<h2 style="margin:0;">Event Details</h2>
-					<button type="button" id="rybbit-modal-close-x" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666; line-height:1;">&times;</button>
+					<button type="button" id="clickwise-modal-close-x" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666; line-height:1;">&times;</button>
 				</div>
 
-				<div class="rybbit-modal-body" style="padding: 20px; overflow-y:auto;">
+				<div class="clickwise-modal-body" style="padding: 20px; overflow-y:auto;">
 					<table class="form-table" style="margin:0;">
 						<tr>
 							<th style="width:150px;">Type</th>
@@ -944,7 +987,7 @@ class Rybbit_Admin {
 							<th>User-Friendly Name (Alias)</th>
 							<td>
 								<input type="text" id="modal-event-alias" class="regular-text" placeholder="e.g. Signup Button Click" style="width:100%;">
-								<p class="description">If set, this name will be sent to Rybbit instead of the original name.</p>
+								<p class="description">If set, this name will be sent to Clickwise instead of the original name.</p>
 							</td>
 						</tr>
 						<tr>
@@ -960,9 +1003,9 @@ class Rybbit_Admin {
 					</table>
 				</div>
 
-				<div class="rybbit-modal-footer" style="padding: 20px; border-top: 1px solid #eee; text-align:right; background:#fcfcfc; border-radius:0 0 8px 8px;">
-					<button type="button" class="button" id="rybbit-modal-cancel">Cancel</button>
-					<button type="button" class="button button-primary" id="rybbit-modal-save">Save Changes</button>
+				<div class="clickwise-modal-footer" style="padding: 20px; border-top: 1px solid #eee; text-align:right; background:#fcfcfc; border-radius:0 0 8px 8px;">
+					<button type="button" class="button" id="clickwise-modal-cancel">Cancel</button>
+					<button type="button" class="button button-primary" id="clickwise-modal-save">Save Changes</button>
 				</div>
 			</div>
 		</div>
@@ -981,7 +1024,7 @@ class Rybbit_Admin {
 	 */
 	private function get_events_for_admin_js() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'rybbit_events';
+		$table_name = $wpdb->prefix . 'clickwise_events';
 
 		// Check if table exists first to avoid errors on fresh install
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
@@ -1046,8 +1089,98 @@ class Rybbit_Admin {
 		}
 
 		// Store the dismissal in user meta
-		update_user_meta( get_current_user_id(), 'rybbit_dismiss_service_notice', true );
+		update_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true );
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Render tab-specific tips
+	 */
+	private function render_tab_tips( $tab ) {
+		$tips = $this->get_tab_tips( $tab );
+
+		if ( empty( $tips ) ) {
+			echo '<p>No tips available for this tab.</p>';
+			return;
+		}
+
+		echo '<ul>';
+		foreach ( $tips as $tip ) {
+			echo '<li>' . $tip . '</li>';
+		}
+		echo '</ul>';
+	}
+
+	/**
+	 * Get tips for specific tab
+	 */
+	private function get_tab_tips( $tab ) {
+		$all_tips = array(
+			'general' => array(
+				'<strong>🎯 Site ID:</strong> Found in your Clickwise dashboard under "Sites" section.',
+				'<strong>🔗 Script URL:</strong> Usually looks like <code>https://your-clickwise.com/script.js</code>',
+				'<strong>✅ Test Connection:</strong> Use the "Test Connection" button to verify your setup.',
+				'<strong>⚡ Performance:</strong> Our tracker is lightweight (~2KB) and won\'t slow down your site.',
+				'<strong>🔧 Debug Mode:</strong> Enable dev mode to see events in browser console.'
+			),
+			'tracking' => array(
+				'<strong>📊 Pageview Tracking:</strong> Automatically tracks every page visit - no setup needed!',
+				'<strong>🎯 Custom Events:</strong> Track clicks, form submissions, or anything that matters to you.',
+				'<strong>🔍 Event Rules:</strong> Use patterns like <code>shop_*</code> to track all shop-related events.',
+				'<strong>💡 Event Names:</strong> Keep them simple: <code>button_click</code>, <code>video_play</code>, <code>signup_complete</code>.',
+				'<strong>📈 Best Practice:</strong> Track actions that indicate user engagement or conversions.'
+			),
+			'events' => array(
+				'<strong>📝 Form Tracking:</strong> Automatically captures form submissions with form name and class.',
+				'<strong>🔗 Link Tracking:</strong> Tracks clicks on external links to see where users go.',
+				'<strong>🎨 Custom Events:</strong> Add <code>data-clickwise-action="my-event"</code> to any HTML element.',
+				'<strong>📋 Event Rules:</strong> Create flexible patterns: prefix, contains, exact match, regex, or wildcards.',
+				'<strong>🚀 Example:</strong> <code>&lt;button data-clickwise-action="cta-click"&gt;Buy Now!&lt;/button&gt;</code>'
+			),
+			'events_manager' => array(
+				'<strong>🎬 Recording Mode:</strong> Click elements to automatically generate tracking rules.',
+				'<strong>📚 Event Library:</strong> Review all captured events and decide what to track.',
+				'<strong>✨ Quick Actions:</strong> Approve useful events, ignore noise with one click.',
+				'<strong>🔄 Sessions:</strong> Each recording session is saved separately for easy organization.',
+				'<strong>🎯 Pro Tip:</strong> Record user journeys to discover which events matter most!'
+			),
+			'sandbox' => array(
+				'<strong>🧪 Test Events:</strong> Send test events to verify your analytics setup works.',
+				'<strong>🎮 Sandbox Mode:</strong> Play around without affecting your real analytics data.',
+				'<strong>🔍 Event Preview:</strong> See exactly what data gets sent to your Clickwise instance.',
+				'<strong>⚡ Quick Test:</strong> Try events like <code>test_click</code> or <code>sandbox_experiment</code>.',
+				'<strong>🎨 Custom Data:</strong> Add extra properties like <code>{"source": "sandbox", "user_type": "tester"}</code>'
+			),
+			'advanced' => array(
+				'<strong>⚙️ Advanced Settings:</strong> Fine-tune tracking behavior for your specific needs.',
+				'<strong>🔧 Developer Tools:</strong> Enable dev mode to see detailed event logging.',
+				'<strong>🎭 User Permissions:</strong> Only admins can access recording and dev modes.',
+				'<strong>🚀 Performance:</strong> All tracking happens asynchronously - zero impact on page speed.',
+				'<strong>🔒 Privacy:</strong> Configure what data to collect while respecting user privacy.'
+			)
+		);
+
+		return isset( $all_tips[$tab] ) ? $all_tips[$tab] : array();
+	}
+
+	/**
+	 * Get a random tip
+	 */
+	private function get_random_tip() {
+		$random_tips = array(
+			'Analytics are like coffee - the more data points, the better the buzz! ☕',
+			'Fun fact: The average user clicks 2,617 times per day. Are you tracking them? 🖱️',
+			'A website without analytics is like driving with your eyes closed... but less fun! 🚗',
+			'Pro tip: Users spend 70% of their time above the fold. Track those clicks! 📊',
+			'Event tracking is like being a digital detective - every click tells a story! 🕵️',
+			'Remember: Data without action is just expensive storage! 💾',
+			'Your bounce rate called - it wants you to track more engagement events! 📞',
+			'Analytics rule #1: If it moves, track it. If it doesn\'t move, track why not! 🎯',
+			'Users are like cats - they do unexpected things. Analytics help you understand why! 🐱',
+			'Good analytics are like a GPS for your website - they show you where users really go! 🗺️'
+		);
+
+		return $random_tips[ array_rand( $random_tips ) ];
 	}
 }

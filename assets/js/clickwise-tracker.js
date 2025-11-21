@@ -1,5 +1,5 @@
 /**
- * Webspirio Rybbit Analytics Tracker
+ * Webspirio Clickwise Analytics Tracker
  * Author: Webspirio (Oleksandr Chornous)
  * Contact: contact@webspirio.com
  * Copyright (c) 2025 Webspirio
@@ -8,7 +8,7 @@
 (function () {
     'use strict';
 
-    var config = window.rybbit_config || {};
+    var config = window.clickwise_config || {};
 
     /**
      * Event Rule Matching
@@ -181,7 +181,7 @@
         if (el.id) return '#' + el.id;
 
         // 2. Check for specific attributes that make it unique-ish
-        if (el.hasAttribute('data-rybbit-id')) return '[' + 'data-rybbit-id="' + el.getAttribute('data-rybbit-id') + '"]';
+        if (el.hasAttribute('data-clickwise-id')) return '[' + 'data-clickwise-id="' + el.getAttribute('data-clickwise-id') + '"]';
         if (el.getAttribute('name')) return el.tagName.toLowerCase() + '[name="' + el.getAttribute('name') + '"]';
 
         // 3. Walk up the DOM (limit depth for sanity)
@@ -220,21 +220,21 @@
 
     /**
      * Declarative Event Tracking
-     * Listens for clicks on elements with data-rybbit-action attribute.
+     * Listens for clicks on elements with data-clickwise-action attribute.
      */
     document.addEventListener('click', function (e) {
-        var target = e.target.closest('[data-rybbit-action]');
+        var target = e.target.closest('[data-clickwise-action]');
         if (target) {
-            var action = target.getAttribute('data-rybbit-action');
-            var name = target.getAttribute('data-rybbit-name') || action;
-            var detailRaw = target.getAttribute('data-rybbit-detail');
+            var action = target.getAttribute('data-clickwise-action');
+            var name = target.getAttribute('data-clickwise-name') || action;
+            var detailRaw = target.getAttribute('data-clickwise-detail');
             var detail = {};
 
             if (detailRaw) {
                 try {
                     detail = JSON.parse(detailRaw);
                 } catch (err) {
-                    console.warn('Rybbit: Invalid JSON in data-rybbit-detail', err);
+                    console.warn('Clickwise: Invalid JSON in data-clickwise-detail', err);
                     detail = { raw: detailRaw };
                 }
             }

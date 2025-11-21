@@ -1,7 +1,7 @@
-/* Rybbit Admin Interface Styles */
+/* Clickwise Admin Interface Styles */
 
 /* Smooth tab transitions and prevent layout jiggling */
-.rybbit-settings-container {
+.clickwise-settings-container {
     min-height: 600px;
     transition: min-height 0.2s ease-in-out;
     display: flex;
@@ -9,7 +9,7 @@
     margin-top: 20px;
 }
 
-.rybbit-main-content {
+.clickwise-main-content {
     min-height: 500px;
     flex: 3;
 }
@@ -30,70 +30,71 @@
 }
 
 /* Content area styling */
-.rybbit-content-area {
+.clickwise-content-area {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-top: none;
     padding: 20px;
     min-height: 500px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* Form improvements */
-.rybbit-settings-container .form-table {
+.clickwise-settings-container .form-table {
     margin-top: 0;
 }
 
-.rybbit-settings-container .form-table th {
+.clickwise-settings-container .form-table th {
     padding-left: 0;
     width: 200px;
 }
 
 /* Loading state for smooth transitions */
-.rybbit-loading {
+.clickwise-loading {
     opacity: 0.6;
     pointer-events: none;
 }
 
 /* Event Manager specific improvements */
-.rybbit-event-manager-container {
+.clickwise-event-manager-container {
     min-height: 500px;
 }
 
 /* Sandbox tab improvements */
-.rybbit-sandbox-container {
+.clickwise-sandbox-container {
     min-height: 400px;
 }
 
 /* Advanced tab improvements */
-.rybbit-advanced-container {
+.clickwise-advanced-container {
     min-height: 300px;
 }
 
 /* Prevent flash of content */
-.rybbit-tab-content {
+.clickwise-tab-content {
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
 }
 
-.rybbit-tab-content.loading {
-    opacity: 0.8;
+.clickwise-tab-content.loading {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* Notice improvements */
-#rybbit-service-notice {
+#clickwise-service-notice {
     transition: all 0.3s ease-in-out;
     margin-bottom: 0 !important;
 }
 
 /* Responsive improvements */
 @media (max-width: 782px) {
-    .rybbit-settings-container {
+    .clickwise-settings-container {
         flex-direction: column;
         gap: 10px;
     }
 
-    .rybbit-main-content {
+    .clickwise-main-content {
         min-height: 400px;
     }
 
@@ -109,22 +110,70 @@
 }
 
 /* Fix sidebar jiggling */
-.rybbit-sidebar {
+.clickwise-sidebar {
     min-height: 500px;
     flex: 1;
     background: #fff;
     padding: 20px;
     border: 1px solid #ccd0d4;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.clickwise-sidebar-content {
+    flex: 1;
+}
+
+.clickwise-sidebar-footer {
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+/* Credits styling */
+.clickwise-credits {
+    transition: transform 0.2s ease-in-out;
+}
+
+.clickwise-credits:hover {
+    transform: translateY(-1px);
+}
+
+.webspirio-logo svg {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.webspirio-logo:hover svg {
+    opacity: 0.8;
+}
+
+/* GitHub icon styling */
+.clickwise-github-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+.clickwise-github-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Action buttons styling */
+.clickwise-actions .button {
+    transition: all 0.2s ease-in-out;
+}
+
+.clickwise-actions .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Smooth height transitions for dynamic content */
-.rybbit-dynamic-content {
+.clickwise-dynamic-content {
     transition: height 0.3s ease-in-out;
     overflow: hidden;
 }
 
 /* Ensure consistent spacing */
-.rybbit-settings-container > * {
+.clickwise-settings-container>* {
     margin-bottom: 0;
 }
