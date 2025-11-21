@@ -275,10 +275,10 @@ class Rybbit_Analytics {
 		$event_prefixes = get_option( 'rybbit_event_prefixes', 'kb-, wc-, custom-' );
 		$track_forms    = get_option( 'rybbit_track_forms', true );
 		$track_links    = get_option( 'rybbit_track_links', true );
-		$dev_mode       = get_option( 'rybbit_dev_mode', false );
+		$dev_mode       = get_option( 'rybbit_dev_mode', false ) && current_user_can( 'manage_options' );
 		
 		$recording_mode = false;
-		if ( is_user_logged_in() ) {
+		if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
 			$recording_mode = get_user_meta( get_current_user_id(), 'rybbit_recording_mode', true );
 		}
 
