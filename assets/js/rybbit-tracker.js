@@ -11,29 +11,87 @@
     var config = window.rybbit_config || {};
 
     /**
+     * Event Rule Matching
+     * Checks if an event name matches any of the configured rules.
+     */
+    function matchesEventRules(eventName) {
+        var rules = config.event_rules || config.prefixes; // Backward compatibility
+        if (!rules || !Array.isArray(rules)) {
+            return false;
+        }
+
+        for (var i = 0; i < rules.length; i++) {
+            var rule = rules[i];
+
+            // Handle legacy string format (backward compatibility)
+            if (typeof rule === 'string') {
+                if (eventName.indexOf(rule) === 0) {
+                    return true;
+                }
+                continue;
+            }
+
+            // Handle new rule-based format
+            if (typeof rule === 'object' && rule.type && rule.value) {
+                switch (rule.type) {
+                    case 'prefix':
+                        if (eventName.indexOf(rule.value) === 0) {
+                            return true;
+                        }
+                        break;
+                    case 'contains':
+                        if (eventName.indexOf(rule.value) !== -1) {
+                            return true;
+                        }
+                        break;
+                    case 'exact':
+                        if (eventName === rule.value) {
+                            return true;
+                        }
+                        break;
+                    case 'regex':
+                        try {
+                            var regex = new RegExp(rule.value);
+                            if (regex.test(eventName)) {
+                                return true;
+                            }
+                        } catch (e) {
+                            // Invalid regex, skip
+                        }
+                        break;
+                    case 'pattern':
+                        // Convert wildcard pattern to regex
+                        var pattern = rule.value.replace(/\*/g, '.*');
+                        try {
+                            var patternRegex = new RegExp('^' + pattern + '$');
+                            if (patternRegex.test(eventName)) {
+                                return true;
+                            }
+                        } catch (e) {
+                            // Invalid pattern, skip
+                        }
+                        break;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Custom Event Tracking
-     * Intercepts CustomEvent dispatch to track events with specific prefixes.
+     * Intercepts CustomEvent dispatch to track events with configured rules.
      */
     var originalDispatchEvent = EventTarget.prototype.dispatchEvent;
     EventTarget.prototype.dispatchEvent = function (event) {
         if (event instanceof CustomEvent) {
-            var shouldTrack = false;
-            if (config.prefixes && Array.isArray(config.prefixes)) {
-                config.prefixes.forEach(function (prefix) {
-                    if (event.type.indexOf(prefix) === 0) {
-                        shouldTrack = true;
-                    }
-                });
-
-                if (shouldTrack) {
-                    // Note: We rely on the global monkey patch in Dev Mode to log this
-                    if (window.rybbit && typeof window.rybbit.event === 'function') {
-                        window.rybbit.event(event.type, {
-                            detail: typeof event.detail === 'object'
-                                ? JSON.stringify(event.detail)
-                                : String(event.detail || '')
-                        });
-                    }
+            if (matchesEventRules(event.type)) {
+                // Note: We rely on the global monkey patch in Dev Mode to log this
+                if (window.rybbit && typeof window.rybbit.event === 'function') {
+                    window.rybbit.event(event.type, {
+                        detail: typeof event.detail === 'object'
+                            ? JSON.stringify(event.detail)
+                            : String(event.detail || '')
+                    });
                 }
             }
         }

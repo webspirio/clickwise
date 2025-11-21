@@ -77,8 +77,10 @@ class Rybbit_Admin {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
 			wp_enqueue_style( 'rybbit-admin-bar-css', RYBBIT_WP_URL . 'assets/css/rybbit-admin-bar.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_style( 'rybbit-pattern-ui-css', RYBBIT_WP_URL . 'assets/css/rybbit-pattern-ui.css', array(), RYBBIT_WP_VERSION );
+			wp_enqueue_style( 'rybbit-event-rules-css', RYBBIT_WP_URL . 'assets/css/rybbit-event-rules.css', array(), RYBBIT_WP_VERSION );
 			wp_enqueue_script( 'rybbit-admin', RYBBIT_WP_URL . 'assets/js/rybbit-admin.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 			wp_enqueue_script( 'rybbit-pattern-ui', RYBBIT_WP_URL . 'assets/js/rybbit-pattern-ui.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
+			wp_enqueue_script( 'rybbit-event-rules', RYBBIT_WP_URL . 'assets/js/rybbit-event-rules.js', array( 'jquery' ), RYBBIT_WP_VERSION, true );
 				wp_localize_script( 'rybbit-admin', 'rybbit_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'rybbit_admin_nonce' ),
@@ -373,9 +375,9 @@ class Rybbit_Admin {
 		// --- Tab: Events & Forms ---
 		add_settings_section( 'rybbit_events_section', 'Events & Interactions', null, 'rybbit-settings-events' );
 
-		add_settings_field( 'rybbit_event_prefixes', 'Custom Event Prefixes', array( $this, 'render_text_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
-			'id' => 'rybbit_event_prefixes', 
-			'desc' => 'Comma-separated list of event prefixes to automatically track (e.g., "kb-, wc-, custom-").' 
+		add_settings_field( 'rybbit_event_prefixes', 'Custom Event Rules', array( $this, 'render_event_rules_field' ), 'rybbit-settings-events', 'rybbit_events_section', array(
+			'id' => 'rybbit_event_prefixes',
+			'desc' => 'Define flexible rules to automatically track events. Support for prefixes, contains, patterns, exact matches, and regex.'
 		) );
 		add_settings_field( 'rybbit_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'rybbit-settings-events', 'rybbit_events_section', array( 
 			'id' => 'rybbit_track_forms', 
@@ -551,19 +553,87 @@ class Rybbit_Admin {
 		$id = $args['id'];
 		$value = get_option( $id );
 		$desc = isset( $args['desc'] ) ? $args['desc'] : '';
-		
+
+		// Determine placeholder text and button text based on field ID
+		$placeholder = 'Enter pattern (e.g. /blog/*)';
+		$button_text = 'Add Pattern';
+
 		echo '<div class="rybbit-pattern-ui-container">';
 		echo '<textarea name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="rybbit-pattern-source" style="display:none;">' . esc_textarea( $value ) . '</textarea>';
-		
+
 		echo '<div class="rybbit-pattern-wrapper">';
 		echo '<ul class="rybbit-pattern-list"></ul>';
 		echo '<div class="rybbit-pattern-input-group">';
-		echo '<input type="text" class="regular-text rybbit-new-pattern-input" placeholder="Enter pattern (e.g. /blog/*)">';
-		echo '<button type="button" class="button rybbit-add-pattern-btn">Add Pattern</button>';
+		echo '<input type="text" class="regular-text rybbit-new-pattern-input" placeholder="' . esc_attr( $placeholder ) . '">';
+		echo '<button type="button" class="button rybbit-add-pattern-btn">' . esc_html( $button_text ) . '</button>';
 		echo '</div>';
 		echo '</div>';
-		
+
 		if ( $desc ) echo "<p class='description'>$desc</p>";
+		echo '</div>';
+	}
+
+	public function render_event_rules_field( $args ) {
+		$id = $args['id'];
+		$value = get_option( $id );
+		$desc = isset( $args['desc'] ) ? $args['desc'] : '';
+
+		// Convert old format to new format for backward compatibility
+		$rules = $this->convert_legacy_prefixes_to_rules( $value );
+
+		echo '<div class="rybbit-event-rules-container">';
+		echo '<input type="hidden" name="' . esc_attr( $id ) . '" id="' . esc_attr( $id ) . '" class="rybbit-rules-data" value="' . esc_attr( json_encode( $rules ) ) . '">';
+
+		echo '<div class="rybbit-rules-list"></div>';
+
+		echo '<div class="rybbit-add-rule-section" style="margin-top: 15px; padding: 15px; border: 2px dashed #c3c4c7; border-radius: 4px; background: #f9f9f9;">';
+		echo '<h4 style="margin-top: 0;">Add New Rule</h4>';
+		echo '<table class="form-table" style="margin: 0;">';
+		echo '<tr>';
+		echo '<th style="width: 120px;"><label for="new-rule-type">Rule Type</label></th>';
+		echo '<td>';
+		echo '<select id="new-rule-type" class="regular-text">';
+		echo '<option value="prefix">Prefix Match</option>';
+		echo '<option value="contains">Contains</option>';
+		echo '<option value="exact">Exact Match</option>';
+		echo '<option value="regex">Regular Expression</option>';
+		echo '<option value="pattern">Wildcard Pattern</option>';
+		echo '</select>';
+		echo '</td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th><label for="new-rule-value">Rule Value</label></th>';
+		echo '<td><input type="text" id="new-rule-value" class="regular-text" placeholder="e.g. kb-"></td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th><label for="new-rule-desc">Description</label></th>';
+		echo '<td><input type="text" id="new-rule-desc" class="regular-text" placeholder="e.g. Kadence Block events (optional)"></td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th></th>';
+		echo '<td>';
+		echo '<button type="button" id="add-event-rule-btn" class="button button-primary">Add Rule</button>';
+		echo '<div id="rule-preview" style="margin-top: 10px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 3px; display: none;">';
+		echo '<strong>Preview:</strong> <span id="rule-preview-text"></span>';
+		echo '</div>';
+		echo '</td>';
+		echo '</tr>';
+		echo '</table>';
+		echo '</div>';
+
+		if ( $desc ) echo "<p class='description'>$desc</p>";
+
+		echo '<div class="rybbit-rule-examples" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0073aa;">';
+		echo '<strong>Examples:</strong>';
+		echo '<ul style="margin: 5px 0;">';
+		echo '<li><strong>Prefix:</strong> "kb-" → matches "kb-button-click", "kb-form-submit"</li>';
+		echo '<li><strong>Contains:</strong> "form" → matches "contact-form", "login-form-submit"</li>';
+		echo '<li><strong>Exact:</strong> "user_signup" → matches only "user_signup"</li>';
+		echo '<li><strong>Regex:</strong> "^wc-.*-complete$" → matches "wc-purchase-complete", "wc-checkout-complete"</li>';
+		echo '<li><strong>Pattern:</strong> "click-*-button" → matches "click-red-button", "click-save-button"</li>';
+		echo '</ul>';
+		echo '</div>';
+
 		echo '</div>';
 	}
 
@@ -912,5 +982,43 @@ class Rybbit_Admin {
 			}
 		}
 		return $events;
+	}
+
+	/**
+	 * Convert legacy comma/line-separated prefixes to new rule format.
+	 */
+	private function convert_legacy_prefixes_to_rules( $value ) {
+		if ( empty( $value ) ) {
+			return array();
+		}
+
+		// Try to decode as JSON (new format)
+		$decoded = json_decode( $value, true );
+		if ( is_array( $decoded ) && isset( $decoded[0] ) && isset( $decoded[0]['type'] ) ) {
+			// Already in new format
+			return $decoded;
+		}
+
+		// Legacy format - convert to rules
+		$rules = array();
+
+		// Handle both comma and line separated formats
+		if ( strpos( $value, "\n" ) !== false || strpos( $value, "\r" ) !== false ) {
+			$prefixes = preg_split( '/\r\n|\r|\n/', $value );
+		} else {
+			$prefixes = explode( ',', $value );
+		}
+
+		$prefixes = array_filter( array_map( 'trim', $prefixes ) );
+
+		foreach ( $prefixes as $prefix ) {
+			$rules[] = array(
+				'type' => 'prefix',
+				'value' => $prefix,
+				'description' => ''
+			);
+		}
+
+		return $rules;
 	}
 }
