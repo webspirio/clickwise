@@ -61,6 +61,11 @@ jQuery(document).ready(function ($) {
                         window.initClickwiseEventRules();
                     }
 
+                    // Re-initialize Syntax Highlighter if present
+                    if (window.initClickwiseSyntaxHighlighter) {
+                        window.initClickwiseSyntaxHighlighter();
+                    }
+
                     // Update URL
                     window.history.pushState({ href: href }, '', href);
 
