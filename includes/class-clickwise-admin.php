@@ -79,6 +79,7 @@ class Clickwise_Admin {
 			wp_enqueue_style( 'clickwise-admin-bar-css', CLICKWISE_URL . 'assets/css/clickwise-admin-bar.css', array(), CLICKWISE_VERSION );
 			wp_enqueue_style( 'clickwise-pattern-ui-css', CLICKWISE_URL . 'assets/css/clickwise-pattern-ui.css', array(), CLICKWISE_VERSION );
 			wp_enqueue_style( 'clickwise-event-rules-css', CLICKWISE_URL . 'assets/css/clickwise-event-rules.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_style( 'clickwise-google-fonts', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap', array(), null );
 			wp_enqueue_script( 'clickwise-admin', CLICKWISE_URL . 'assets/js/clickwise-admin.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 			wp_enqueue_script( 'clickwise-pattern-ui', CLICKWISE_URL . 'assets/js/clickwise-pattern-ui.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 			wp_enqueue_script( 'clickwise-event-rules', CLICKWISE_URL . 'assets/js/clickwise-event-rules.js', array( 'jquery' ), CLICKWISE_VERSION, true );
@@ -444,61 +445,77 @@ class Clickwise_Admin {
 		}
 		$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
 		?>
-		<div class="wrap">
-			<h1>Clickwise Analytics <span style="font-size: 0.5em; color: #666; font-weight: normal;">by <a href="https://webspirio.com" target="_blank" style="color: #666; text-decoration: none;">Webspirio</a></span></h1>
-			
-			<h2 class="nav-tab-wrapper">
-				<a href="?page=clickwise-settings&tab=rybbit" class="nav-tab <?php echo $active_tab == 'rybbit' ? 'nav-tab-active' : ''; ?>">
-					<?php
-					$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
-					echo $rybbit_enabled ? '🟢 ' : '⚪ ';
-					?>
-					Rybbit
-				</a>
-				<a href="?page=clickwise-settings&tab=google_analytics" class="nav-tab <?php echo $active_tab == 'google_analytics' ? 'nav-tab-active' : ''; ?>">
-					<?php
-					$ga_enabled = get_option( 'clickwise_ga_enabled' );
-					echo $ga_enabled ? '🟢 ' : '⚪ ';
-					?>
-					Google Analytics
-				</a>
-					<a href="?page=clickwise-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
-					<a href="?page=clickwise-settings&tab=events" class="nav-tab <?php echo $active_tab == 'events' ? 'nav-tab-active' : ''; ?>">Events & Forms</a>
-				<a href="?page=clickwise-settings&tab=events_manager" class="nav-tab <?php echo $active_tab == 'events_manager' ? 'nav-tab-active' : ''; ?>">Event Manager</a>
-				<a href="?page=clickwise-settings&tab=sandbox" class="nav-tab <?php echo $active_tab == 'sandbox' ? 'nav-tab-active' : ''; ?>">Sandbox</a>
-				<a href="?page=clickwise-settings&tab=advanced" class="nav-tab <?php echo $active_tab == 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
-			</h2>
+		<div class="clickwise-admin-wrapper">
+			<div class="clickwise-header">
+				<div class="clickwise-brand">
+					<div class="clickwise-logo-icon">
+						<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M16 2L2 9L16 16L30 9L16 2Z" fill="currentColor" fill-opacity="0.8"/>
+							<path d="M2 23L16 30L30 23V9L16 16L2 9V23Z" fill="currentColor"/>
+						</svg>
+					</div>
+					<div class="clickwise-title-group">
+						<h1>Clickwise</h1>
+						<span class="clickwise-subtitle">WordPress Event Tracking Plugin</span>
+					</div>
+				</div>
+				<div class="clickwise-header-actions">
+					<a href="https://webspirio.com/contact" target="_blank" class="button button-primary clickwise-header-btn">Get a free quote</a>
+				</div>
+			</div>
 
-		<?php if ( ! get_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true ) ) : ?>
-		<div id="clickwise-service-notice" class="notice notice-info is-dismissible" style="margin: 15px 0;">
-			<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance (an external service). By configuring and using this plugin, you consent to sending analytics data to your specified Rybbit server. <a href="https://rybbit.com" target="_blank">Learn more about Rybbit Analytics</a> | Please review your Rybbit provider's privacy policy and terms of service.</p>
-			<button type="button" class="notice-dismiss" onclick="clickwiseDismissNotice()">
-				<span class="screen-reader-text">Dismiss this notice.</span>
-			</button>
-		</div>
-			<script>
-			function clickwiseDismissNotice() {
-				jQuery.post(ajaxurl, {
-					action: 'clickwise_dismiss_service_notice'
-				}, function() {
-					jQuery('#clickwise-service-notice').fadeOut();
-				});
-			}
-			</script>
-		<?php endif; ?>
+			<div class="clickwise-nav-container">
+				<nav class="clickwise-nav">
+					<a href="?page=clickwise-settings&tab=rybbit" class="clickwise-nav-item <?php echo $active_tab == 'rybbit' ? 'active' : ''; ?>">
+						<?php
+						$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
+						echo $rybbit_enabled ? '<span class="status-dot active"></span>' : '<span class="status-dot"></span>';
+						?>
+						Rybbit
+					</a>
+					<a href="?page=clickwise-settings&tab=google_analytics" class="clickwise-nav-item <?php echo $active_tab == 'google_analytics' ? 'active' : ''; ?>">
+						<?php
+						$ga_enabled = get_option( 'clickwise_ga_enabled' );
+						echo $ga_enabled ? '<span class="status-dot active"></span>' : '<span class="status-dot"></span>';
+						?>
+						Google Analytics
+					</a>
+					<a href="?page=clickwise-settings&tab=general" class="clickwise-nav-item <?php echo $active_tab == 'general' ? 'active' : ''; ?>">General</a>
+					<a href="?page=clickwise-settings&tab=events" class="clickwise-nav-item <?php echo $active_tab == 'events' ? 'active' : ''; ?>">Events & Forms</a>
+					<a href="?page=clickwise-settings&tab=events_manager" class="clickwise-nav-item <?php echo $active_tab == 'events_manager' ? 'active' : ''; ?>">Event Manager</a>
+					<a href="?page=clickwise-settings&tab=sandbox" class="clickwise-nav-item <?php echo $active_tab == 'sandbox' ? 'active' : ''; ?>">Sandbox</a>
+					<a href="?page=clickwise-settings&tab=advanced" class="clickwise-nav-item <?php echo $active_tab == 'advanced' ? 'active' : ''; ?>">Advanced</a>
+				</nav>
+			</div>
 
-		<div class="clickwise-settings-container">
-				<div class="clickwise-main-content">
-					<div class="clickwise-content-area clickwise-tab-content">
+			<?php if ( ! get_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true ) ) : ?>
+			<div id="clickwise-service-notice" class="clickwise-notice">
+				<div class="clickwise-notice-content">
+					<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance. <a href="https://rybbit.com" target="_blank">Learn more</a></p>
+				</div>
+				<button type="button" class="clickwise-notice-dismiss" onclick="clickwiseDismissNotice()">
+					<span class="dashicons dashicons-no-alt"></span>
+				</button>
+			</div>
+				<script>
+				function clickwiseDismissNotice() {
+					jQuery.post(ajaxurl, {
+						action: 'clickwise_dismiss_service_notice'
+					}, function() {
+						jQuery('#clickwise-service-notice').fadeOut();
+					});
+				}
+				</script>
+			<?php endif; ?>
+
+			<div class="clickwise-body">
+				<div class="clickwise-main-panel">
 					<?php if ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
 					<?php elseif ( $active_tab === 'sandbox' ) : ?>
 						<?php $this->render_sandbox_tab(); ?>
 					<?php else : ?>
 						<form action="options.php" method="post">
-							<div class="clickwise-form-header" style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-								<?php submit_button( 'Save Changes', 'primary', 'submit', false ); ?>
-							</div>
 							<?php
 							if ( $active_tab == 'rybbit' ) {
 								settings_fields( 'clickwise-settings-rybbit' );
@@ -516,59 +533,35 @@ class Clickwise_Admin {
 								settings_fields( 'clickwise-settings-advanced' );
 								do_settings_sections( 'clickwise-settings-advanced' );
 							}
-							
-							echo '<div class="clickwise-form-footer" style="display: flex; justify-content: flex-end; margin-top: 20px;">';
-							submit_button( 'Save Changes', 'primary', 'submit', false );
-							echo '</div>';
 							?>
+							<div class="clickwise-form-actions">
+								<?php submit_button( 'Save Changes', 'primary', 'submit', false ); ?>
+							</div>
 						</form>
 					<?php endif; ?>
-					</div>
 				</div>
 
-				<div class="clickwise-sidebar">
-					<div class="clickwise-sidebar-content">
+				<div class="clickwise-sidebar-panel">
+					<div class="clickwise-card clickwise-tips-card">
 						<h3>💡 Quick Tips</h3>
 						<div id="clickwise-tips-content">
 							<?php $this->render_tab_tips( $active_tab ); ?>
 						</div>
-						<hr>
-						<div class="clickwise-fun-fact" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #0073aa;">
-							<small><strong>🎯 Pro Tip:</strong> <span id="clickwise-rotating-tip"><?php echo $this->get_random_tip(); ?></span></small>
-						</div>
+					</div>
+					
+					<div class="clickwise-card clickwise-pro-tip-card">
+						<small><strong>🎯 Pro Tip:</strong> <span id="clickwise-rotating-tip"><?php echo $this->get_random_tip(); ?></span></small>
 					</div>
 
-					<div class="clickwise-sidebar-footer">
-						<hr>
-						<div class="clickwise-actions" style="margin-bottom: 15px;">
-							<a href="https://clickwise.com/docs" target="_blank" class="button button-secondary" style="width: 100%; text-align: center; margin-bottom: 8px;">📚 View Documentation</a>
-							<a href="https://github.com/webspirio/clickwise-wp/issues" target="_blank" class="button button-secondary" style="width: 100%; text-align: center; margin-bottom: 8px;">
-								<span class="clickwise-github-icon" style="display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: text-top;">
-									<svg viewBox="0 0 16 16" fill="currentColor">
-										<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-									</svg>
-								</span>Report Issue
-							</a>
-						</div>
+					<div class="clickwise-sidebar-links">
+						<a href="https://clickwise.com/docs" target="_blank" class="clickwise-link-btn">📚 Documentation</a>
+						<a href="https://github.com/webspirio/clickwise-wp/issues" target="_blank" class="clickwise-link-btn">🐛 Report Issue</a>
+					</div>
 
-						<div class="clickwise-credits" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;">
-							<div class="webspirio-logo" style="margin-bottom: 10px;">
-								<svg width="80" height="24" viewBox="0 0 200 60" style="margin-bottom: 8px;">
-									<rect x="0" y="15" width="30" height="30" rx="4" fill="#0073aa"/>
-									<rect x="35" y="10" width="25" height="40" rx="3" fill="#2271b1"/>
-									<rect x="65" y="5" width="20" height="50" rx="2" fill="#005a87"/>
-									<text x="95" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">Webspirio</text>
-								</svg>
-							</div>
-							<div style="font-size: 11px; color: #666; line-height: 1.4;">
-								<strong>Plugin developed by</strong><br>
-								<a href="https://webspirio.com" target="_blank" style="color: #0073aa; text-decoration: none; font-weight: bold;">Webspirio</a><br>
-								<span style="color: #888;">Oleksandr Chornous</span><br>
-								<a href="mailto:contact@webspirio.com" style="color: #0073aa; text-decoration: none;">contact@webspirio.com</a>
-							</div>
-							<div style="margin-top: 8px; font-size: 10px; color: #999;">
-								<a href="https://webspirio.com" target="_blank" style="color: #0073aa; text-decoration: none;">🌐 Visit Website</a>
-							</div>
+					<div class="clickwise-credits-card">
+						<div class="webspirio-logo">
+							<span>Developed by</span>
+							<strong>Webspirio</strong>
 						</div>
 					</div>
 				</div>
@@ -988,16 +981,16 @@ class Clickwise_Admin {
 		</div>
 
 		<!-- EVENT DETAILS MODAL -->
-		<div id="clickwise-event-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items: center; justify-content: center;">
-			<div class="clickwise-modal-content" style="background:#fff; width:700px; max-width:90%; max-height:90vh; overflow-y:auto; padding:0; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); position:relative; display:flex; flex-direction:column;">
+		<div id="clickwise-event-modal" class="clickwise-modal-wrapper">
+			<div class="clickwise-modal-content">
 
-				<div class="clickwise-modal-header" style="padding: 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-					<h2 style="margin:0;">Event Details</h2>
-					<button type="button" id="clickwise-modal-close-x" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666; line-height:1;">&times;</button>
+				<div class="clickwise-modal-header">
+					<h2>Event Details</h2>
+					<button type="button" id="clickwise-modal-close-x">&times;</button>
 				</div>
 
-				<div class="clickwise-modal-body" style="padding: 20px; overflow-y:auto;">
-					<table class="form-table" style="margin:0;">
+				<div class="clickwise-modal-body">
+					<table class="form-table">
 						<tr>
 							<th style="width:150px;">Type</th>
 							<td id="modal-event-type"></td>
@@ -1012,12 +1005,12 @@ class Clickwise_Admin {
 						</tr>
 						<tr>
 							<th>Example Detail</th>
-							<td><pre id="modal-event-detail" style="background:#f6f7f7; padding:15px; border:1px solid #dcdcde; border-radius:4px; overflow:auto; max-height:200px; font-family:monospace; white-space:pre-wrap; word-wrap:break-word;"></pre></td>
+							<td><pre id="modal-event-detail"></pre></td>
 						</tr>
 						<tr>
 							<th>User-Friendly Name (Alias)</th>
 							<td>
-								<input type="text" id="modal-event-alias" class="regular-text" placeholder="e.g. Signup Button Click" style="width:100%;">
+								<input type="text" id="modal-event-alias" class="regular-text" placeholder="e.g. Signup Button Click">
 								<p class="description">If set, this name will be sent to Clickwise instead of the original name.</p>
 							</td>
 						</tr>
@@ -1034,7 +1027,7 @@ class Clickwise_Admin {
 					</table>
 				</div>
 
-				<div class="clickwise-modal-footer" style="padding: 20px; border-top: 1px solid #eee; text-align:right; background:#fcfcfc; border-radius:0 0 8px 8px;">
+				<div class="clickwise-modal-footer">
 					<button type="button" class="button" id="clickwise-modal-cancel">Cancel</button>
 					<button type="button" class="button button-primary" id="clickwise-modal-save">Save Changes</button>
 				</div>
