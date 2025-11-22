@@ -12,21 +12,21 @@ jQuery(document).ready(function ($) {
         const currentTab = urlParams.get('tab') || 'general';
 
         // Add click handlers to nav tabs
-        $('.nav-tab-wrapper .nav-tab').on('click', function (e) {
+        $('.clickwise-nav .clickwise-nav-item').on('click', function (e) {
             e.preventDefault();
 
             const clickedTab = $(this);
             const href = clickedTab.attr('href');
 
             // Skip if it's the current tab
-            if (clickedTab.hasClass('nav-tab-active')) {
+            if (clickedTab.hasClass('active')) {
                 return false;
             }
 
             // Add loading state
-            $('.clickwise-tab-content').addClass('loading');
-            clickedTab.closest('.nav-tab-wrapper').find('.nav-tab').removeClass('nav-tab-active');
-            clickedTab.addClass('nav-tab-active');
+            $('.clickwise-body').addClass('loading');
+            clickedTab.closest('.clickwise-nav').find('.clickwise-nav-item').removeClass('active');
+            clickedTab.addClass('active');
 
             // AJAX Navigation
             fetch(clickedTab.prop('href'), {
@@ -35,24 +35,21 @@ jQuery(document).ready(function ($) {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
                 .then(html => {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
 
-                    // Replace main content
-                    const newContentEl = doc.querySelector('.clickwise-main-content');
-                    if (!newContentEl) {
-                        throw new Error('Invalid response structure');
+                    // Replace body content (Main Panel + Sidebar)
+                    const newBodyEl = doc.querySelector('.clickwise-body');
+                    if (!newBodyEl) {
+                        throw new Error('Invalid response structure: .clickwise-body not found');
                     }
 
-                    $('.clickwise-main-content').html(newContentEl.innerHTML);
-
-                    // Replace tips in sidebar
-                    const newTipsEl = doc.querySelector('#clickwise-tips-content');
-                    if (newTipsEl) {
-                        $('#clickwise-tips-content').html(newTipsEl.innerHTML);
-                    }
+                    $('.clickwise-body').html(newBodyEl.innerHTML);
 
                     // Re-initialize Pattern UI if present
                     if (window.initClickwisePatternUI) {
@@ -68,7 +65,7 @@ jQuery(document).ready(function ($) {
                     window.history.pushState({ href: href }, '', href);
 
                     // Remove loading state
-                    $('.clickwise-tab-content').removeClass('loading');
+                    $('.clickwise-body').removeClass('loading');
                 })
                 .catch(err => {
                     console.error('Tab load failed', err);
@@ -84,12 +81,12 @@ jQuery(document).ready(function ($) {
         };
 
         // Fade in content when page loads
-        $('.clickwise-tab-content').removeClass('loading');
+        $('.clickwise-body').removeClass('loading');
 
         // Add smooth scroll to top when switching tabs
         if (window.location.hash === '#tab-switched') {
             $('html, body').animate({
-                scrollTop: $('.nav-tab-wrapper').offset().top - 50
+                scrollTop: $('.clickwise-nav-container').offset().top - 50
             }, 300);
 
             // Remove hash from URL
@@ -101,20 +98,20 @@ jQuery(document).ready(function ($) {
 
     // Simple fade-in for content (no staggered animation)
     function fadeInContent() {
-        $('.clickwise-tab-content').css('opacity', '1');
+        $('.clickwise-body').css('opacity', '1');
     }
 
     // Smooth height adjustment for dynamic content
     function adjustContentHeight() {
-        const mainContent = $('.clickwise-main-content');
-        const sidebar = $('.clickwise-sidebar');
+        const mainContent = $('.clickwise-main-panel');
+        const sidebar = $('.clickwise-sidebar-panel');
 
         if (mainContent.length && sidebar.length) {
             const mainHeight = mainContent.outerHeight();
             const sidebarHeight = sidebar.outerHeight();
             const minHeight = Math.max(mainHeight, sidebarHeight, 500);
 
-            $('.clickwise-settings-container').css('min-height', minHeight + 'px');
+            $('.clickwise-admin-wrapper').css('min-height', minHeight + 'px');
         }
     }
 
@@ -128,7 +125,7 @@ jQuery(document).ready(function ($) {
     $(window).on('resize', adjustContentHeight);
 
     // Re-adjust height when content changes (e.g., expanding sections)
-    $(document).on('DOMSubtreeModified', '.clickwise-main-content', function () {
+    $(document).on('DOMSubtreeModified', '.clickwise-main-panel', function () {
         setTimeout(adjustContentHeight, 100);
     });
 
@@ -137,7 +134,7 @@ jQuery(document).ready(function ($) {
         const observer = new MutationObserver(function (mutations) {
             let shouldUpdate = false;
             mutations.forEach(function (mutation) {
-                if (mutation.type === 'childList' && mutation.target.closest('.clickwise-main-content')) {
+                if (mutation.type === 'childList' && mutation.target.closest('.clickwise-main-panel')) {
                     shouldUpdate = true;
                 }
             });
@@ -146,7 +143,7 @@ jQuery(document).ready(function ($) {
             }
         });
 
-        const mainContent = document.querySelector('.clickwise-main-content');
+        const mainContent = document.querySelector('.clickwise-main-panel');
         if (mainContent) {
             observer.observe(mainContent, {
                 childList: true,
