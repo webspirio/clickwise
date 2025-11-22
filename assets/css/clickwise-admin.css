@@ -471,22 +471,68 @@
     color: var(--cw-cyan-300);
 }
 
-/* Bulk Actions */
+/* Bulk Actions & Table Navigation */
+.clickwise-main-panel .tablenav {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    margin: 0;
+    min-height: auto;
+    border: none;
+    background: none;
+}
+
+.clickwise-main-panel .tablenav.top {
+    border-bottom: 1px solid var(--cw-cyan-800);
+    margin-bottom: 0;
+    padding: 25px 10px !important;
+}
+
+.clickwise-main-panel .tablenav .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    height: auto;
+}
+
+.clickwise-main-panel .tablenav .bulkactions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .clickwise-main-panel .tablenav .actions select {
     background-color: var(--cw-cyan-950);
     border-color: var(--cw-cyan-700);
     color: var(--cw-cyan-100);
+    padding: 6px 12px;
+    border-radius: var(--cw-radius-sm);
+    font-size: 13px;
+    height: auto;
+    line-height: 1.4;
+    min-height: 32px;
 }
 
 .clickwise-main-panel .tablenav .actions .button {
     background-color: var(--cw-cyan-800);
     border-color: var(--cw-cyan-700);
     color: var(--cw-cyan-50);
+    border-radius: var(--cw-radius-full);
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    height: auto;
+    line-height: 1.4;
+    min-height: 32px;
+    transition: all 0.2s ease;
 }
 
 .clickwise-main-panel .tablenav .actions .button:hover {
     background-color: var(--cw-cyan-700);
     border-color: var(--cw-cyan-500);
+    transform: translateY(-1px);
 }
 
 /* Checkboxes */
@@ -772,3 +818,118 @@
 }
 
 /* Cyan 400 */
+
+/* Hide WordPress notices in settings pages */
+body.settings_page_clickwise-settings .notice,
+body.settings_page_clickwise-settings .settings-error,
+body.settings_page_clickwise-settings .is-dismissible,
+body.settings_page_clickwise-settings .updated,
+body.settings_page_clickwise-settings .notice-success,
+body.settings_page_clickwise-settings .notice-error {
+    display: none !important;
+}
+
+/* Ensure clickwise notices are visible */
+.clickwise-notice,
+.clickwise-inline-notification {
+    display: flex !important;
+}
+
+/* Enhanced form actions area */
+.clickwise-form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--cw-cyan-800);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Improve submit button positioning */
+.clickwise-form-actions .button {
+    margin: 0;
+}
+
+/* Secondary Button Styles - Details Button */
+.clickwise-open-details {
+    background: var(--cw-cyan-800) !important;
+    border-color: var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-50) !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 4px 16px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+}
+
+.clickwise-open-details:hover {
+    background: var(--cw-cyan-700) !important;
+    border-color: var(--cw-cyan-600) !important;
+    color: var(--cw-cyan-50) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(14, 116, 144, 0.3);
+}
+
+.clickwise-open-details:focus {
+    background: var(--cw-cyan-700) !important;
+    border-color: var(--cw-cyan-400) !important;
+    box-shadow: 0 0 0 1px var(--cw-cyan-400);
+    outline: none !important;
+    color: var(--cw-cyan-50) !important;
+}
+
+/* Danger Button Styles - Delete Session Button */
+.clickwise-delete-session {
+    background: rgba(220, 38, 38, 0.15) !important;
+    border-color: #dc2626 !important;
+    color: var(--cw-cyan-50) !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 4px 16px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+}
+
+.clickwise-delete-session:hover {
+    background: #ef4444 !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.clickwise-delete-session:focus {
+    background: rgba(220, 38, 38, 0.15) !important;
+    border-color: #dc2626 !important;
+    color: var(--cw-cyan-50) !important;
+    box-shadow: 0 0 0 1px var(--cw-cyan-50);
+    outline: none !important;
+}
+
+/* General button improvements in dark theme */
+.clickwise-main-panel .button:not(.button-primary):not(.clickwise-open-details):not(.clickwise-delete-session) {
+    background: var(--cw-cyan-950) !important;
+    border-color: var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-200) !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 4px 16px !important;
+    font-weight: 500 !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.clickwise-main-panel .button:not(.button-primary):not(.clickwise-open-details):not(.clickwise-delete-session):hover {
+    background: var(--cw-cyan-900) !important;
+    border-color: var(--cw-cyan-600) !important;
+    color: var(--cw-cyan-100) !important;
+    transform: translateY(-1px);
+}

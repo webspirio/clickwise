@@ -263,7 +263,7 @@ jQuery(document).ready(function ($) {
     });
 
     // Live preview updates
-    $('#new-rule-type, #new-rule-value').on('input change', updatePreview);
+    $(document).on('input change', '#new-rule-type, #new-rule-value', updatePreview);
 
     // Enter key in add rule form
     $('#new-rule-value, #new-rule-desc').on('keypress', function (e) {
@@ -290,5 +290,10 @@ jQuery(document).ready(function ($) {
     // Initialize when page loads
     if ($('.clickwise-event-rules-container').length > 0) {
         window.initClickwiseEventRules();
+
+        // Make sure preview is available immediately
+        setTimeout(function() {
+            updatePreview();
+        }, 100);
     }
 });

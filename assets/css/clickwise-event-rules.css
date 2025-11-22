@@ -211,12 +211,24 @@
 
 #rule-preview {
     margin-top: 10px;
-    padding: 8px;
+    padding: 12px;
     background: var(--cw-cyan-900);
     border: 1px solid var(--cw-cyan-700);
-    border-radius: 3px;
+    border-radius: var(--cw-radius-sm);
     display: none;
     color: var(--cw-cyan-100);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#rule-preview strong {
+    color: var(--cw-cyan-50);
+    font-weight: 600;
+}
+
+#rule-preview-text {
+    color: var(--cw-cyan-200);
+    margin-left: 8px;
 }
 
 /* Add Rule Section */
