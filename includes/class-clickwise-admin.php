@@ -449,7 +449,7 @@ class Clickwise_Admin {
 			<div class="clickwise-header">
 				<div class="clickwise-brand">
 					<div class="clickwise-logo-icon">
-						<img src="<?php echo esc_url( CLICKWISE_URL . 'assets/images/logo-256x256.svg' ); ?>" alt="Clickwise Logo" style="width: 32px; height: 32px;">
+						<img src="<?php echo esc_url( CLICKWISE_URL . 'assets/images/logo-transparent-full-256x256.svg' ); ?>" alt="Clickwise Logo" style="width: 64px; height: 64px;">
 					</div>
 					<div class="clickwise-title-group">
 						<h1>Clickwise</h1>

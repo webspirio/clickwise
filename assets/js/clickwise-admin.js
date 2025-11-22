@@ -533,10 +533,12 @@ window.clickwiseToggleRecording = function (e) {
     });
 };
 
-jQuery(document).ready(function ($) {
-    // Syntax Highlighter for Sandbox
+window.initClickwiseSyntaxHighlighter = function () {
+    var $ = jQuery;
     var $textarea = $('#clickwise-sandbox-props');
-    if ($textarea.length) {
+
+    // Check if already initialized to avoid double wrapping
+    if ($textarea.length && !$textarea.parent().hasClass('clickwise-code-wrapper')) {
         // Wrap
         var $wrapper = $('<div class="clickwise-code-wrapper"></div>');
         var $backdrop = $('<pre class="clickwise-code-backdrop"></pre>');
@@ -569,10 +571,10 @@ jQuery(document).ready(function ($) {
         function updateHighlight() {
             var text = $textarea.val();
             // Handle final newline
-            if (text[text.length - 1] === "\n") {
+            if (text && text[text.length - 1] === "\n") {
                 text += " ";
             }
-            var highlighted = syntaxHighlight(text);
+            var highlighted = syntaxHighlight(text || '');
             $backdrop.html(highlighted);
         }
 
@@ -585,4 +587,8 @@ jQuery(document).ready(function ($) {
         // Initial trigger
         updateHighlight();
     }
+};
+
+jQuery(document).ready(function ($) {
+    window.initClickwiseSyntaxHighlighter();
 });
