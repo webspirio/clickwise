@@ -7,9 +7,9 @@
     list-style: none;
     margin: 0 0 10px 0;
     padding: 0;
-    border: 1px solid #ccd0d4;
-    background: #fff;
-    border-radius: 4px;
+    border: 1px solid var(--cw-cyan-800);
+    background: var(--cw-cyan-950);
+    border-radius: var(--cw-radius-sm);
     max-height: 200px;
     overflow-y: auto;
 }
@@ -19,7 +19,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f1;
+    border-bottom: 1px solid var(--cw-cyan-800);
+    color: var(--cw-cyan-100);
 }
 
 .clickwise-pattern-item:last-child {
@@ -27,25 +28,28 @@
 }
 
 .clickwise-pattern-item:hover {
-    background-color: #f6f7f7;
+    background-color: var(--cw-cyan-900);
 }
 
 .clickwise-pattern-text {
     font-family: monospace;
-    color: #3c434a;
+    color: var(--cw-cyan-200);
 }
 
 .clickwise-remove-pattern {
-    color: #d63638;
+    color: #ef4444;
+    /* Red 500 */
     cursor: pointer;
     text-decoration: none;
     font-size: 18px;
     line-height: 1;
     padding: 0 5px;
+    transition: color 0.2s;
 }
 
 .clickwise-remove-pattern:hover {
-    color: #b32d2e;
+    color: #dc2626;
+    /* Red 600 */
 }
 
 .clickwise-pattern-input-group {
@@ -55,11 +59,19 @@
 
 .clickwise-pattern-input-group input {
     flex: 1;
+    background-color: var(--cw-cyan-950) !important;
+    border: 1px solid var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-50) !important;
+}
+
+.clickwise-pattern-input-group input:focus {
+    border-color: var(--cw-cyan-400) !important;
+    box-shadow: 0 0 0 1px var(--cw-cyan-400) !important;
 }
 
 .clickwise-empty-list-message {
     padding: 15px;
     text-align: center;
-    color: #646970;
+    color: var(--cw-cyan-400);
     font-style: italic;
 }

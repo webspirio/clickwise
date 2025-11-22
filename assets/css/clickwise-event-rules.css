@@ -12,15 +12,16 @@
     align-items: center;
     padding: 12px;
     margin-bottom: 10px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-800);
+    border-radius: var(--cw-radius-sm);
     position: relative;
+    transition: border-color 0.2s;
 }
 
 .clickwise-rule-item:hover {
-    border-color: #0073aa;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-color: var(--cw-cyan-600);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .clickwise-rule-type {
@@ -36,11 +37,36 @@
     flex-shrink: 0;
 }
 
-.clickwise-rule-type.prefix { background: #e7f3ff; color: #0073aa; }
-.clickwise-rule-type.contains { background: #f0f8e7; color: #5b9a00; }
-.clickwise-rule-type.exact { background: #fff2e7; color: #d68100; }
-.clickwise-rule-type.regex { background: #ffe7e7; color: #cc1818; }
-.clickwise-rule-type.pattern { background: #f3e7ff; color: #8224aa; }
+/* Adjusted colors for dark theme readability */
+.clickwise-rule-type.prefix {
+    background: rgba(14, 116, 144, 0.3);
+    color: var(--cw-cyan-300);
+    border: 1px solid var(--cw-cyan-700);
+}
+
+.clickwise-rule-type.contains {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.clickwise-rule-type.exact {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+.clickwise-rule-type.regex {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.clickwise-rule-type.pattern {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
 
 .clickwise-rule-content {
     flex: 1;
@@ -52,12 +78,12 @@
 .clickwise-rule-value {
     font-family: monospace;
     font-weight: bold;
-    color: #333;
+    color: var(--cw-cyan-50);
     font-size: 14px;
 }
 
 .clickwise-rule-description {
-    color: #666;
+    color: var(--cw-cyan-300);
     font-size: 12px;
     font-style: italic;
 }
@@ -79,32 +105,35 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    transition: background 0.2s;
 }
 
 .clickwise-rule-edit-btn {
-    background: #0073aa;
+    background: var(--cw-cyan-700);
     color: white;
 }
 
 .clickwise-rule-edit-btn:hover {
-    background: #005a87;
+    background: var(--cw-cyan-600);
     color: white;
 }
 
 .clickwise-rule-delete-btn {
-    background: #d63638;
+    background: #991b1b;
+    /* Red 800 */
     color: white;
 }
 
 .clickwise-rule-delete-btn:hover {
-    background: #b32d2e;
+    background: #7f1d1d;
+    /* Red 900 */
     color: white;
 }
 
 /* Edit Mode */
 .clickwise-rule-item.editing {
-    border-color: #0073aa;
-    background: #f0f8ff;
+    border-color: var(--cw-cyan-500);
+    background: var(--cw-cyan-900);
 }
 
 .clickwise-rule-item.editing .clickwise-rule-content {
@@ -129,9 +158,11 @@
 .clickwise-rule-edit-form select,
 .clickwise-rule-edit-form input[type="text"] {
     padding: 4px 6px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--cw-cyan-700);
     border-radius: 3px;
     font-size: 12px;
+    background: var(--cw-cyan-950);
+    color: var(--cw-cyan-50);
 }
 
 .clickwise-rule-edit-form .rule-type-select {
@@ -161,21 +192,52 @@
 .clickwise-rules-empty {
     text-align: center;
     padding: 40px 20px;
-    color: #666;
-    border: 2px dashed #ddd;
+    color: var(--cw-cyan-400);
+    border: 2px dashed var(--cw-cyan-800);
     border-radius: 4px;
-    background: #f9f9f9;
+    background: rgba(22, 78, 99, 0.3);
 }
 
 .clickwise-rules-empty .dashicons {
     font-size: 48px;
     margin-bottom: 10px;
-    opacity: 0.3;
+    opacity: 0.5;
 }
 
 /* Rule Preview */
 #rule-preview.visible {
     display: block;
+}
+
+#rule-preview {
+    margin-top: 10px;
+    padding: 8px;
+    background: var(--cw-cyan-900);
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: 3px;
+    display: none;
+    color: var(--cw-cyan-100);
+}
+
+/* Add Rule Section */
+.clickwise-add-rule-section {
+    margin-top: 15px;
+    padding: 15px;
+    border: 2px dashed var(--cw-cyan-800) !important;
+    border-radius: 4px;
+    background: rgba(22, 78, 99, 0.2) !important;
+}
+
+.clickwise-add-rule-section h4 {
+    color: var(--cw-cyan-50);
+}
+
+.clickwise-rule-examples {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(14, 116, 144, 0.2) !important;
+    border-left: 4px solid var(--cw-cyan-600) !important;
+    color: var(--cw-cyan-100);
 }
 
 /* Responsive */
