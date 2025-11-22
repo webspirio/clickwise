@@ -1,292 +1,774 @@
-/* Clickwise Admin Interface Styles */
+:root {
+    /* Cyan Palette */
+    --cw-cyan-50: #ecfeff;
+    --cw-cyan-100: #cffafe;
+    --cw-cyan-200: #a5f3fc;
+    --cw-cyan-300: #67e8f9;
+    --cw-cyan-400: #22d3ee;
+    --cw-cyan-500: #06b6d4;
+    --cw-cyan-600: #0891b2;
+    --cw-cyan-700: #0e7490;
+    --cw-cyan-800: #155e75;
+    --cw-cyan-900: #164e63;
+    --cw-cyan-950: #083344;
 
-/* Smooth tab transitions and prevent layout jiggling */
-.clickwise-settings-container {
-    min-height: 600px;
-    transition: min-height 0.2s ease-in-out;
+    /* Typography */
+    --cw-font-poppins: 'Poppins', sans-serif;
+
+    /* Spacing */
+    --cw-spacing-xs: 4px;
+    --cw-spacing-sm: 8px;
+    --cw-spacing-md: 16px;
+    --cw-spacing-lg: 24px;
+    --cw-spacing-xl: 32px;
+    --cw-spacing-2xl: 40px;
+
+    /* Border Radius */
+    --cw-radius-sm: 8px;
+    --cw-radius-md: 12px;
+    --cw-radius-lg: 16px;
+    --cw-radius-xl: 24px;
+    --cw-radius-full: 9999px;
+}
+
+/* Reset & Base Styles */
+.clickwise-admin-wrapper {
+    font-family: var(--cw-font-poppins);
+    background-color: var(--cw-cyan-950);
+    color: var(--cw-cyan-50);
+    padding: var(--cw-spacing-2xl);
+    border-radius: var(--cw-radius-xl);
+    margin: 20px 20px 0 0;
+    /* WP Admin spacing adjustment */
+    box-sizing: border-box;
+    min-height: calc(100vh - 100px);
+}
+
+.clickwise-admin-wrapper * {
+    box-sizing: border-box;
+}
+
+/* Header */
+.clickwise-header {
     display: flex;
-    gap: 20px;
-    margin-top: 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cw-spacing-2xl);
 }
 
-.clickwise-main-content {
-    min-height: 500px;
-    flex: 3;
+.clickwise-admin-wrapper h1,
+.clickwise-admin-wrapper h2,
+.clickwise-admin-wrapper h3,
+.clickwise-admin-wrapper h4,
+.clickwise-admin-wrapper h5,
+.clickwise-admin-wrapper h6 {
+    color: var(--cw-cyan-50);
+    font-family: var(--cw-font-poppins);
 }
 
-/* Tab wrapper improvements */
-.nav-tab-wrapper {
-    border-bottom: none !important;
-    margin-bottom: 20px !important;
+.clickwise-brand {
     display: flex;
-    gap: 10px;
-    padding-top: 10px;
+    align-items: center;
+    gap: var(--cw-spacing-md);
 }
 
-.nav-tab {
-    transition: all 0.2s ease-in-out;
-    border: none !important;
-    background: transparent;
-    margin: 0 !important;
-    border-radius: 20px !important;
-    /* Pill shape */
-    padding: 8px 16px !important;
+.clickwise-logo-icon {
+    color: var(--cw-cyan-400);
+    display: flex;
+    align-items: center;
+}
+
+.clickwise-title-group h1 {
+    font-family: var(--cw-font-poppins);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.2;
+    color: var(--cw-cyan-50);
+    margin: 0;
+    padding: 0;
+}
+
+.clickwise-subtitle {
+    font-size: 14px;
+    color: var(--cw-cyan-200);
+    font-weight: 400;
+}
+
+.clickwise-header-btn {
+    background: transparent !important;
+    border: 1px solid var(--cw-cyan-400) !important;
+    color: var(--cw-cyan-50) !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 8px 24px !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+}
+
+.clickwise-header-btn:hover {
+    background: rgba(34, 211, 238, 0.1) !important;
+    transform: translateY(-1px);
+}
+
+/* Navigation */
+.clickwise-nav-container {
+    margin-bottom: var(--cw-spacing-xl);
+    overflow-x: auto;
+}
+
+.clickwise-nav {
+    display: flex;
+    gap: var(--cw-spacing-sm);
+    border-bottom: 1px solid var(--cw-cyan-800);
+    padding-bottom: var(--cw-spacing-md);
+}
+
+.clickwise-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: var(--cw-radius-full);
+    color: var(--cw-cyan-200);
+    text-decoration: none;
     font-weight: 500;
-    color: #64748b;
-    /* Slate 500 */
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
-.nav-tab:hover {
-    background-color: #f1f5f9;
-    /* Slate 100 */
-    color: #0f172a;
-    /* Slate 900 */
+.clickwise-nav-item:hover {
+    background-color: var(--cw-cyan-900);
+    color: var(--cw-cyan-50);
 }
 
-.nav-tab-active,
-.nav-tab-active:hover {
-    background-color: #1f2937 !important;
-    /* Gray 800 */
-    color: #fff !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.clickwise-nav-item.active {
+    background-color: var(--cw-cyan-800);
+    color: var(--cw-cyan-50);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Content area styling */
-.clickwise-content-area {
-    background: #fff;
-    border: 1px solid #ccd0d4;
-    border-radius: 12px;
-    padding: 20px;
-    min-height: 500px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+.clickwise-nav-item:focus {
+    box-shadow: none;
+    outline: none;
 }
 
-/* Form improvements */
-.clickwise-settings-container .form-table {
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--cw-cyan-700);
+}
+
+.status-dot.active {
+    background-color: #22c55e;
+    /* Green for active status */
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+/* Layout Body */
+.clickwise-body {
+    display: flex;
+    gap: var(--cw-spacing-xl);
+}
+
+.clickwise-main-panel {
+    flex: 3;
+    background-color: var(--cw-cyan-900);
+    border-radius: var(--cw-radius-lg);
+    padding: var(--cw-spacing-xl);
+    border: 1px solid var(--cw-cyan-800);
+}
+
+.clickwise-sidebar-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cw-spacing-md);
+    min-width: 280px;
+}
+
+/* Cards */
+.clickwise-card {
+    background-color: var(--cw-cyan-900);
+    border-radius: var(--cw-radius-lg);
+    padding: var(--cw-spacing-lg);
+    border: 1px solid var(--cw-cyan-800);
+}
+
+.clickwise-handler-single-card {
+    margin-bottom: 20px;
+}
+
+.clickwise-tips-card h3 {
+    color: var(--cw-cyan-50);
     margin-top: 0;
+    font-size: 18px;
+    border-bottom: 1px solid var(--cw-cyan-800);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-/* Align save buttons */
-.clickwise-form-header .button-primary,
-.clickwise-form-footer .button-primary {
-    transition: all 0.2s ease-in-out;
-    background: linear-gradient(135deg, #2271b1 0%, #135e96 100%) !important;
-    border: none !important;
-    border-radius: 8px !important;
+.clickwise-pro-tip-card {
+    background: linear-gradient(135deg, var(--cw-cyan-800) 0%, var(--cw-cyan-900) 100%);
+    border: 1px solid var(--cw-cyan-700);
+}
+
+.clickwise-credits-card {
+    text-align: center;
+    padding: var(--cw-spacing-md);
+    color: var(--cw-cyan-300);
+    font-size: 12px;
+}
+
+.webspirio-logo strong {
+    color: var(--cw-cyan-400);
+    font-size: 14px;
+    display: block;
+}
+
+/* Buttons & Links */
+.clickwise-link-btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background-color: var(--cw-cyan-800);
+    color: var(--cw-cyan-100);
+    text-decoration: none;
+    border-radius: var(--cw-radius-md);
+    margin-bottom: 8px;
+    transition: background 0.2s;
+    font-weight: 500;
+}
+
+.clickwise-link-btn:hover {
+    background-color: var(--cw-cyan-700);
+    color: white;
+}
+
+/* Forms */
+.clickwise-main-panel h2 {
+    color: var(--cw-cyan-50);
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--cw-cyan-800);
+    padding-bottom: 10px;
+}
+
+.clickwise-main-panel p {
+    color: var(--cw-cyan-100);
+}
+
+.clickwise-main-panel .form-table th {
+    color: var(--cw-cyan-200);
+    font-weight: 500;
+}
+
+.clickwise-main-panel input[type="text"],
+.clickwise-main-panel input[type="number"],
+.clickwise-main-panel input[type="email"],
+.clickwise-main-panel input[type="password"],
+.clickwise-main-panel select,
+.clickwise-main-panel textarea {
+    background-color: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-700);
+    color: var(--cw-cyan-50);
+    border-radius: var(--cw-radius-sm);
+    padding: 8px 12px;
+    box-shadow: none;
+    min-height: 40px;
+    /* Ensure enough height */
+    line-height: 1.5;
+}
+
+.clickwise-main-panel select {
+    padding: 8px 40px 8px 12px !important;
+    /* Override general input padding */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2322d3ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    appearance: none;
+    /* Remove default arrow */
+    -webkit-appearance: none;
+    min-width: 120px;
+    /* Ensure it's not too narrow */
+    text-align: left;
+}
+
+.clickwise-main-panel input:focus,
+.clickwise-main-panel select:focus,
+.clickwise-main-panel textarea:focus {
+    border-color: var(--cw-cyan-400);
+    box-shadow: 0 0 0 1px var(--cw-cyan-400);
+    outline: none;
+    color: var(--cw-cyan-50) !important;
+}
+
+.clickwise-main-panel select:hover {
+    color: var(--cw-cyan-50) !important;
+    border-color: var(--cw-cyan-500);
+}
+
+.clickwise-main-panel .description {
+    color: var(--cw-cyan-300);
+}
+
+/* Primary Button Override */
+.wp-core-ui .button-primary {
+    background: var(--cw-cyan-600) !important;
+    border-color: var(--cw-cyan-600) !important;
+    color: #fff !important;
+    border-radius: var(--cw-radius-full) !important;
     padding: 6px 24px !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
-    box-shadow: 0 4px 6px rgba(34, 113, 177, 0.2) !important;
     text-shadow: none !important;
-    height: auto !important;
-    line-height: 2.2 !important;
+    transition: all 0.2s ease !important;
 }
 
-.clickwise-form-header .button-primary:hover,
-.clickwise-form-footer .button-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(34, 113, 177, 0.3) !important;
-    background: linear-gradient(135deg, #135e96 0%, #0a4b78 100%) !important;
+.wp-core-ui .button-primary:hover {
+    background: var(--cw-cyan-500) !important;
+    border-color: var(--cw-cyan-500) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
 }
 
-.clickwise-form-header .button-primary:active,
-.clickwise-form-footer .button-primary:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(34, 113, 177, 0.2) !important;
+/* Notice */
+.clickwise-notice {
+    background-color: rgba(34, 211, 238, 0.1);
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: var(--cw-radius-md);
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--cw-cyan-100);
 }
 
-.clickwise-settings-container .form-table th {
-    padding-left: 0;
-    width: 200px;
+.clickwise-notice a {
+    color: var(--cw-cyan-400);
+    text-decoration: underline;
 }
 
-/* Loading state for smooth transitions */
-.clickwise-loading {
-    opacity: 0.6;
+.clickwise-notice-dismiss {
+    background: none;
+    border: none;
+    color: var(--cw-cyan-400);
+    cursor: pointer;
+    padding: 5px;
+}
+
+.clickwise-notice-dismiss:hover {
+    color: var(--cw-cyan-200);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .clickwise-body {
+        flex-direction: column;
+    }
+
+    .clickwise-sidebar-panel {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .clickwise-sidebar-panel>* {
+        flex: 1;
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 782px) {
+    .clickwise-admin-wrapper {
+        padding: var(--cw-spacing-md);
+        margin: 10px 10px 0 0;
+    }
+
+    .clickwise-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+}
+
+/* Event Manager Tabs */
+.clickwise-manager-tabs {
+    border-bottom: 1px solid var(--cw-cyan-800) !important;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.clickwise-sub-tab {
+    background: transparent !important;
+    border: 1px solid var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-200) !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 6px 16px !important;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    margin: 0 !important;
+}
+
+.clickwise-sub-tab:hover {
+    background: var(--cw-cyan-900) !important;
+    color: var(--cw-cyan-50) !important;
+    border-color: var(--cw-cyan-500) !important;
+}
+
+.clickwise-sub-tab.active {
+    background: var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-50) !important;
+    border-color: var(--cw-cyan-700) !important;
+}
+
+/* WordPress Table Overrides for Dark Theme */
+.clickwise-main-panel .widefat {
+    background-color: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-800);
+    color: var(--cw-cyan-100);
+    border-radius: var(--cw-radius-sm);
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.clickwise-main-panel .widefat thead th,
+.clickwise-main-panel .widefat thead td,
+.clickwise-main-panel .widefat tfoot th,
+.clickwise-main-panel .widefat tfoot td {
+    background-color: var(--cw-cyan-900);
+    color: var(--cw-cyan-50);
+    border-bottom: 1px solid var(--cw-cyan-700);
+    font-family: var(--cw-font-poppins);
+    font-weight: 600;
+}
+
+.clickwise-main-panel .widefat td,
+.clickwise-main-panel .widefat th {
+    color: var(--cw-cyan-100);
+    border-bottom: 1px solid var(--cw-cyan-800);
+}
+
+.clickwise-main-panel .widefat tr:hover td {
+    background-color: var(--cw-cyan-900);
+}
+
+/* Striped rows */
+.clickwise-main-panel .widefat.striped>tbody> :nth-child(odd),
+.clickwise-main-panel .widefat.striped>tbody> :nth-child(odd) {
+    background-color: rgba(22, 78, 99, 0.3);
+    /* Cyan 900 with opacity */
+}
+
+.clickwise-main-panel .widefat code {
+    background-color: var(--cw-cyan-900);
+    color: var(--cw-cyan-300);
+}
+
+/* Bulk Actions */
+.clickwise-main-panel .tablenav .actions select {
+    background-color: var(--cw-cyan-950);
+    border-color: var(--cw-cyan-700);
+    color: var(--cw-cyan-100);
+}
+
+.clickwise-main-panel .tablenav .actions .button {
+    background-color: var(--cw-cyan-800);
+    border-color: var(--cw-cyan-700);
+    color: var(--cw-cyan-50);
+}
+
+.clickwise-main-panel .tablenav .actions .button:hover {
+    background-color: var(--cw-cyan-700);
+    border-color: var(--cw-cyan-500);
+}
+
+/* Checkboxes */
+.clickwise-main-panel input[type="checkbox"] {
+    background-color: var(--cw-cyan-950);
+    border-color: var(--cw-cyan-600);
+}
+
+.clickwise-main-panel input[type="checkbox"]:checked::before {
+    filter: brightness(0) saturate(100%) invert(86%) sepia(23%) saturate(679%) hue-rotate(179deg) brightness(102%) contrast(105%);
+    /* Cyan 200ish */
+}
+
+/* Modal Styling */
+.clickwise-modal-wrapper {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+#clickwise-event-modal .clickwise-modal-content {
+    background-color: var(--cw-cyan-900) !important;
+    color: var(--cw-cyan-50) !important;
+    border: 1px solid var(--cw-cyan-700);
+    width: 700px;
+    max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--cw-radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+#clickwise-event-modal .clickwise-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--cw-cyan-800) !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#clickwise-event-modal .clickwise-modal-header h2 {
+    color: var(--cw-cyan-50);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+#clickwise-event-modal #clickwise-modal-close-x {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--cw-cyan-300) !important;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+#clickwise-event-modal #clickwise-modal-close-x:hover {
+    color: var(--cw-cyan-50) !important;
+}
+
+#clickwise-event-modal .clickwise-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+#clickwise-event-modal .form-table {
+    margin: 0;
+}
+
+#clickwise-event-modal .form-table th {
+    color: var(--cw-cyan-200);
+    font-weight: 500;
+    padding: 20px 10px 20px 0;
+    width: 180px;
+    vertical-align: top;
+}
+
+#clickwise-event-modal .form-table td {
+    color: var(--cw-cyan-50);
+    padding: 20px 0;
+}
+
+#clickwise-event-modal pre {
+    background-color: var(--cw-cyan-50);
+    /* Light background for code */
+    border: 1px solid var(--cw-cyan-200);
+    color: var(--cw-cyan-900);
+    padding: 16px;
+    border-radius: var(--cw-radius-md);
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    max-height: 200px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#clickwise-event-modal input[type="text"],
+#clickwise-event-modal select {
+    width: 100%;
+    background-color: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-700);
+    color: var(--cw-cyan-50);
+    padding: 10px 12px;
+    border-radius: var(--cw-radius-sm);
+    font-size: 14px;
+}
+
+#clickwise-event-modal input[type="text"]:focus,
+#clickwise-event-modal select:focus {
+    border-color: var(--cw-cyan-400);
+    box-shadow: 0 0 0 1px var(--cw-cyan-400);
+    outline: none;
+}
+
+#clickwise-event-modal .description {
+    color: var(--cw-cyan-300);
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+#clickwise-event-modal .clickwise-modal-footer {
+    padding: 24px;
+    border-top: 1px solid var(--cw-cyan-800);
+    /* Kept dark border */
+    text-align: right;
+    background: #fff;
+    /* White footer as per image */
+    border-radius: 0 0 var(--cw-radius-lg) var(--cw-radius-lg);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+#clickwise-event-modal .clickwise-modal-footer .button {
+    border-radius: var(--cw-radius-full);
+    padding: 6px 24px;
+    font-weight: 600;
+    height: auto;
+    line-height: 2;
+    font-size: 14px;
+}
+
+#clickwise-event-modal .clickwise-modal-footer .button-primary {
+    background: var(--cw-cyan-600);
+    border-color: var(--cw-cyan-600);
+    color: #fff;
+}
+
+#clickwise-event-modal .clickwise-modal-footer .button-primary:hover {
+    background: var(--cw-cyan-500);
+    border-color: var(--cw-cyan-500);
+}
+
+#clickwise-event-modal .clickwise-modal-footer .button:not(.button-primary) {
+    background: transparent;
+    border: 1px solid var(--cw-cyan-600);
+    color: var(--cw-cyan-600);
+}
+
+#clickwise-event-modal .clickwise-modal-footer .button:not(.button-primary):hover {
+    background: var(--cw-cyan-50);
+}
+
+/* Session Blocks */
+.clickwise-session-block {
+    border: 1px solid var(--cw-cyan-800) !important;
+    background-color: var(--cw-cyan-950) !important;
+    margin-bottom: 20px;
+    border-radius: var(--cw-radius-md);
+    overflow: hidden;
+}
+
+.clickwise-session-header {
+    background-color: var(--cw-cyan-900) !important;
+    border-bottom: 1px solid var(--cw-cyan-800) !important;
+    color: var(--cw-cyan-50);
+}
+
+.clickwise-session-header .count {
+    color: var(--cw-cyan-300) !important;
+}
+
+/* Syntax Highlighter */
+.clickwise-code-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: var(--cw-radius-sm);
+    background-color: var(--cw-cyan-950);
+    overflow: hidden;
+}
+
+.clickwise-code-backdrop,
+.clickwise-code-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    margin: 0;
+    border: none;
+    font-family: 'Fira Code', monospace;
+    /* Ensure monospace */
+    font-size: 14px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow: auto;
+}
+
+.clickwise-code-backdrop {
+    z-index: 1;
+    color: var(--cw-cyan-50);
     pointer-events: none;
 }
 
-/* Event Manager specific improvements */
-.clickwise-event-manager-container {
-    min-height: 500px;
+.clickwise-code-input {
+    z-index: 2;
+    background: transparent !important;
+    color: transparent !important;
+    caret-color: var(--cw-cyan-50);
+    resize: none;
+    border: none !important;
+    /* Prevent double border */
 }
 
-/* Sandbox tab improvements */
-.clickwise-sandbox-container {
-    min-height: 400px;
+.clickwise-main-panel textarea.clickwise-code-input:focus {
+    color: transparent !important;
+    box-shadow: none !important;
+    /* Remove focus shadow from textarea, wrapper has border */
 }
 
-/* Advanced tab improvements */
-.clickwise-advanced-container {
-    min-height: 300px;
-}
-
-/* Prevent flash of content */
-.clickwise-tab-content {
+/* AJAX Loading State */
+.clickwise-body {
+    transition: opacity 0.2s ease;
     opacity: 1;
-    transition: opacity 0.2s ease-in-out;
 }
 
-.clickwise-tab-content.loading {
+.clickwise-body.loading {
     opacity: 0.5;
     pointer-events: none;
 }
 
-/* Notice improvements */
-#clickwise-service-notice {
-    transition: all 0.3s ease-in-out;
-    margin-bottom: 0 !important;
+/* Syntax Colors */
+.clickwise-code-backdrop .string {
+    color: #a5f3fc;
 }
 
-/* Responsive improvements */
-@media (max-width: 782px) {
-    .clickwise-settings-container {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .clickwise-main-content {
-        min-height: 400px;
-    }
-
-    .nav-tab-wrapper {
-        border-bottom: none;
-    }
-
-    .nav-tab {
-        display: block;
-        margin: 0 0 -1px 0;
-        border-radius: 0;
-    }
+/* Cyan 200 */
+.clickwise-code-backdrop .number {
+    color: #fcd34d;
 }
 
-/* Fix sidebar jiggling */
-.clickwise-sidebar {
-    min-height: 500px;
-    flex: 1;
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #ccd0d4;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-radius: 12px;
-    margin-top: 20px;
+/* Amber 300 */
+.clickwise-code-backdrop .boolean {
+    color: #f87171;
 }
 
-.clickwise-sidebar-content {
-    flex: 1;
+/* Red 400 */
+.clickwise-code-backdrop .null {
+    color: #9ca3af;
 }
 
-.clickwise-sidebar-footer {
-    margin-top: auto;
-    padding-top: 10px;
+/* Gray 400 */
+.clickwise-code-backdrop .key {
+    color: #22d3ee;
+    font-weight: bold;
 }
 
-/* Credits styling */
-.clickwise-credits {
-    transition: transform 0.2s ease-in-out;
-}
-
-.clickwise-credits:hover {
-    transform: translateY(-1px);
-}
-
-.webspirio-logo svg {
-    transition: opacity 0.2s ease-in-out;
-}
-
-.webspirio-logo:hover svg {
-    opacity: 0.8;
-}
-
-/* GitHub icon styling */
-.clickwise-github-icon {
-    transition: transform 0.2s ease-in-out;
-}
-
-.clickwise-github-icon:hover {
-    transform: scale(1.1);
-}
-
-/* Action buttons styling */
-.clickwise-actions .button {
-    transition: all 0.2s ease-in-out;
-}
-
-.clickwise-actions .button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Smooth height transitions for dynamic content */
-.clickwise-dynamic-content {
-    transition: height 0.3s ease-in-out;
-    overflow: hidden;
-}
-
-/* Ensure consistent spacing */
-.clickwise-settings-container>* {
-    margin-bottom: 0;
-}
-
-/* Handler Single Card Layout */
-.clickwise-handler-single-card {
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.clickwise-handler-single-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-/* Handler configuration sections */
-.handler-single-config {
-    transition: opacity 0.3s ease-in-out, pointer-events 0.3s ease-in-out;
-}
-
-/* Test button styling */
-.clickwise-handler-single-card .button {
-    transition: all 0.2s ease-in-out;
-}
-
-.clickwise-handler-single-card .button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.clickwise-handler-single-card .button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Ensure handler cards respect content area boundaries */
-.clickwise-content-area .clickwise-handler-single-card {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-/* Responsive adjustments for handler cards */
-@media (max-width: 1200px) {
-    .clickwise-handler-single-card {
-        margin-left: 10px;
-        margin-right: 10px;
-        width: calc(100% - 20px);
-    }
-}
-
-@media (max-width: 782px) {
-    .clickwise-handler-single-card {
-        margin-left: 5px;
-        margin-right: 5px;
-        width: calc(100% - 10px);
-        padding: 20px !important;
-    }
-}
+/* Cyan 400 */
