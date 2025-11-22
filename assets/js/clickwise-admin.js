@@ -532,3 +532,57 @@ window.clickwiseToggleRecording = function (e) {
         }
     });
 };
+
+jQuery(document).ready(function ($) {
+    // Syntax Highlighter for Sandbox
+    var $textarea = $('#clickwise-sandbox-props');
+    if ($textarea.length) {
+        // Wrap
+        var $wrapper = $('<div class="clickwise-code-wrapper"></div>');
+        var $backdrop = $('<pre class="clickwise-code-backdrop"></pre>');
+        $textarea.wrap($wrapper);
+        $textarea.before($backdrop);
+        $textarea.addClass('clickwise-code-input');
+
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function updateHighlight() {
+            var text = $textarea.val();
+            // Handle final newline
+            if (text[text.length - 1] === "\n") {
+                text += " ";
+            }
+            var highlighted = syntaxHighlight(text);
+            $backdrop.html(highlighted);
+        }
+
+        $textarea.on('input', updateHighlight);
+        $textarea.on('scroll', function () {
+            $backdrop.scrollTop($textarea.scrollTop());
+            $backdrop.scrollLeft($textarea.scrollLeft());
+        });
+
+        // Initial trigger
+        updateHighlight();
+    }
+});
