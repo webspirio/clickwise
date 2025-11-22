@@ -79,11 +79,13 @@ class Clickwise_Admin {
 			wp_enqueue_style( 'clickwise-admin-bar-css', CLICKWISE_URL . 'assets/css/clickwise-admin-bar.css', array(), CLICKWISE_VERSION );
 			wp_enqueue_style( 'clickwise-pattern-ui-css', CLICKWISE_URL . 'assets/css/clickwise-pattern-ui.css', array(), CLICKWISE_VERSION );
 			wp_enqueue_style( 'clickwise-event-rules-css', CLICKWISE_URL . 'assets/css/clickwise-event-rules.css', array(), CLICKWISE_VERSION );
+			wp_enqueue_style( 'clickwise-form-feedback-css', CLICKWISE_URL . 'assets/css/clickwise-form-feedback.css', array(), CLICKWISE_VERSION );
 			wp_enqueue_style( 'clickwise-google-fonts', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap', array(), null );
 			wp_enqueue_script( 'clickwise-admin', CLICKWISE_URL . 'assets/js/clickwise-admin.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 			wp_enqueue_script( 'clickwise-pattern-ui', CLICKWISE_URL . 'assets/js/clickwise-pattern-ui.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 			wp_enqueue_script( 'clickwise-event-rules', CLICKWISE_URL . 'assets/js/clickwise-event-rules.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 			wp_enqueue_script( 'clickwise-tab-transitions', CLICKWISE_URL . 'assets/js/clickwise-tab-transitions.js', array( 'jquery' ), CLICKWISE_VERSION, true );
+			wp_enqueue_script( 'clickwise-form-feedback', CLICKWISE_URL . 'assets/js/clickwise-form-feedback.js', array( 'jquery' ), CLICKWISE_VERSION, true );
 				wp_localize_script( 'clickwise-admin', 'clickwise_admin', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
@@ -598,7 +600,37 @@ class Clickwise_Admin {
 			<div id="clickwise-sandbox-log" style="margin-top: 20px; background: #f0f0f1; padding: 15px; border: 1px solid #c3c4c7; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
 				<div style="color: #666; font-style: italic;">Ready to send events...</div>
 			</div>
+
+			<hr style="margin: 30px 0; border-top: 1px solid var(--cw-cyan-800);">
+
+			<h3>Form Feedback Testing</h3>
+			<p>Test the new custom form feedback system (replaces WordPress notices with button animations):</p>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row">Test Button States</th>
+					<td>
+						<button type="button" id="test-feedback-success" class="button button-primary" style="margin-right: 10px;">Test Success Feedback</button>
+						<button type="button" id="test-feedback-error" class="button button-primary">Test Error Feedback</button>
+						<p class="description">These buttons demonstrate the new save feedback system without affecting your settings.</p>
+					</td>
+				</tr>
+			</table>
 		</div>
+
+		<script>
+		jQuery(document).ready(function($) {
+			$('#test-feedback-success').on('click', function() {
+				const feedback = new ClickwiseButtonFeedback(this);
+				feedback.loading('Testing...').success('Success!');
+			});
+
+			$('#test-feedback-error').on('click', function() {
+				const feedback = new ClickwiseButtonFeedback(this);
+				feedback.loading('Testing...').error('Something went wrong!');
+			});
+		});
+		</script>
 		<?php
 	}
 
@@ -691,7 +723,7 @@ class Clickwise_Admin {
 		echo '<th></th>';
 		echo '<td>';
 		echo '<button type="button" id="add-event-rule-btn" class="button button-primary">Add Rule</button>';
-		echo '<div id="rule-preview" style="margin-top: 10px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 3px; display: none;">';
+		echo '<div id="rule-preview" style="display: none;">';
 		echo '<strong>Preview:</strong> <span id="rule-preview-text"></span>';
 		echo '</div>';
 		echo '</td>';
@@ -917,7 +949,7 @@ class Clickwise_Admin {
 								<span class="count" style="color:#666; margin-left:10px;">(<?php echo count( $session['events'] ); ?> events)</span>
 							</div>
 							<div>
-								<button type="button" class="button clickwise-delete-session" data-session="<?php echo esc_attr( $session['id'] ); ?>" style="color: #a00; border-color: #a00;">Delete Session</button>
+								<button type="button" class="button clickwise-delete-session" data-session="<?php echo esc_attr( $session['id'] ); ?>">Delete Session</button>
 							</div>
 						</div>
 						<div class="clickwise-session-content" style="padding: 0;">
@@ -1113,6 +1145,25 @@ class Clickwise_Admin {
 		update_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true );
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX handler for testing form feedback (for development)
+	 */
+	public function ajax_test_form_feedback() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied' );
+		}
+
+		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'success';
+
+		if ( $type === 'error' ) {
+			wp_send_json_error( 'This is a test error message to verify error feedback styling.' );
+		} else {
+			wp_send_json_success( 'Test feedback completed successfully!' );
+		}
 	}
 
 	public function ajax_test_handler() {

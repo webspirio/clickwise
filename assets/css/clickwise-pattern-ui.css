@@ -75,3 +75,34 @@
     color: var(--cw-cyan-400);
     font-style: italic;
 }
+
+/* Add Pattern Button Styling to match button-primary */
+.clickwise-add-pattern-btn {
+    background: var(--cw-cyan-600) !important;
+    border-color: var(--cw-cyan-600) !important;
+    color: #fff !important;
+    border-radius: var(--cw-radius-full) !important;
+    padding: 6px 24px !important;
+    font-weight: 600 !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+}
+
+.clickwise-add-pattern-btn:hover {
+    background: var(--cw-cyan-500) !important;
+    border-color: var(--cw-cyan-500) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    color: #fff !important;
+}
+
+.clickwise-add-pattern-btn:focus {
+    background: var(--cw-cyan-600) !important;
+    border-color: var(--cw-cyan-400) !important;
+    box-shadow: 0 0 0 1px var(--cw-cyan-400);
+    outline: none !important;
+    color: #fff !important;
+}
