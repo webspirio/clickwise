@@ -183,8 +183,11 @@ jQuery(document).ready(function ($) {
 
     // Update live preview
     function updatePreview() {
+        const $input = $('#new-rule-value');
+        if ($input.length === 0) return;
+
         const type = $('#new-rule-type').val();
-        const value = $('#new-rule-value').val().trim();
+        const value = $input.val().trim();
         const preview = $('#rule-preview');
         const previewText = $('#rule-preview-text');
 
