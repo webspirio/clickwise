@@ -1114,3 +1114,266 @@ tr[data-status] td:first-child {
         text-align: center;
     }
 }
+
+/* Sandbox Log Styling */
+.clickwise-sandbox-log {
+    margin-top: var(--cw-spacing-lg);
+    background-color: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: var(--cw-radius-md);
+    overflow: hidden;
+    font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+}
+
+.clickwise-sandbox-log-header {
+    background-color: var(--cw-cyan-900);
+    border-bottom: 1px solid var(--cw-cyan-700);
+    padding: var(--cw-spacing-md) var(--cw-spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.clickwise-sandbox-log-title {
+    color: var(--cw-cyan-50);
+    font-weight: 600;
+    font-size: 14px;
+    font-family: var(--cw-font-poppins);
+}
+
+.clickwise-clear-log-btn {
+    background: transparent !important;
+    border: 1px solid var(--cw-cyan-600) !important;
+    color: var(--cw-cyan-200) !important;
+    border-radius: var(--cw-radius-sm) !important;
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    cursor: pointer;
+}
+
+.clickwise-clear-log-btn:hover {
+    background: rgba(34, 211, 238, 0.1) !important;
+    border-color: var(--cw-cyan-400) !important;
+    color: var(--cw-cyan-100) !important;
+    transform: translateY(-1px);
+}
+
+.clickwise-sandbox-log-content {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: var(--cw-spacing-md);
+    background-color: var(--cw-cyan-950);
+}
+
+.clickwise-log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cw-spacing-md);
+    padding: var(--cw-spacing-sm) 0;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+    margin-bottom: var(--cw-spacing-sm);
+    animation: clickwise-log-entry-fade-in 0.3s ease-out;
+}
+
+.clickwise-log-entry:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.clickwise-log-entry.initial {
+    opacity: 0.7;
+}
+
+.log-time {
+    color: var(--cw-cyan-300);
+    font-size: 11px;
+    font-weight: 500;
+    min-width: 60px;
+    padding: 2px 6px;
+    background-color: rgba(34, 211, 238, 0.1);
+    border-radius: var(--cw-radius-sm);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.log-message {
+    color: var(--cw-cyan-100);
+    font-size: 13px;
+    line-height: 1.5;
+    flex: 1;
+    word-wrap: break-word;
+}
+
+/* Log entry type styling */
+.clickwise-log-entry.success .log-message {
+    color: #a7f3d0; /* Green-300 */
+}
+
+.clickwise-log-entry.success .log-time {
+    background-color: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #bbf7d0;
+}
+
+.clickwise-log-entry.error .log-message {
+    color: #fca5a5; /* Red-300 */
+}
+
+.clickwise-log-entry.error .log-time {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fecaca;
+}
+
+.clickwise-log-entry.info .log-message {
+    color: var(--cw-cyan-200);
+}
+
+.clickwise-log-entry.warning .log-message {
+    color: #fcd34d; /* Amber-300 */
+}
+
+.clickwise-log-entry.warning .log-time {
+    background-color: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
+}
+
+/* JSON/Object highlighting */
+.log-json {
+    background-color: var(--cw-cyan-900);
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: var(--cw-radius-sm);
+    padding: var(--cw-spacing-sm);
+    margin-top: var(--cw-spacing-xs);
+    font-size: 11px;
+    color: var(--cw-cyan-200);
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.log-json .json-key {
+    color: var(--cw-cyan-400);
+    font-weight: bold;
+}
+
+.log-json .json-string {
+    color: #a5f3fc; /* Cyan-200 */
+}
+
+.log-json .json-number {
+    color: #fcd34d; /* Amber-300 */
+}
+
+.log-json .json-boolean {
+    color: #f87171; /* Red-400 */
+}
+
+.log-json .json-null {
+    color: #9ca3af; /* Gray-400 */
+}
+
+/* Scrollbar styling for log content */
+.clickwise-sandbox-log-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.clickwise-sandbox-log-content::-webkit-scrollbar-track {
+    background: var(--cw-cyan-900);
+}
+
+.clickwise-sandbox-log-content::-webkit-scrollbar-thumb {
+    background: var(--cw-cyan-600);
+    border-radius: var(--cw-radius-sm);
+}
+
+.clickwise-sandbox-log-content::-webkit-scrollbar-thumb:hover {
+    background: var(--cw-cyan-500);
+}
+
+/* Empty log state */
+.clickwise-sandbox-log-content:empty::after {
+    content: "No log entries yet...";
+    display: block;
+    color: var(--cw-cyan-400);
+    font-style: italic;
+    text-align: center;
+    padding: var(--cw-spacing-xl);
+}
+
+/* Animation for new log entries */
+@keyframes clickwise-log-entry-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Logo Animation Enhancements */
+#clickwise-admin-logo {
+    cursor: pointer !important;
+    transition: transform 0.2s ease;
+}
+
+#clickwise-admin-logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.4));
+}
+
+#clickwise-admin-logo:active {
+    transform: scale(0.98);
+}
+
+/* Fun spam-click effects */
+.clickwise-spam-glow {
+    animation: clickwise-spam-pulse 0.3s ease-out;
+}
+
+@keyframes clickwise-spam-pulse {
+    0% {
+        filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+    }
+    50% {
+        filter: drop-shadow(0 0 15px rgba(34, 211, 238, 1)) brightness(1.3);
+    }
+    100% {
+        filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+    }
+}
+
+/* CSS fallback animation for logo - Fast and Fun! */
+.clickwise-replay-animation {
+    animation: clickwise-logo-pulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes clickwise-logo-pulse {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.85);
+    }
+    70% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Ensure SMIL animations work properly */
+#clickwise-admin-logo .clickwise-lines {
+    animation-fill-mode: forwards;
+}
+
+#clickwise-admin-logo .clickwise-cursor {
+    animation-fill-mode: forwards;
+}
