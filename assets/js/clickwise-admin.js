@@ -237,20 +237,50 @@ jQuery(document).ready(function ($) {
             return;
         }
 
-        button.prop('disabled', true).text('Sending...');
+        // Use the feedback system if available
+        var feedback = null;
+        if (window.ClickwiseButtonFeedback) {
+            feedback = new window.ClickwiseButtonFeedback(button[0]);
+            feedback.loading('Loading...');
+        } else {
+            button.prop('disabled', true).text('Loading...');
+        }
 
         loadClickwiseScript().then(function () {
+            if (feedback) {
+                feedback.loading('Sending...');
+            } else {
+                button.text('Sending...');
+            }
+
             try {
                 window.rybbit.event(name, props);
-                logSandbox('Event "' + name + '" sent successfully.', 'success');
-                logSandbox('Props: ' + JSON.stringify(props), 'info');
+
+                setTimeout(() => {
+                    if (feedback) {
+                        feedback.success('Event sent!');
+                    } else {
+                        button.prop('disabled', false).text('Send Custom Event');
+                    }
+
+                    logSandbox('Event "' + name + '" sent successfully.', 'success');
+                    logSandbox('Props: ' + JSON.stringify(props), 'info');
+                }, 500);
             } catch (e) {
+                if (feedback) {
+                    feedback.error('Failed to send!');
+                } else {
+                    button.prop('disabled', false).text('Send Custom Event');
+                }
                 logSandbox('Error executing event: ' + e.message, 'error');
             }
-            button.prop('disabled', false).text('Send Custom Event');
         }).catch(function (err) {
+            if (feedback) {
+                feedback.error('Script failed!');
+            } else {
+                button.prop('disabled', false).text('Send Custom Event');
+            }
             logSandbox('Failed to load script: ' + err, 'error');
-            button.prop('disabled', false).text('Send Custom Event');
         });
     });
 
@@ -350,6 +380,273 @@ jQuery(document).ready(function ($) {
         });
     }
 
+    // Track/Untrack Event Button
+    $(document).on('click', '.clickwise-track-event', function () {
+        var button = $(this);
+        var key = button.data('key');
+        var eventName = button.data('name');
+        var action = button.data('action');
+        var currentStatus = button.data('status');
+
+        if (!eventName) {
+            alert('Event name not found.');
+            return;
+        }
+
+        // Show confirmation for untrack actions only
+        if (action === 'untrack') {
+            if (!confirm('Are you sure you want to untrack this event? It will be moved to the Ignored Events list.')) {
+                return;
+            }
+        }
+
+        // Use the feedback system if available
+        var feedback = null;
+        if (window.ClickwiseButtonFeedback) {
+            feedback = new window.ClickwiseButtonFeedback(button[0]);
+            feedback.loading('Loading...');
+        } else {
+            button.prop('disabled', true).text('Loading...');
+        }
+
+        // Handle track/untrack action via AJAX
+        $.ajax({
+            url: clickwise_admin.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'clickwise_untrack_event',
+                key: key,
+                action_type: action,
+                nonce: clickwise_admin.nonce
+            },
+            success: function (response) {
+                if (response.success) {
+                    var successText = action === 'untrack' ? 'Untracked!' : 'Tracked!';
+                    if (feedback) {
+                        feedback.success(successText);
+                    } else {
+                        button.prop('disabled', false).text(successText);
+                    }
+
+                    // Update UI without page refresh
+                    setTimeout(() => {
+                        updateEventStatus(key, response.data.new_status, action, button);
+                    }, 1000);
+
+                } else {
+                    if (feedback) {
+                        feedback.error('Failed!');
+                    } else {
+                        button.prop('disabled', false);
+                    }
+                }
+            },
+            error: function () {
+                if (feedback) {
+                    feedback.error('Request failed!');
+                } else {
+                    button.prop('disabled', false);
+                }
+            }
+        });
+    });
+
+    // Function to update event status across all UI sections
+    function updateEventStatus(eventKey, newStatus, action, originalButton) {
+        // 1. Update the original button
+        updateButton(originalButton, newStatus);
+
+        // 2. Move the row between tabs if needed
+        if (action === 'untrack') {
+            moveEventRowToIgnored(eventKey);
+        } else if (action === 'track') {
+            moveEventRowToTracked(eventKey);
+        }
+
+        // 3. Update history section status indicators
+        updateHistoryStatus(eventKey, newStatus);
+
+        // 4. Update any other buttons for this event
+        updateOtherButtons(eventKey, newStatus);
+    }
+
+    // Update a single button's state and text
+    function updateButton(button, newStatus) {
+        var isTracked = newStatus === 'tracked';
+        var newText = isTracked ? 'Untrack' : 'Track';
+        var newAction = isTracked ? 'untrack' : 'track';
+
+        button.data('status', newStatus);
+        button.data('action', newAction);
+        button.text(newText);
+
+        if (isTracked) {
+            button.attr('data-action', 'untrack');
+        } else {
+            button.removeAttr('data-action');
+        }
+
+        // Reset button state
+        button.prop('disabled', false);
+    }
+
+    // Move event row from tracked to ignored tab
+    function moveEventRowToIgnored(eventKey) {
+        var row = $('#clickwise-tracked-view .clickwise-track-event[data-key="' + eventKey + '"]').closest('tr');
+        if (row.length > 0) {
+            var eventData = extractRowData(row);
+
+            // Remove from tracked view
+            row.fadeOut(300, function() {
+                $(this).remove();
+                checkEmptyState('#clickwise-tracked-view', 6, 'No tracked events yet.');
+            });
+
+            // Add to ignored view
+            setTimeout(() => {
+                addToIgnoredView(eventData);
+            }, 300);
+        }
+    }
+
+    // Move event row from ignored to tracked tab
+    function moveEventRowToTracked(eventKey) {
+        var row = $('#clickwise-ignored-view .clickwise-track-event[data-key="' + eventKey + '"]').closest('tr');
+        if (row.length > 0) {
+            var eventData = extractRowData(row);
+
+            // Remove from ignored view
+            row.fadeOut(300, function() {
+                $(this).remove();
+                checkEmptyState('#clickwise-ignored-view', 5, 'No ignored events.');
+            });
+
+            // Add to tracked view
+            setTimeout(() => {
+                addToTrackedView(eventData);
+            }, 300);
+        }
+    }
+
+    // Extract event data from table row
+    function extractRowData(row) {
+        var button = row.find('.clickwise-track-event');
+        var cells = row.find('td');
+
+        return {
+            key: button.data('key'),
+            name: button.data('name'),
+            alias: cells.eq(0).find('strong').text() || cells.eq(0).text(),
+            originalName: cells.eq(1).text() || button.data('name'),
+            type: cells.eq(2).text(),
+            selector: cells.eq(3).find('code').text() || ''
+        };
+    }
+
+    // Add event to tracked view
+    function addToTrackedView(eventData) {
+        var tbody = $('#clickwise-tracked-view tbody');
+
+        // Remove empty message if present
+        if (tbody.find('td[colspan]').length > 0) {
+            tbody.empty();
+        }
+
+        var newRow = $('<tr style="display:none;">' +
+            '<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="' + eventData.key + '"></th>' +
+            '<td><strong>' + (eventData.alias || eventData.name) + '</strong></td>' +
+            '<td>' + eventData.originalName + '</td>' +
+            '<td>' + eventData.type + '</td>' +
+            '<td><code>' + eventData.selector + '</code></td>' +
+            '<td>' +
+                '<div class="button-group">' +
+                    '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
+                    '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="untrack" data-status="tracked">Untrack</button>' +
+                '</div>' +
+            '</td>' +
+        '</tr>');
+
+        tbody.append(newRow);
+        newRow.fadeIn(300);
+    }
+
+    // Add event to ignored view
+    function addToIgnoredView(eventData) {
+        var tbody = $('#clickwise-ignored-view tbody');
+
+        // Remove empty message if present
+        if (tbody.find('td[colspan]').length > 0) {
+            tbody.empty();
+        }
+
+        var newRow = $('<tr style="display:none;">' +
+            '<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="' + eventData.key + '"></th>' +
+            '<td>' + eventData.originalName + '</td>' +
+            '<td>' + eventData.type + '</td>' +
+            '<td><code>' + eventData.selector + '</code></td>' +
+            '<td>' +
+                '<div class="button-group">' +
+                    '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
+                    '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="track" data-status="ignored">Track</button>' +
+                '</div>' +
+            '</td>' +
+        '</tr>');
+
+        tbody.append(newRow);
+        newRow.fadeIn(300);
+    }
+
+    // Check if table is empty and show appropriate message
+    function checkEmptyState(sectionSelector, colspan, message) {
+        var tbody = $(sectionSelector + ' tbody');
+        if (tbody.find('tr').length === 0) {
+            tbody.html('<tr><td colspan="' + colspan + '">' + message + '</td></tr>');
+        }
+    }
+
+    // Update status indicators in history section
+    function updateHistoryStatus(eventKey, newStatus) {
+        var historyRow = $('tr[data-status] .clickwise-track-event[data-key="' + eventKey + '"]').closest('tr');
+
+        if (historyRow.length > 0) {
+            historyRow.attr('data-status', newStatus);
+
+            // Update status cell - it's the second td (after checkbox)
+            var statusCell = historyRow.find('td').eq(0);
+            var statusHtml = '';
+
+            if (newStatus === 'tracked') {
+                statusHtml = '<span class="dashicons dashicons-yes" style="color:green;"></span> <strong style="color:green;">Tracked</strong>';
+            } else if (newStatus === 'ignored') {
+                statusHtml = '<span class="dashicons dashicons-no" style="color:red;"></span> <span style="color:red;">Ignored</span>';
+            } else {
+                statusHtml = '<span class="dashicons dashicons-minus" style="color:orange;"></span> Pending';
+            }
+
+            statusCell.html(statusHtml);
+
+            // Update button in history row
+            var historyButton = historyRow.find('.clickwise-track-event');
+            updateButton(historyButton, newStatus);
+
+            // Add visual feedback
+            historyRow.addClass('clickwise-row-updated');
+            setTimeout(() => {
+                historyRow.removeClass('clickwise-row-updated');
+            }, 2000);
+        }
+    }
+
+    // Update other buttons with same event key
+    function updateOtherButtons(eventKey, newStatus) {
+        $('.clickwise-track-event[data-key="' + eventKey + '"]').each(function() {
+            var btn = $(this);
+            if (btn.data('status') !== undefined) {
+                updateButton(btn, newStatus);
+            }
+        });
+    }
+
     // Open Event Details Modal
     $(document).on('click', '.clickwise-open-details', function () {
         var button = $(this);
@@ -368,11 +665,11 @@ jQuery(document).ready(function ($) {
         // Robust JSON Parsing & Highlighting
         var detailHtml = '';
         try {
-            var raw = event.example;
+            var raw = event.example_detail || event.example; // Try new column name first, fallback to old
             var parsed = raw ? parsePotentialJSON(raw) : {};
             detailHtml = syntaxHighlight(parsed);
         } catch (e) {
-            detailHtml = event.example || '{}';
+            detailHtml = event.example_detail || event.example || '{}';
         }
         $('#modal-event-detail').html(detailHtml);
 
@@ -509,7 +806,7 @@ jQuery(document).ready(function ($) {
                     sessionBlock.slideUp({
                         duration: 600,
                         easing: 'swing',
-                        complete: function() {
+                        complete: function () {
                             sessionBlock.remove();
 
                             // Check if this was the last session and show empty state
@@ -532,7 +829,7 @@ jQuery(document).ready(function ($) {
                 // Show error notification
                 showSessionDeletedNotification(response.data || 'Failed to delete session. Please try again.', 'error');
             }
-        }).fail(function() {
+        }).fail(function () {
             // Network error
             if (feedback) {
                 feedback.error('Connection failed');
@@ -603,7 +900,7 @@ jQuery(document).ready(function ($) {
         }, type === 'error' ? 6000 : 4000);
 
         // Manual close
-        $notification.find('.clickwise-notification-close').on('click', function() {
+        $notification.find('.clickwise-notification-close').on('click', function () {
             clearTimeout(hideTimeout);
             hideSessionNotification($notification, $container);
         });
