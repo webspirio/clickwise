@@ -95,6 +95,7 @@ class Clickwise_Analytics {
 		add_action( 'wp_ajax_clickwise_test_handler', array( $plugin_admin, 'ajax_test_handler' ) );
 		add_action( 'wp_ajax_clickwise_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
 		add_action( 'wp_ajax_clickwise_test_form_feedback', array( $plugin_admin, 'ajax_test_form_feedback' ) );
+		add_action( 'wp_ajax_clickwise_untrack_event', array( $plugin_admin, 'ajax_untrack_event' ) );
 		
 		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
 	}
@@ -225,7 +226,7 @@ class Clickwise_Analytics {
 		// Get Rybbit handler options with fallbacks to old option names
 		$script_url         = get_option( 'clickwise_rybbit_script_url', get_option( 'clickwise_script_url', 'https://tracking.example.com/api/script.js' ) );
 		$site_id            = get_option( 'clickwise_rybbit_site_id', get_option( 'clickwise_site_id', '' ) );
-		$api_version        = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v1' ) );
+		$api_version        = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v2' ) );
 		$track_pgv          = get_option( 'clickwise_track_pgv', true );
 		$track_spa          = get_option( 'clickwise_track_spa', true );
 		$track_query        = get_option( 'clickwise_track_query', true );
@@ -319,6 +320,7 @@ class Clickwise_Analytics {
 		$track_forms    = get_option( 'clickwise_track_forms', true );
 		$track_links    = get_option( 'clickwise_track_links', true );
 		$dev_mode       = get_option( 'clickwise_dev_mode', false ) && current_user_can( 'manage_options' );
+		$ignore_admin   = get_option( 'clickwise_ignore_admin', true );
 		
 		$recording_mode = false;
 		if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
@@ -350,6 +352,7 @@ class Clickwise_Analytics {
 			'track_forms'        => (bool) $track_forms,
 			'track_links'        => (bool) $track_links,
 			'dev_mode'           => (bool) $dev_mode,
+			'ignore_admin'       => (bool) $ignore_admin,
 			'recording_mode'     => (bool) $recording_mode,
 			'managed_events'     => $managed_events,
 			'ajax_url'           => admin_url( 'admin-ajax.php' ),
