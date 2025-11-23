@@ -1332,20 +1332,20 @@ tr[data-status] td:first-child {
     transform: scale(0.98);
 }
 
-/* Fun spam-click effects */
+/* Ultra-responsive spam-click effects */
 .clickwise-spam-glow {
-    animation: clickwise-spam-pulse 0.3s ease-out;
+    animation: clickwise-spam-pulse 0.2s ease-out;
 }
 
 @keyframes clickwise-spam-pulse {
     0% {
-        filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+        filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.6)) brightness(1);
     }
     50% {
-        filter: drop-shadow(0 0 15px rgba(34, 211, 238, 1)) brightness(1.3);
+        filter: drop-shadow(0 0 12px rgba(34, 211, 238, 1)) brightness(1.4) saturate(1.2);
     }
     100% {
-        filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+        filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.6)) brightness(1);
     }
 }
 
@@ -1376,4 +1376,344 @@ tr[data-status] td:first-child {
 
 #clickwise-admin-logo .clickwise-cursor {
     animation-fill-mode: forwards;
+}
+
+/* Modern Compact Handler Selection */
+.clickwise-handler-selection {
+    margin-bottom: var(--cw-spacing-lg);
+    padding: var(--cw-spacing-md);
+    background-color: rgba(34, 211, 238, 0.05);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: var(--cw-radius-sm);
+}
+
+.handler-selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cw-spacing-md);
+}
+
+.handler-selection-header h3 {
+    color: var(--cw-cyan-50);
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.handler-count {
+    color: var(--cw-cyan-300);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background-color: rgba(34, 211, 238, 0.1);
+    border-radius: var(--cw-radius-sm);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.clickwise-handler-chips {
+    display: flex;
+    gap: var(--cw-spacing-sm);
+    flex-wrap: wrap;
+}
+
+.clickwise-handler-chip {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+}
+
+.clickwise-handler-chip input[type="checkbox"] {
+    display: none;
+}
+
+.chip-content {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cw-spacing-xs);
+    padding: 6px 12px;
+    background-color: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-700);
+    border-radius: var(--cw-radius-full);
+    color: var(--cw-cyan-200);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.chip-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.chip-text {
+    white-space: nowrap;
+}
+
+.chip-status {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.chip-status.disabled {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+/* Hover states */
+.clickwise-handler-chip:not(.disabled) .chip-content:hover {
+    border-color: var(--cw-cyan-500);
+    background-color: var(--cw-cyan-900);
+    color: var(--cw-cyan-100);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(34, 211, 238, 0.2);
+}
+
+/* Active/checked state */
+.clickwise-handler-chip:not(.disabled) input[type="checkbox"]:checked + .chip-content {
+    background-color: var(--cw-cyan-600);
+    border-color: var(--cw-cyan-400);
+    color: var(--cw-cyan-50);
+    box-shadow: 0 2px 12px rgba(34, 211, 238, 0.3);
+}
+
+/* Active state with subtle pulse */
+.clickwise-handler-chip:not(.disabled) input[type="checkbox"]:checked + .chip-content::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid var(--cw-cyan-400);
+    border-radius: var(--cw-radius-full);
+    animation: clickwise-chip-pulse 2s ease-in-out infinite;
+}
+
+/* Disabled state */
+.clickwise-handler-chip.disabled {
+    cursor: not-allowed;
+}
+
+.clickwise-handler-chip.disabled .chip-content {
+    background-color: rgba(75, 85, 99, 0.3);
+    border-color: rgba(75, 85, 99, 0.5);
+    color: rgba(156, 163, 175, 0.8);
+    cursor: not-allowed;
+}
+
+.clickwise-handler-chip.disabled .chip-content:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(75, 85, 99, 0.5);
+    background-color: rgba(75, 85, 99, 0.3);
+}
+
+/* Smooth pulse animation for selected chips */
+@keyframes clickwise-chip-pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+/* Click feedback animation */
+.clickwise-handler-chip:not(.disabled) .chip-content:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Sandbox Notification System */
+.clickwise-sandbox-notification-container {
+    margin-bottom: 20px;
+}
+
+.clickwise-sandbox-notification {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--cw-radius-md);
+    border: 1px solid;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.clickwise-sandbox-notification.sandbox-notification-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Warning notifications (default) */
+.clickwise-sandbox-notification-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+/* Error notifications */
+.clickwise-sandbox-notification-error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+/* Success notifications */
+.clickwise-sandbox-notification-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(21, 128, 61, 0.05) 100%);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+/* Info notifications */
+.clickwise-sandbox-notification-info {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
+    border-color: var(--cw-cyan-700);
+    color: var(--cw-cyan-200);
+}
+
+.sandbox-notification-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.sandbox-notification-message {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.sandbox-notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--cw-radius-sm);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.sandbox-notification-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.sandbox-notification-close:active {
+    transform: scale(0.95);
+}
+
+/* Subtle glow effect for sandbox notifications */
+.clickwise-sandbox-notification-warning {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.clickwise-sandbox-notification-error {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.clickwise-sandbox-notification-success {
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+.clickwise-sandbox-notification-info {
+    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.1);
+}
+
+/* Responsive design for notifications */
+@media (max-width: 768px) {
+    .clickwise-sandbox-notification {
+        padding: 10px 12px;
+        font-size: 13px;
+        gap: 10px;
+    }
+
+    .sandbox-notification-icon {
+        font-size: 14px;
+    }
+}
+
+/* Error feedback animations */
+@keyframes clickwise-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes clickwise-highlight-pulse {
+    0% {
+        border-color: rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    }
+    100% {
+        border-color: rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+}
+
+/* Error state classes */
+.clickwise-error-shake {
+    animation: clickwise-shake 0.5s ease-in-out;
+}
+
+.clickwise-handler-selection.clickwise-error-highlight {
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    animation: clickwise-highlight-pulse 2s ease-in-out;
+    transition: all 0.3s ease;
+}
+
+/* Apply shake animation to form inputs and buttons */
+input.clickwise-error-shake,
+textarea.clickwise-error-shake,
+button.clickwise-error-shake,
+.button.clickwise-error-shake {
+    animation: clickwise-shake 0.5s ease-in-out;
+}
+
+/* Enhance input/textarea shake with border highlight */
+input.clickwise-error-shake,
+textarea.clickwise-error-shake {
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .handler-selection-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--cw-spacing-xs);
+    }
+
+    .clickwise-handler-chips {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .chip-content {
+        min-width: 140px;
+        justify-content: center;
+    }
 }

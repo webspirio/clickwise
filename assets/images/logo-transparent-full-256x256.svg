@@ -1,11 +1,11 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" class="clickwise-logo-animated" style="cursor: pointer;">
   <g clip-path="url(#clip0_712_3841)">
     <path class="clickwise-lines" d="M74.6667 74.6667L58.6667 58.6667M160 74.6667L176 58.6667M58.6667 176L74.6667 160M117.333 53.3333V32M53.3333 117.333H32" stroke="#00B8DB" stroke-width="10.67" stroke-linecap="round" stroke-linejoin="round" opacity="0" transform="scale(0.8)" transform-origin="center">
-      <animate attributeName="opacity" values="0; 0; 1; 1" keyTimes="0; 0.2; 0.4; 1" dur="0.8s" begin="0s" restart="whenNotActive" fill="freeze" id="lines-opacity-anim" />
-      <animateTransform attributeName="transform" type="scale" values="0.8; 0.8; 1.2; 1" keyTimes="0; 0.2; 0.6; 1" dur="0.8s" begin="0s" restart="whenNotActive" fill="freeze" additive="sum" id="lines-scale-anim" />
+      <animate attributeName="opacity" values="0; 0; 1; 1" keyTimes="0; 0.25; 0.5; 1" dur="0.6s" begin="0s" restart="always" fill="freeze" id="lines-opacity-anim" />
+      <animateTransform attributeName="transform" type="scale" values="0.8; 0.8; 1.2; 1" keyTimes="0; 0.25; 0.6; 1" dur="0.6s" begin="0s" restart="always" fill="freeze" additive="sum" id="lines-scale-anim" />
     </path>
     <path class="clickwise-cursor" d="M183.043 181.213L224.554 164.97C229.075 163.201 229.073 156.803 224.551 155.036L124.791 116.052C120.462 114.361 116.191 118.631 117.883 122.961L156.866 222.721C158.634 227.243 165.031 227.245 166.8 222.723L183.043 181.213Z" stroke="#00B8DB" stroke-width="10.67" stroke-linecap="round" stroke-linejoin="round" transform-origin="center">
-      <animateTransform attributeName="transform" type="scale" values="1; 0.85; 1.1; 1" keyTimes="0; 0.3; 0.7; 1" dur="0.8s" begin="0s" restart="whenNotActive" fill="freeze" additive="sum" id="cursor-scale-anim" />
+      <animateTransform attributeName="transform" type="scale" values="1; 0.85; 1.1; 1" keyTimes="0; 0.3; 0.7; 1" dur="0.6s" begin="0s" restart="always" fill="freeze" additive="sum" id="cursor-scale-anim" />
     </path>
   </g>
 <defs>

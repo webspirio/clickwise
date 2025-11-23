@@ -965,11 +965,54 @@ class Clickwise_Admin {
 	}
 
 	public function render_sandbox_tab() {
+		// Get handler status
+		$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
+		$ga_enabled = get_option( 'clickwise_ga_enabled' );
 		?>
 		<div class="clickwise-sandbox">
-			<h3>Event Sandbox</h3>
+			<h2>Event Sandbox</h2>
 			<p>Use this tool to test custom events and verify that your tracking configuration is working correctly.</p>
-			
+
+			<!-- Handler Selection -->
+			<div class="clickwise-handler-selection">
+				<div class="handler-selection-header">
+					<h3>Testing Handlers</h3>
+					<span class="handler-count" id="selected-count">0 selected</span>
+				</div>
+
+				<div class="clickwise-handler-chips">
+					<label class="clickwise-handler-chip <?php echo !$rybbit_enabled ? 'disabled' : ''; ?>"
+						   <?php if (!$rybbit_enabled): ?>title="Enable Rybbit in settings to test"<?php endif; ?>>
+						<input type="checkbox"
+							   id="handler-rybbit"
+							   data-handler="rybbit"
+							   <?php echo !$rybbit_enabled ? 'disabled' : ''; ?>>
+						<span class="chip-content">
+							<span class="chip-icon">🚀</span>
+							<span class="chip-text">Rybbit</span>
+							<?php if (!$rybbit_enabled): ?>
+								<span class="chip-status disabled">OFF</span>
+							<?php endif; ?>
+						</span>
+					</label>
+
+					<label class="clickwise-handler-chip <?php echo !$ga_enabled ? 'disabled' : ''; ?>"
+						   <?php if (!$ga_enabled): ?>title="Enable Google Analytics in settings to test"<?php endif; ?>>
+						<input type="checkbox"
+							   id="handler-ga"
+							   data-handler="ga"
+							   <?php echo !$ga_enabled ? 'disabled' : ''; ?>>
+						<span class="chip-content">
+							<span class="chip-icon">📊</span>
+							<span class="chip-text">Google Analytics</span>
+							<?php if (!$ga_enabled): ?>
+								<span class="chip-status disabled">OFF</span>
+							<?php endif; ?>
+						</span>
+					</label>
+				</div>
+			</div>
+
 			<table class="form-table">
 				<tr>
 					<th scope="row"><label for="clickwise-sandbox-name">Event Name</label></th>
