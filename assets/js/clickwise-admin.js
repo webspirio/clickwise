@@ -280,24 +280,132 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    // Sandbox Send Event
+    // Sandbox Send Event (Enhanced with handler validation)
+    // Show sandbox notification
+    function showSandboxNotification(message, type = 'warning', duration = 4000) {
+        // Find or create notification container in sandbox area
+        let $container = $('.clickwise-sandbox-notification-container');
+
+        if ($container.length === 0) {
+            // Create container in sandbox area
+            const $sandboxContent = $('#clickwise-sub-sandbox .clickwise-content');
+            if ($sandboxContent.length > 0) {
+                $container = $('<div class="clickwise-sandbox-notification-container"></div>');
+                $sandboxContent.prepend($container);
+            }
+        }
+
+        // Remove any existing notifications
+        $container.find('.clickwise-sandbox-notification').remove();
+
+        const iconMap = {
+            'error': '❌',
+            'warning': '⚠️',
+            'success': '✅',
+            'info': 'ℹ️'
+        };
+
+        const $notification = $(`
+            <div class="clickwise-sandbox-notification clickwise-sandbox-notification-${type}">
+                <span class="sandbox-notification-icon">${iconMap[type] || '⚠️'}</span>
+                <span class="sandbox-notification-message">${message}</span>
+                <button type="button" class="sandbox-notification-close">&times;</button>
+            </div>
+        `);
+
+        $container.append($notification);
+
+        // Animate in with slide down effect
+        setTimeout(() => {
+            $notification.addClass('sandbox-notification-show');
+        }, 50);
+
+        // Auto-hide after delay
+        const hideTimeout = setTimeout(() => {
+            hideSandboxNotification($notification);
+        }, duration);
+
+        // Manual close
+        $notification.find('.sandbox-notification-close').on('click', function () {
+            clearTimeout(hideTimeout);
+            hideSandboxNotification($notification);
+        });
+    }
+
+    // Hide sandbox notification
+    function hideSandboxNotification($notification) {
+        $notification.removeClass('sandbox-notification-show');
+        setTimeout(() => {
+            $notification.remove();
+        }, 300);
+    }
+
     $(document).on('click', '#clickwise-sandbox-send', function () {
         var button = $(this);
+
+        // First check if handlers are selected
+        if (window.selectedHandlers.size === 0) {
+            showSandboxNotification('Please select at least one handler to test with.', 'warning');
+
+            // Shake the send button
+            button.addClass('clickwise-error-shake');
+            setTimeout(function() {
+                button.removeClass('clickwise-error-shake');
+            }, 500);
+
+            // Highlight the handler selection area
+            var $handlerSelection = $('.clickwise-handler-selection');
+            $handlerSelection.addClass('clickwise-error-highlight');
+            setTimeout(function() {
+                $handlerSelection.removeClass('clickwise-error-highlight');
+            }, 2000);
+
+            return;
+        }
+
         var name = $('#clickwise-sandbox-name').val();
         var propsStr = $('#clickwise-sandbox-props').val();
         var props = {};
 
         if (!name) {
-            alert('Please enter an event name.');
+            showSandboxNotification('Please enter an event name.', 'warning');
+
+            // Shake the send button and highlight event name input
+            button.addClass('clickwise-error-shake');
+            var $eventNameInput = $('#clickwise-sandbox-name');
+            $eventNameInput.addClass('clickwise-error-shake');
+            setTimeout(function() {
+                button.removeClass('clickwise-error-shake');
+                $eventNameInput.removeClass('clickwise-error-shake');
+            }, 500);
+
             return;
         }
+
+        // Log selected handlers info
+        var selectedHandlersArray = Array.from(window.selectedHandlers);
+        console.log('🚀 Sending event to selected handlers:', selectedHandlersArray);
+        logSandbox('Testing with handlers: ' + selectedHandlersArray.join(', '), 'info', {
+            selectedHandlers: selectedHandlersArray,
+            totalHandlers: window.selectedHandlers.size
+        });
 
         try {
             if (propsStr) {
                 props = JSON.parse(propsStr);
             }
         } catch (e) {
-            alert('Invalid JSON in properties.');
+            showSandboxNotification('Invalid JSON in properties.', 'error');
+
+            // Shake the send button and properties textarea
+            button.addClass('clickwise-error-shake');
+            var $propsTextarea = $('#clickwise-sandbox-props');
+            $propsTextarea.addClass('clickwise-error-shake');
+            setTimeout(function() {
+                button.removeClass('clickwise-error-shake');
+                $propsTextarea.removeClass('clickwise-error-shake');
+            }, 500);
+
             return;
         }
 
@@ -1085,47 +1193,52 @@ window.initClickwiseSyntaxHighlighter = function () {
 jQuery(document).ready(function ($) {
     window.initClickwiseSyntaxHighlighter();
 
-    // Fast and Fun Logo Animation System - Spam-Click Friendly!
-    var isAnimating = false;
-    var animationQueue = 0;
-    var MAX_QUEUE = 3; // Allow up to 3 queued animations for fun spam-clicking
-    var lastTriggerTime = 0;
-    var DEBOUNCE_TIME = 200; // Prevent double triggers within 200ms
+    // Global variable for handler selection (accessible across all functions)
+    window.selectedHandlers = new Set();
+
+    // Auto-select all enabled handlers by default
+    window.initializeDefaultHandlerSelection = function() {
+        var $handlers = $('.clickwise-handler-chip:not(.disabled) input[type="checkbox"]');
+
+        if ($handlers.length === 0) {
+            return; // No sandbox handlers found
+        }
+
+        // Clear and reinitialize
+        window.selectedHandlers.clear();
+
+        $handlers.each(function() {
+            var $checkbox = $(this);
+            var handler = $checkbox.data('handler');
+
+            $checkbox.prop('checked', true);
+            window.selectedHandlers.add(handler);
+        });
+
+        updateHandlerCount();
+    };
+
+    // Ultra-Responsive Logo Animation System - Instant Restart on Every Click!
+    var logoAnimations = [];
+    var lastSaveTriggerTime = 0;
+    var SAVE_DEBOUNCE_TIME = 300; // Only debounce save buttons, not direct logo clicks
 
     function setupAnimationEventListeners() {
         var $logo = $('#clickwise-admin-logo');
         if (!$logo.length) return;
 
         var logoElement = $logo[0];
-        var animations = logoElement.querySelectorAll('animate, animateTransform');
+        logoAnimations = Array.from(logoElement.querySelectorAll('animate, animateTransform'));
 
-        // Track when SMIL animations actually end
-        var completedAnimations = 0;
-        var totalAnimations = animations.length;
+        console.log('🎯 Found', logoAnimations.length, 'SMIL animations for ultra-responsive control');
 
-        animations.forEach(function(anim) {
-            anim.addEventListener('endEvent', function() {
-                completedAnimations++;
-                console.log('Animation completed:', completedAnimations + '/' + totalAnimations);
-
-                // All animations finished
-                if (completedAnimations >= totalAnimations) {
-                    isAnimating = false;
-                    completedAnimations = 0;
-                    console.log('🎉 All animations finished! Ready for next click');
-
-                    // Process queue if there are waiting animations
-                    if (animationQueue > 0) {
-                        animationQueue--;
-                        setTimeout(function() {
-                            replayLogoAnimation('queue-processing');
-                        }, 50); // Tiny delay for smooth transitions
-                    }
-                }
+        logoAnimations.forEach(function(anim, index) {
+            anim.addEventListener('beginEvent', function() {
+                console.log('⚡ Animation', index, 'started:', anim.id);
             });
 
-            anim.addEventListener('beginEvent', function() {
-                console.log('Animation started:', anim.id);
+            anim.addEventListener('endEvent', function() {
+                console.log('✅ Animation', index, 'finished:', anim.id);
             });
         });
     }
@@ -1136,114 +1249,70 @@ jQuery(document).ready(function ($) {
 
         var currentTime = Date.now();
 
-        // Prevent double triggers from form submit + button click events (except direct logo clicks)
-        if (source !== 'logo-click' && (currentTime - lastTriggerTime) < DEBOUNCE_TIME) {
-            console.log('🚫 Animation debounced - too soon after last trigger (' + source + ')');
-            return;
-        }
-
-        lastTriggerTime = currentTime;
-
-        // If already animating, add to queue for spam-clicking fun
-        if (isAnimating) {
-            if (animationQueue < MAX_QUEUE) {
-                animationQueue++;
-                console.log('🚀 Animation queued! Queue size:', animationQueue);
-
-                // Fun visual feedback for queued clicks
-                $logo.addClass('clickwise-spam-glow');
-                setTimeout(function() {
-                    $logo.removeClass('clickwise-spam-glow');
-                }, 300);
-
-                // Extra brightness flash
-                $logo.css('filter', 'brightness(1.3)');
-                setTimeout(function() {
-                    $logo.css('filter', '');
-                }, 150);
-            } else {
-                console.log('💥 Max queue reached - SUPER SPAM MODE!');
-                // Even more dramatic effect for max spam
-                $logo.css({
-                    'filter': 'brightness(1.5) saturate(1.5)',
-                    'transform': 'scale(1.1)'
-                });
-                setTimeout(function() {
-                    $logo.css({
-                        'filter': '',
-                        'transform': ''
-                    });
-                }, 200);
+        // Only debounce save button triggers, NEVER logo clicks for maximum spam-ability!
+        if (source === 'button-click' || source === 'form-submit') {
+            if ((currentTime - lastSaveTriggerTime) < SAVE_DEBOUNCE_TIME) {
+                console.log('🚫 Save animation debounced - too soon (' + source + ')');
+                return;
             }
-            return;
+            lastSaveTriggerTime = currentTime;
         }
 
-        isAnimating = true;
-        console.log('🎯 Starting logo animation (triggered by:', source + ')');
+        console.log('🚀 INSTANT logo animation restart! (source:', source + ')');
 
+        // INSTANT animation restart - no delays, no queuing, no waiting!
         try {
-            var logoElement = $logo[0];
-            var animations = logoElement.querySelectorAll('animate, animateTransform');
-
-            if (animations.length > 0) {
-                // Quick reset and restart for snappy animations
-                animations.forEach(function(anim) {
+            if (logoAnimations.length > 0) {
+                // Immediately stop and restart all SMIL animations
+                logoAnimations.forEach(function(anim) {
                     try {
+                        // Force stop current animation
                         anim.endElement();
-                    } catch (e) {}
+                    } catch (e) {
+                        // Animation might not be running, that's fine
+                    }
                 });
 
-                // Immediate restart for responsiveness
-                setTimeout(function() {
-                    animations.forEach(function(anim) {
-                        try {
-                            anim.beginElement();
-                        } catch (e) {
-                            console.log('Could not start animation:', e);
-                        }
-                    });
-                }, 10); // Very quick restart
+                // Restart all animations immediately - no setTimeout delays!
+                logoAnimations.forEach(function(anim) {
+                    try {
+                        anim.beginElement();
+                    } catch (e) {
+                        console.log('Could not restart animation:', e);
+                    }
+                });
+
+                // Fun spam-click visual feedback
+                if (source === 'logo-click') {
+                    $logo.addClass('clickwise-spam-glow');
+                    setTimeout(function() {
+                        $logo.removeClass('clickwise-spam-glow');
+                    }, 200);
+                }
 
             } else {
-                // CSS fallback with event tracking
+                // CSS fallback for instant restart
                 $logo.removeClass('clickwise-replay-animation');
+                // Force DOM reflow for instant restart
+                $logo[0].offsetHeight;
+                $logo.addClass('clickwise-replay-animation');
+
+                // Clean up CSS class after animation
                 setTimeout(function() {
-                    $logo.addClass('clickwise-replay-animation');
-
-                    // Track CSS animation end
-                    $logo.one('animationend', function() {
-                        $logo.removeClass('clickwise-replay-animation');
-                        isAnimating = false;
-                        console.log('🎉 CSS animation finished!');
-
-                        // Process queue
-                        if (animationQueue > 0) {
-                            animationQueue--;
-                            setTimeout(function() {
-                                replayLogoAnimation('queue-processing');
-                            }, 50);
-                        }
-                    });
-                }, 10);
+                    $logo.removeClass('clickwise-replay-animation');
+                }, 600); // Match CSS animation duration
             }
 
         } catch (e) {
-            console.log('Animation failed, using CSS fallback:', e);
-            // Same CSS fallback as above
+            console.log('Animation restart failed:', e);
+
+            // Emergency CSS fallback
             $logo.removeClass('clickwise-replay-animation');
+            $logo[0].offsetHeight; // Force reflow
+            $logo.addClass('clickwise-replay-animation');
             setTimeout(function() {
-                $logo.addClass('clickwise-replay-animation');
-                $logo.one('animationend', function() {
-                    $logo.removeClass('clickwise-replay-animation');
-                    isAnimating = false;
-                    if (animationQueue > 0) {
-                        animationQueue--;
-                        setTimeout(function() {
-                            replayLogoAnimation('queue-processing');
-                        }, 50);
-                    }
-                });
-            }, 10);
+                $logo.removeClass('clickwise-replay-animation');
+            }, 600);
         }
     }
 
@@ -1256,22 +1325,87 @@ jQuery(document).ready(function ($) {
         replayLogoAnimation('logo-click');
     });
 
-    // Bind to specific save buttons (more targeted to avoid triggering on every primary button)
+    // Bind to specific save buttons with enhanced debouncing
     $(document).on('click', '#submit, .clickwise-rule-save-btn, #clickwise-modal-save, input[type="submit"][name="submit"]', function () {
-        console.log('Save button clicked, triggering logo animation');
-        // Small delay to ensure save action is visually processed first
+        console.log('Save button clicked');
+        // Immediate trigger - no delays for responsiveness
+        replayLogoAnimation('button-click');
+    });
+
+    // Form submission handler with smart debouncing
+    $('.clickwise-admin-wrapper form').on('submit', function() {
+        console.log('Form submitted');
+        // Immediate trigger - debouncing happens inside the function
+        replayLogoAnimation('form-submit');
+    });
+
+    // Modern Handler Selection Functionality
+    function updateHandlerCount() {
+        var count = window.selectedHandlers.size;
+        var countElement = $('#selected-count');
+        countElement.text(count + (count === 1 ? ' selected' : ' selected'));
+
+        // Update count badge color based on selection
+        if (count > 0) {
+            countElement.css({
+                'background-color': 'rgba(34, 211, 238, 0.2)',
+                'border-color': 'rgba(34, 211, 238, 0.4)',
+                'color': 'var(--cw-cyan-100)'
+            });
+        } else {
+            countElement.css({
+                'background-color': 'rgba(34, 211, 238, 0.1)',
+                'border-color': 'rgba(34, 211, 238, 0.2)',
+                'color': 'var(--cw-cyan-300)'
+            });
+        }
+    }
+
+    // Single click handler for the entire chip
+    $(document).on('click', '.clickwise-handler-chip:not(.disabled)', function(e) {
+        // Prevent event bubbling
+        e.preventDefault();
+        e.stopPropagation();
+
+        var $chip = $(this);
+        var $checkbox = $chip.find('input[type="checkbox"]');
+        var handler = $checkbox.data('handler');
+
+        // Toggle the checkbox state
+        var newState = !$checkbox.prop('checked');
+        $checkbox.prop('checked', newState);
+
+        console.log('🎯 Handler toggled:', handler, newState);
+
+        // Update selected handlers set
+        if (newState) {
+            window.selectedHandlers.add(handler);
+            console.log('✅ Added handler:', handler);
+        } else {
+            window.selectedHandlers.delete(handler);
+            console.log('❌ Removed handler:', handler);
+        }
+
+        updateHandlerCount();
+
+        // Smooth visual feedback without awkward ending
+        var $chipContent = $chip.find('.chip-content');
+
+        // Quick scale animation for immediate feedback
+        $chipContent.css('transform', 'scale(0.95)');
         setTimeout(function() {
-            replayLogoAnimation('button-click');
+            $chipContent.css('transform', '');
         }, 100);
     });
 
-    // Also bind to form submissions in clickwise admin area
-    $('.clickwise-admin-wrapper form').on('submit', function() {
-        console.log('Form submitted, triggering logo animation');
-        setTimeout(function() {
-            replayLogoAnimation('form-submit');
-        }, 200);
+    // Initialize default handler selection (auto-select all enabled handlers)
+    window.initializeDefaultHandlerSelection();
+
+    // Simple fix: reinitialize whenever user interacts with sandbox area
+    $(document).on('click focus', '.clickwise-sandbox', function() {
+        setTimeout(window.initializeDefaultHandlerSelection, 50);
     });
+
 
 
 });

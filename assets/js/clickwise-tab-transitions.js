@@ -71,6 +71,11 @@ jQuery(document).ready(function ($) {
                         window.initClickwiseFormFeedback();
                     }
 
+                    // Re-initialize Handler Selection for Sandbox
+                    if (window.initializeDefaultHandlerSelection) {
+                        setTimeout(window.initializeDefaultHandlerSelection, 100);
+                    }
+
                     // Update URL
                     window.history.pushState({ href: href }, '', href);
 
