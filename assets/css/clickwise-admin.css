@@ -933,3 +933,18 @@ body.settings_page_clickwise-settings .notice-error {
     color: var(--cw-cyan-100) !important;
     transform: translateY(-1px);
 }
+
+/* Session block animations */
+.clickwise-session-block {
+    overflow: hidden;
+    transform-origin: top;
+    position: relative;
+    border: 1px solid #ccd0d4;
+    background: #fff;
+    margin-bottom: 20px;
+}
+
+.clickwise-session-block.deleting {
+    opacity: 0.6;
+    pointer-events: none;
+}

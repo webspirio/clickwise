@@ -65,13 +65,25 @@
     20%, 40%, 60%, 80% { transform: translateX(2px); }
 }
 
+/* Notification Container - Reserves space to prevent layout shifts */
+.clickwise-notification-container {
+    min-height: 72px; /* Reserve space for notifications */
+    margin: 20px 0;
+    position: relative;
+    transition: min-height 0.3s ease;
+}
+
+.clickwise-notification-container.empty {
+    min-height: 0;
+    margin: 0;
+}
+
 /* Inline Notifications */
 .clickwise-inline-notification {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    margin: 20px 0;
     border-radius: var(--cw-radius-md);
     font-family: var(--cw-font-poppins);
     font-weight: 500;
@@ -79,7 +91,10 @@
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     overflow: hidden;
 }
 

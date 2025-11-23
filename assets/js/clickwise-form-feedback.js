@@ -84,7 +84,8 @@ jQuery(document).ready(function($) {
 
     // Intercept form submissions
     function interceptFormSubmission() {
-        $('.clickwise-admin-wrapper form').on('submit', function(e) {
+        // Use event delegation to handle both existing and dynamically loaded forms
+        $(document).off('submit', '.clickwise-admin-wrapper form').on('submit', '.clickwise-admin-wrapper form', function(e) {
             const $form = $(this);
             const $submitButton = $form.find('input[type="submit"], button[type="submit"]').first();
 
@@ -195,10 +196,27 @@ jQuery(document).ready(function($) {
         });
     }
 
+    // Ensure notification container exists
+    function ensureNotificationContainer() {
+        if ($('.clickwise-notification-container').length === 0) {
+            const $container = $('<div class="clickwise-notification-container empty"></div>');
+            const $form = $('.clickwise-admin-wrapper form').first();
+            if ($form.length > 0) {
+                $form.after($container);
+            }
+        }
+        return $('.clickwise-notification-container');
+    }
+
     // Show inline notification
     function showInlineNotification(message, type) {
+        const $container = ensureNotificationContainer();
+
         // Remove any existing notifications
-        $('.clickwise-inline-notification').remove();
+        $container.find('.clickwise-inline-notification').remove();
+
+        // Show container and remove empty class
+        $container.removeClass('empty');
 
         const $notification = $(`
             <div class="clickwise-inline-notification clickwise-notification-${type}">
@@ -208,27 +226,36 @@ jQuery(document).ready(function($) {
             </div>
         `);
 
-        // Insert after form
-        $('.clickwise-admin-wrapper form').first().after($notification);
+        // Insert into container
+        $container.append($notification);
 
         // Animate in
-        $notification.addClass('clickwise-notification-show');
+        setTimeout(() => {
+            $notification.addClass('clickwise-notification-show');
+        }, 50);
 
         // Auto-hide after delay
-        setTimeout(() => {
-            $notification.removeClass('clickwise-notification-show');
-            setTimeout(() => {
-                $notification.remove();
-            }, 300);
+        const hideTimeout = setTimeout(() => {
+            hideNotification($notification, $container);
         }, type === 'error' ? 6000 : 4000);
 
         // Manual close
         $notification.find('.clickwise-notification-close').on('click', function() {
-            $notification.removeClass('clickwise-notification-show');
-            setTimeout(() => {
-                $notification.remove();
-            }, 300);
+            clearTimeout(hideTimeout);
+            hideNotification($notification, $container);
         });
+    }
+
+    // Hide notification and clean up container
+    function hideNotification($notification, $container) {
+        $notification.removeClass('clickwise-notification-show');
+        setTimeout(() => {
+            $notification.remove();
+            // If no notifications remain, mark container as empty
+            if ($container.find('.clickwise-inline-notification').length === 0) {
+                $container.addClass('empty');
+            }
+        }, 300);
     }
 
     // Update page content without full reload
@@ -261,6 +288,9 @@ jQuery(document).ready(function($) {
         // Hide WordPress notices immediately
         hideWordPressNotices();
 
+        // Create notification containers for existing forms
+        ensureNotificationContainer();
+
         // Intercept form submissions
         interceptFormSubmission();
 
@@ -281,6 +311,19 @@ jQuery(document).ready(function($) {
             subtree: true
         });
     }
+
+    // Make initialization function globally available for re-initialization after tab switches
+    window.initClickwiseFormFeedback = function() {
+        // Since we're using event delegation, we don't need to remove handlers
+        // Just ensure WordPress notices are hidden for the new content
+        hideWordPressNotices();
+
+        // Ensure notification containers exist for any new forms
+        ensureNotificationContainer();
+
+        // Hide any notices that appear after tab load
+        setTimeout(hideWordPressNotices, 100);
+    };
 
     // Start the system
     init();
