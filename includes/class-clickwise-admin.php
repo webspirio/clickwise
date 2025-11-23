@@ -516,7 +516,14 @@ class Clickwise_Admin {
 			<div class="clickwise-header">
 				<div class="clickwise-brand">
 					<div class="clickwise-logo-icon">
-						<img src="<?php echo esc_url( CLICKWISE_URL . 'assets/images/logo-transparent-full-256x256.svg' ); ?>" alt="Clickwise Logo" style="width: 64px; height: 64px;">
+						<?php
+						$logo_path = CLICKWISE_PATH . 'assets/images/logo-transparent-full-256x256.svg';
+						if ( file_exists( $logo_path ) ) {
+							$svg_content = file_get_contents( $logo_path );
+							// Add ID and style to the SVG tag
+							echo str_replace( '<svg', '<svg id="clickwise-admin-logo" style="width: 64px; height: 64px;"', $svg_content );
+						}
+						?>
 					</div>
 					<div class="clickwise-title-group">
 						<h1>Clickwise</h1>
@@ -985,8 +992,17 @@ class Clickwise_Admin {
 				</tr>
 			</table>
 
-			<div id="clickwise-sandbox-log" style="margin-top: 20px; background: #f0f0f1; padding: 15px; border: 1px solid #c3c4c7; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
-				<div style="color: #666; font-style: italic;">Ready to send events...</div>
+			<div id="clickwise-sandbox-log" class="clickwise-sandbox-log">
+				<div class="clickwise-sandbox-log-header">
+					<span class="clickwise-sandbox-log-title">Event Log</span>
+					<button type="button" id="clickwise-clear-log" class="clickwise-clear-log-btn">Clear Log</button>
+				</div>
+				<div class="clickwise-sandbox-log-content">
+					<div class="clickwise-log-entry initial">
+						<span class="log-time">[Ready]</span>
+						<span class="log-message">Sandbox ready to send events...</span>
+					</div>
+				</div>
 			</div>
 
 			<hr style="margin: 30px 0; border-top: 1px solid var(--cw-cyan-800);">

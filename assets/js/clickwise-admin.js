@@ -177,15 +177,79 @@ jQuery(document).ready(function ($) {
         return clickwiseScriptPromise;
     }
 
-    function logSandbox(msg, type) {
-        var log = $('#clickwise-sandbox-log');
+    function logSandbox(msg, type, data) {
+        var logContent = $('.clickwise-sandbox-log-content');
         var time = new Date().toLocaleTimeString();
-        var color = type === 'error' ? '#d63638' : (type === 'success' ? '#00a32a' : '#2271b1');
-        var line = $('<div style="margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;"></div>');
-        line.append('<span style="color:#666; margin-right:10px;">[' + time + ']</span>');
-        line.append('<span style="color:' + color + ';">' + msg + '</span>');
-        log.prepend(line);
+
+        // Remove initial message if it exists
+        logContent.find('.clickwise-log-entry.initial').remove();
+
+        // Create new log entry
+        var entry = $('<div class="clickwise-log-entry"></div>');
+        if (type) {
+            entry.addClass(type);
+        }
+
+        // Add timestamp
+        var timeSpan = $('<span class="log-time">[' + time + ']</span>');
+        entry.append(timeSpan);
+
+        // Add message with enhanced formatting
+        var messageSpan = $('<span class="log-message"></span>');
+        messageSpan.html(formatLogMessage(msg));
+        entry.append(messageSpan);
+
+        // Add JSON data if provided
+        if (data && typeof data === 'object') {
+            var jsonDiv = $('<div class="log-json"></div>');
+            jsonDiv.html(formatJSON(data));
+            entry.append(jsonDiv);
+        }
+
+        // Prepend new entry (newest first)
+        logContent.prepend(entry);
+
+        // Auto-scroll to top to show latest entry
+        logContent.scrollTop(0);
+
+        // Limit log entries to 50 to prevent memory issues
+        var entries = logContent.find('.clickwise-log-entry');
+        if (entries.length > 50) {
+            entries.slice(50).remove();
+        }
     }
+
+    function formatLogMessage(msg) {
+        // Enhanced message formatting with highlighting
+        return msg
+            .replace(/(success|ok|complete|sent)/gi, '<strong>$1</strong>')
+            .replace(/(error|failed|failure|timeout)/gi, '<strong style="color: #fca5a5;">$1</strong>')
+            .replace(/(warning|warn)/gi, '<strong style="color: #fcd34d;">$1</strong>')
+            .replace(/(\d+(?:\.\d+)?)/g, '<span style="color: #fcd34d;">$1</span>') // Numbers
+            .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: var(--cw-cyan-400);">$1</a>') // URLs
+            .replace(/`([^`]+)`/g, '<code style="background: var(--cw-cyan-900); padding: 2px 4px; border-radius: 3px;">$1</code>'); // Code
+    }
+
+    function formatJSON(data) {
+        try {
+            var formatted = JSON.stringify(data, null, 2);
+            return formatted
+                .replace(/("[\w]+"):/g, '<span class="json-key">$1</span>:')
+                .replace(/: (".*?")/g, ': <span class="json-string">$1</span>')
+                .replace(/: (\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+                .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
+                .replace(/: (null)/g, ': <span class="json-null">$1</span>');
+        } catch (e) {
+            return JSON.stringify(data);
+        }
+    }
+
+    // Clear log functionality
+    $(document).on('click', '#clickwise-clear-log', function () {
+        var logContent = $('.clickwise-sandbox-log-content');
+        logContent.empty();
+        logContent.append('<div class="clickwise-log-entry initial"><span class="log-time">[Ready]</span><span class="log-message">Sandbox ready to send events...</span></div>');
+    });
 
     // Send Test Event (General Settings)
     $(document).on('click', '#clickwise-send-test-event', function () {
@@ -263,8 +327,7 @@ jQuery(document).ready(function ($) {
                         button.prop('disabled', false).text('Send Custom Event');
                     }
 
-                    logSandbox('Event "' + name + '" sent successfully.', 'success');
-                    logSandbox('Props: ' + JSON.stringify(props), 'info');
+                    logSandbox('Event `' + name + '` sent successfully', 'success', props);
                 }, 500);
             } catch (e) {
                 if (feedback) {
@@ -272,7 +335,7 @@ jQuery(document).ready(function ($) {
                 } else {
                     button.prop('disabled', false).text('Send Custom Event');
                 }
-                logSandbox('Error executing event: ' + e.message, 'error');
+                logSandbox('Error executing event: ' + e.message, 'error', { eventName: name, error: e.message });
             }
         }).catch(function (err) {
             if (feedback) {
@@ -280,7 +343,7 @@ jQuery(document).ready(function ($) {
             } else {
                 button.prop('disabled', false).text('Send Custom Event');
             }
-            logSandbox('Failed to load script: ' + err, 'error');
+            logSandbox('Failed to load Clickwise script: ' + err, 'error', { error: err });
         });
     });
 
@@ -497,7 +560,7 @@ jQuery(document).ready(function ($) {
             var eventData = extractRowData(row);
 
             // Remove from tracked view
-            row.fadeOut(300, function() {
+            row.fadeOut(300, function () {
                 $(this).remove();
                 checkEmptyState('#clickwise-tracked-view', 6, 'No tracked events yet.');
             });
@@ -516,7 +579,7 @@ jQuery(document).ready(function ($) {
             var eventData = extractRowData(row);
 
             // Remove from ignored view
-            row.fadeOut(300, function() {
+            row.fadeOut(300, function () {
                 $(this).remove();
                 checkEmptyState('#clickwise-ignored-view', 5, 'No ignored events.');
             });
@@ -559,12 +622,12 @@ jQuery(document).ready(function ($) {
             '<td>' + eventData.type + '</td>' +
             '<td><code>' + eventData.selector + '</code></td>' +
             '<td>' +
-                '<div class="button-group">' +
-                    '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
-                    '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="untrack" data-status="tracked">Untrack</button>' +
-                '</div>' +
+            '<div class="button-group">' +
+            '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
+            '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="untrack" data-status="tracked">Untrack</button>' +
+            '</div>' +
             '</td>' +
-        '</tr>');
+            '</tr>');
 
         tbody.append(newRow);
         newRow.fadeIn(300);
@@ -585,12 +648,12 @@ jQuery(document).ready(function ($) {
             '<td>' + eventData.type + '</td>' +
             '<td><code>' + eventData.selector + '</code></td>' +
             '<td>' +
-                '<div class="button-group">' +
-                    '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
-                    '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="track" data-status="ignored">Track</button>' +
-                '</div>' +
+            '<div class="button-group">' +
+            '<button type="button" class="button clickwise-open-details" data-key="' + eventData.key + '">Details / Edit</button>' +
+            '<button type="button" class="button button-primary clickwise-track-event" data-key="' + eventData.key + '" data-name="' + eventData.name + '" data-action="track" data-status="ignored">Track</button>' +
+            '</div>' +
             '</td>' +
-        '</tr>');
+            '</tr>');
 
         tbody.append(newRow);
         newRow.fadeIn(300);
@@ -639,7 +702,7 @@ jQuery(document).ready(function ($) {
 
     // Update other buttons with same event key
     function updateOtherButtons(eventKey, newStatus) {
-        $('.clickwise-track-event[data-key="' + eventKey + '"]').each(function() {
+        $('.clickwise-track-event[data-key="' + eventKey + '"]').each(function () {
             var btn = $(this);
             if (btn.data('status') !== undefined) {
                 updateButton(btn, newStatus);
@@ -1021,4 +1084,194 @@ window.initClickwiseSyntaxHighlighter = function () {
 
 jQuery(document).ready(function ($) {
     window.initClickwiseSyntaxHighlighter();
+
+    // Fast and Fun Logo Animation System - Spam-Click Friendly!
+    var isAnimating = false;
+    var animationQueue = 0;
+    var MAX_QUEUE = 3; // Allow up to 3 queued animations for fun spam-clicking
+    var lastTriggerTime = 0;
+    var DEBOUNCE_TIME = 200; // Prevent double triggers within 200ms
+
+    function setupAnimationEventListeners() {
+        var $logo = $('#clickwise-admin-logo');
+        if (!$logo.length) return;
+
+        var logoElement = $logo[0];
+        var animations = logoElement.querySelectorAll('animate, animateTransform');
+
+        // Track when SMIL animations actually end
+        var completedAnimations = 0;
+        var totalAnimations = animations.length;
+
+        animations.forEach(function(anim) {
+            anim.addEventListener('endEvent', function() {
+                completedAnimations++;
+                console.log('Animation completed:', completedAnimations + '/' + totalAnimations);
+
+                // All animations finished
+                if (completedAnimations >= totalAnimations) {
+                    isAnimating = false;
+                    completedAnimations = 0;
+                    console.log('🎉 All animations finished! Ready for next click');
+
+                    // Process queue if there are waiting animations
+                    if (animationQueue > 0) {
+                        animationQueue--;
+                        setTimeout(function() {
+                            replayLogoAnimation('queue-processing');
+                        }, 50); // Tiny delay for smooth transitions
+                    }
+                }
+            });
+
+            anim.addEventListener('beginEvent', function() {
+                console.log('Animation started:', anim.id);
+            });
+        });
+    }
+
+    function replayLogoAnimation(source) {
+        var $logo = $('#clickwise-admin-logo');
+        if (!$logo.length) return;
+
+        var currentTime = Date.now();
+
+        // Prevent double triggers from form submit + button click events (except direct logo clicks)
+        if (source !== 'logo-click' && (currentTime - lastTriggerTime) < DEBOUNCE_TIME) {
+            console.log('🚫 Animation debounced - too soon after last trigger (' + source + ')');
+            return;
+        }
+
+        lastTriggerTime = currentTime;
+
+        // If already animating, add to queue for spam-clicking fun
+        if (isAnimating) {
+            if (animationQueue < MAX_QUEUE) {
+                animationQueue++;
+                console.log('🚀 Animation queued! Queue size:', animationQueue);
+
+                // Fun visual feedback for queued clicks
+                $logo.addClass('clickwise-spam-glow');
+                setTimeout(function() {
+                    $logo.removeClass('clickwise-spam-glow');
+                }, 300);
+
+                // Extra brightness flash
+                $logo.css('filter', 'brightness(1.3)');
+                setTimeout(function() {
+                    $logo.css('filter', '');
+                }, 150);
+            } else {
+                console.log('💥 Max queue reached - SUPER SPAM MODE!');
+                // Even more dramatic effect for max spam
+                $logo.css({
+                    'filter': 'brightness(1.5) saturate(1.5)',
+                    'transform': 'scale(1.1)'
+                });
+                setTimeout(function() {
+                    $logo.css({
+                        'filter': '',
+                        'transform': ''
+                    });
+                }, 200);
+            }
+            return;
+        }
+
+        isAnimating = true;
+        console.log('🎯 Starting logo animation (triggered by:', source + ')');
+
+        try {
+            var logoElement = $logo[0];
+            var animations = logoElement.querySelectorAll('animate, animateTransform');
+
+            if (animations.length > 0) {
+                // Quick reset and restart for snappy animations
+                animations.forEach(function(anim) {
+                    try {
+                        anim.endElement();
+                    } catch (e) {}
+                });
+
+                // Immediate restart for responsiveness
+                setTimeout(function() {
+                    animations.forEach(function(anim) {
+                        try {
+                            anim.beginElement();
+                        } catch (e) {
+                            console.log('Could not start animation:', e);
+                        }
+                    });
+                }, 10); // Very quick restart
+
+            } else {
+                // CSS fallback with event tracking
+                $logo.removeClass('clickwise-replay-animation');
+                setTimeout(function() {
+                    $logo.addClass('clickwise-replay-animation');
+
+                    // Track CSS animation end
+                    $logo.one('animationend', function() {
+                        $logo.removeClass('clickwise-replay-animation');
+                        isAnimating = false;
+                        console.log('🎉 CSS animation finished!');
+
+                        // Process queue
+                        if (animationQueue > 0) {
+                            animationQueue--;
+                            setTimeout(function() {
+                                replayLogoAnimation('queue-processing');
+                            }, 50);
+                        }
+                    });
+                }, 10);
+            }
+
+        } catch (e) {
+            console.log('Animation failed, using CSS fallback:', e);
+            // Same CSS fallback as above
+            $logo.removeClass('clickwise-replay-animation');
+            setTimeout(function() {
+                $logo.addClass('clickwise-replay-animation');
+                $logo.one('animationend', function() {
+                    $logo.removeClass('clickwise-replay-animation');
+                    isAnimating = false;
+                    if (animationQueue > 0) {
+                        animationQueue--;
+                        setTimeout(function() {
+                            replayLogoAnimation('queue-processing');
+                        }, 50);
+                    }
+                });
+            }, 10);
+        }
+    }
+
+    // Initialize animation event listeners when DOM is ready
+    setTimeout(setupAnimationEventListeners, 100);
+
+    // Make logo clickable and animate on click
+    $(document).on('click', '#clickwise-admin-logo', function(e) {
+        e.preventDefault();
+        replayLogoAnimation('logo-click');
+    });
+
+    // Bind to specific save buttons (more targeted to avoid triggering on every primary button)
+    $(document).on('click', '#submit, .clickwise-rule-save-btn, #clickwise-modal-save, input[type="submit"][name="submit"]', function () {
+        console.log('Save button clicked, triggering logo animation');
+        // Small delay to ensure save action is visually processed first
+        setTimeout(function() {
+            replayLogoAnimation('button-click');
+        }, 100);
+    });
+
+    // Also bind to form submissions in clickwise admin area
+    $('.clickwise-admin-wrapper form').on('submit', function() {
+        console.log('Form submitted, triggering logo animation');
+        setTimeout(function() {
+            replayLogoAnimation('form-submit');
+        }, 200);
+    });
+
+
 });
