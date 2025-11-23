@@ -612,7 +612,7 @@ class Clickwise_Admin {
 					<td>
 						<button type="button" id="test-feedback-success" class="button button-primary" style="margin-right: 10px;">Test Success Feedback</button>
 						<button type="button" id="test-feedback-error" class="button button-primary">Test Error Feedback</button>
-						<p class="description">These buttons demonstrate the new save feedback system without affecting your settings.</p>
+						<p class="description">These buttons test the complete form feedback system with AJAX calls, button animations, and inline notifications. Try both to see how success and error states work!</p>
 					</td>
 				</tr>
 			</table>
@@ -621,13 +621,96 @@ class Clickwise_Admin {
 		<script>
 		jQuery(document).ready(function($) {
 			$('#test-feedback-success').on('click', function() {
-				const feedback = new ClickwiseButtonFeedback(this);
-				feedback.loading('Testing...').success('Success!');
+				const button = this;
+				const feedback = new ClickwiseButtonFeedback(button);
+
+				feedback.loading('Testing...');
+
+				$.post(clickwise_admin.ajax_url, {
+					action: 'clickwise_test_form_feedback',
+					nonce: clickwise_admin.nonce,
+					type: 'success'
+				}, function(response) {
+					if (response.success) {
+						feedback.success('Test completed!');
+						setTimeout(() => {
+							// Create temporary notification container for test buttons if needed
+							if ($('.clickwise-notification-container').length === 0) {
+								$(button).closest('table').after('<div class="clickwise-notification-container"></div>');
+							}
+
+							const $container = $('.clickwise-notification-container');
+							$container.find('.clickwise-inline-notification').remove();
+							$container.removeClass('empty');
+
+							const $notification = $('<div class="clickwise-inline-notification clickwise-notification-success"><span class="clickwise-notification-icon"></span><span class="clickwise-notification-message">' + response.data + '</span></div>');
+							$container.append($notification);
+
+							setTimeout(() => {
+								$notification.addClass('clickwise-notification-show');
+							}, 50);
+
+							setTimeout(() => {
+								$notification.removeClass('clickwise-notification-show');
+								setTimeout(() => {
+									$notification.remove();
+									if ($container.find('.clickwise-inline-notification').length === 0) {
+										$container.addClass('empty');
+									}
+								}, 300);
+							}, 3000);
+						}, 1000);
+					} else {
+						feedback.error('Test failed!');
+					}
+				}).fail(function() {
+					feedback.error('Connection failed!');
+				});
 			});
 
 			$('#test-feedback-error').on('click', function() {
-				const feedback = new ClickwiseButtonFeedback(this);
-				feedback.loading('Testing...').error('Something went wrong!');
+				const button = this;
+				const feedback = new ClickwiseButtonFeedback(button);
+
+				feedback.loading('Testing...');
+
+				$.post(clickwise_admin.ajax_url, {
+					action: 'clickwise_test_form_feedback',
+					nonce: clickwise_admin.nonce,
+					type: 'error'
+				}, function(response) {
+					feedback.error('Test failed!');
+					setTimeout(() => {
+						// Create temporary notification container for test buttons if needed
+						if ($('.clickwise-notification-container').length === 0) {
+							$(button).closest('table').after('<div class="clickwise-notification-container"></div>');
+						}
+
+						const $container = $('.clickwise-notification-container');
+						$container.find('.clickwise-inline-notification').remove();
+						$container.removeClass('empty');
+
+						const message = response.success ? response.data : (response.data || 'This is a test error message to demonstrate error handling.');
+						const $notification = $('<div class="clickwise-inline-notification clickwise-notification-error"><span class="clickwise-notification-icon"></span><span class="clickwise-notification-message">' + message + '</span></div>');
+						$container.append($notification);
+
+						setTimeout(() => {
+							$notification.addClass('clickwise-notification-show');
+						}, 50);
+
+						setTimeout(() => {
+							$notification.removeClass('clickwise-notification-show');
+							setTimeout(() => {
+								$notification.remove();
+								if ($container.find('.clickwise-inline-notification').length === 0) {
+									$container.addClass('empty');
+								}
+							}, 300);
+						}, 4000);
+					}, 1000);
+				}).fail(function() {
+					feedback.error('Connection failed!');
+				});
 			});
 		});
 		</script>

@@ -464,14 +464,28 @@ jQuery(document).ready(function ($) {
     });
 
     // Delete Session
-    $(document).on('click', '.clickwise-delete-session', function () {
+    $(document).on('click', '.clickwise-delete-session', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log('Delete session clicked - new AJAX version');
+
         if (!confirm('Are you sure you want to delete this session and all its events? Tracked events captured in this session might be affected if they haven\'t been seen elsewhere.')) {
-            return;
+            return false;
         }
 
         var button = $(this);
         var sessionId = button.data('session');
-        button.prop('disabled', true).text('Deleting...');
+        var sessionBlock = button.closest('.clickwise-session-block');
+
+        // Use ButtonFeedback if available, otherwise fallback to simple text change
+        var feedback = null;
+        if (window.ClickwiseButtonFeedback) {
+            feedback = new window.ClickwiseButtonFeedback(button);
+            feedback.loading('Deleting...');
+        } else {
+            button.prop('disabled', true).text('Deleting...');
+        }
 
         $.post(clickwise_admin.ajax_url, {
             action: 'clickwise_delete_session',
@@ -479,13 +493,132 @@ jQuery(document).ready(function ($) {
             session_id: sessionId
         }, function (response) {
             if (response.success) {
-                location.reload();
+                // Show success feedback briefly
+                if (feedback) {
+                    feedback.success('Deleted!');
+                } else {
+                    button.text('Deleted!');
+                }
+
+                // Mark session as being deleted and smoothly remove
+                sessionBlock.addClass('deleting');
+
+                // Wait a moment for user to see success, then animate out
+                setTimeout(() => {
+                    // Use slideUp for smooth collapse animation
+                    sessionBlock.slideUp({
+                        duration: 600,
+                        easing: 'swing',
+                        complete: function() {
+                            sessionBlock.remove();
+
+                            // Check if this was the last session and show empty state
+                            checkForEmptySessionList();
+
+                            // Show success notification using form feedback system
+                            showSessionDeletedNotification('Session deleted successfully!', 'success');
+                        }
+                    });
+                }, 800); // Brief delay to show success state
+
             } else {
-                alert('Error: ' + response.data);
+                // Show error feedback
+                if (feedback) {
+                    feedback.error('Failed to delete');
+                } else {
+                    button.prop('disabled', false).text('Delete Session');
+                }
+
+                // Show error notification
+                showSessionDeletedNotification(response.data || 'Failed to delete session. Please try again.', 'error');
+            }
+        }).fail(function() {
+            // Network error
+            if (feedback) {
+                feedback.error('Connection failed');
+            } else {
                 button.prop('disabled', false).text('Delete Session');
             }
+
+            showSessionDeletedNotification('Connection failed. Please check your internet connection.', 'error');
         });
     });
+
+    // Check if session list is empty and show appropriate message
+    function checkForEmptySessionList() {
+        const sessionContainer = $('.clickwise-session-block').closest('div');
+        const remainingSessions = $('.clickwise-session-block').length;
+
+        if (remainingSessions === 0) {
+            // Add empty state message
+            const emptyMessage = $('<p>No recording history found.</p>');
+            sessionContainer.append(emptyMessage);
+        }
+    }
+
+    // Show notification for session operations
+    function showSessionDeletedNotification(message, type) {
+        // Find or create notification container in the History tab
+        let $container = $('.clickwise-notification-container');
+
+        if ($container.length === 0) {
+            // Create container in the main content area of history tab
+            const $historyContent = $('#clickwise-sub-history');
+            if ($historyContent.length > 0) {
+                $container = $('<div class="clickwise-notification-container"></div>');
+                $historyContent.prepend($container);
+            } else {
+                // Fallback: create after the first session block or at top of main panel
+                const $target = $('.clickwise-session-block').first().length > 0
+                    ? $('.clickwise-session-block').first()
+                    : $('.clickwise-main-panel .clickwise-content').first();
+
+                $container = $('<div class="clickwise-notification-container"></div>');
+                $target.before($container);
+            }
+        }
+
+        // Remove any existing notifications
+        $container.find('.clickwise-inline-notification').remove();
+        $container.removeClass('empty');
+
+        const $notification = $(`
+            <div class="clickwise-inline-notification clickwise-notification-${type}">
+                <span class="clickwise-notification-icon"></span>
+                <span class="clickwise-notification-message">${message}</span>
+                <button type="button" class="clickwise-notification-close">&times;</button>
+            </div>
+        `);
+
+        $container.append($notification);
+
+        // Animate in
+        setTimeout(() => {
+            $notification.addClass('clickwise-notification-show');
+        }, 50);
+
+        // Auto-hide after delay
+        const hideTimeout = setTimeout(() => {
+            hideSessionNotification($notification, $container);
+        }, type === 'error' ? 6000 : 4000);
+
+        // Manual close
+        $notification.find('.clickwise-notification-close').on('click', function() {
+            clearTimeout(hideTimeout);
+            hideSessionNotification($notification, $container);
+        });
+    }
+
+    // Hide session notification and clean up container
+    function hideSessionNotification($notification, $container) {
+        $notification.removeClass('clickwise-notification-show');
+        setTimeout(() => {
+            $notification.remove();
+            if ($container.find('.clickwise-inline-notification').length === 0) {
+                $container.addClass('empty');
+            }
+        }, 300);
+    }
 
     // Save Modal Changes
     $(document).on('click', '#clickwise-modal-save', function () {

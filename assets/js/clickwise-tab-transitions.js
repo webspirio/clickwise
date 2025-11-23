@@ -66,6 +66,11 @@ jQuery(document).ready(function ($) {
                         window.initClickwiseSyntaxHighlighter();
                     }
 
+                    // Re-initialize Form Feedback system
+                    if (window.initClickwiseFormFeedback) {
+                        window.initClickwiseFormFeedback();
+                    }
+
                     // Update URL
                     window.history.pushState({ href: href }, '', href);
 
