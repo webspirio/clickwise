@@ -231,6 +231,50 @@ class Clickwise_Admin {
 		}
 	}
 
+	public function ajax_untrack_event() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied' );
+		}
+
+		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
+		$action = isset( $_POST['action_type'] ) ? sanitize_text_field( $_POST['action_type'] ) : 'untrack';
+
+		if ( empty( $key ) ) {
+			wp_send_json_error( 'Missing event key' );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'clickwise_events';
+
+		// Determine new status based on action
+		if ( $action === 'untrack' ) {
+			$new_status = 'ignored';
+			$success_message = 'Event untracked successfully';
+		} else {
+			$new_status = 'tracked';
+			$success_message = 'Event tracked successfully';
+		}
+
+		// Update the status
+		$updated = $wpdb->update(
+			$table_name,
+			array( 'status' => $new_status ),
+			array( 'event_key' => $key )
+		);
+
+		if ( $updated !== false ) {
+			wp_send_json_success( array(
+				'message' => $success_message,
+				'new_status' => $new_status,
+				'new_action' => $new_status === 'tracked' ? 'untrack' : 'track',
+				'new_text' => $new_status === 'tracked' ? 'Untrack' : 'Track'
+			) );
+		} else {
+			wp_send_json_error( 'Status update failed' );
+		}
+	}
+
 	public function ajax_delete_session() {
 		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
 
@@ -348,6 +392,7 @@ class Clickwise_Admin {
 		register_setting( 'clickwise-settings-general', 'clickwise_track_query' );
 		register_setting( 'clickwise-settings-general', 'clickwise_track_errors' );
 		register_setting( 'clickwise-settings-general', 'clickwise_dev_mode' );
+		register_setting( 'clickwise-settings-general', 'clickwise_ignore_admin' );
 
 		// --- Events Settings ---
 		register_setting( 'clickwise-settings-events', 'clickwise_event_prefixes' );
@@ -361,22 +406,28 @@ class Clickwise_Admin {
 		register_setting( 'clickwise-settings-advanced', 'clickwise_session_replay' );
 
 		// --- Tab: Rybbit Handler ---
-		// add_settings_section( 'clickwise_rybbit_section', 'Rybbit Analytics Configuration', null, 'clickwise-settings-rybbit' );
+		add_settings_section( 'clickwise_rybbit_section', 'Rybbit Analytics Configuration', array( $this, 'render_rybbit_section_description' ), 'clickwise-settings-rybbit' );
 
-		// add_settings_field( 'clickwise_rybbit_handler', 'Rybbit Analytics', array( $this, 'render_single_handler_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section', array(
-		// 	'handler' => 'rybbit',
-		// 	'title' => 'Rybbit Analytics',
-		// 	'desc' => 'Configure Rybbit analytics for comprehensive event tracking and user behavior analysis.'
-		// ) );
+		add_settings_field( 'clickwise_rybbit_enabled', 'Enable Rybbit Analytics', array( $this, 'render_rybbit_enabled_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+
+		add_settings_field( 'clickwise_rybbit_script_url', 'Script URL', array( $this, 'render_rybbit_script_url_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+
+		add_settings_field( 'clickwise_rybbit_site_id', 'Site ID', array( $this, 'render_rybbit_site_id_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+
+		add_settings_field( 'clickwise_rybbit_api_version', 'API Version', array( $this, 'render_rybbit_api_version_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+
+		add_settings_field( 'clickwise_rybbit_test', 'Test Connection', array( $this, 'render_rybbit_test_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
 
 		// --- Tab: Google Analytics Handler ---
-		// add_settings_section( 'clickwise_ga_section', 'Google Analytics 4 Configuration', null, 'clickwise-settings-google-analytics' );
+		add_settings_section( 'clickwise_ga_section', 'Google Analytics 4 Configuration', array( $this, 'render_ga_section_description' ), 'clickwise-settings-google-analytics' );
 
-		// add_settings_field( 'clickwise_ga_handler', 'Google Analytics 4', array( $this, 'render_single_handler_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section', array(
-		// 	'handler' => 'ga',
-		// 	'title' => 'Google Analytics 4',
-		// 	'desc' => 'Configure Google Analytics 4 for industry-standard web analytics and conversion tracking.'
-		// ) );
+		add_settings_field( 'clickwise_ga_enabled', 'Enable Google Analytics 4', array( $this, 'render_ga_enabled_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+
+		add_settings_field( 'clickwise_ga_measurement_id', 'Measurement ID', array( $this, 'render_ga_measurement_id_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+
+		add_settings_field( 'clickwise_ga_api_secret', 'API Secret', array( $this, 'render_ga_api_secret_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+
+		add_settings_field( 'clickwise_ga_test', 'Test Connection', array( $this, 'render_ga_test_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
 
 		// --- Tab: General ---
 		add_settings_section( 'clickwise_general_section', 'General Configuration', null, 'clickwise-settings-general' );
@@ -405,6 +456,11 @@ class Clickwise_Admin {
 			'id' => 'clickwise_dev_mode', 
 			'label' => 'Enable Developer Mode',
 			'desc' => 'Log all tracking events to the browser console for debugging purposes.'
+		) );
+		add_settings_field( 'clickwise_ignore_admin', 'Ignore Admin Interface', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
+			'id' => 'clickwise_ignore_admin', 
+			'label' => 'Ignore interactions with Admin Bar and Plugin UI',
+			'desc' => 'Prevents tracking of clicks on the WordPress Admin Bar and Clickwise Recorder interface.'
 		) );
 
 		// Note: Handler-specific settings are now in the Handlers tab
@@ -527,10 +583,10 @@ class Clickwise_Admin {
 							<?php
 							if ( $active_tab == 'rybbit' ) {
 								settings_fields( 'clickwise-settings-rybbit' );
-								$this->render_rybbit_tab();
+								do_settings_sections( 'clickwise-settings-rybbit' );
 							} elseif ( $active_tab == 'google_analytics' ) {
 								settings_fields( 'clickwise-settings-google-analytics' );
-								$this->render_ga_tab();
+								do_settings_sections( 'clickwise-settings-google-analytics' );
 							} elseif ( $active_tab == 'general' ) {
 								settings_fields( 'clickwise-settings-general' );
 								do_settings_sections( 'clickwise-settings-general' );
@@ -568,13 +624,336 @@ class Clickwise_Admin {
 
 					<div class="clickwise-credits-card">
 						<div class="webspirio-logo">
-							<span>Developed by</span>
-							<strong>Webspirio</strong>
+							<img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'assets/images/webspirio-logo-256x256.svg'; ?>" alt="Webspirio" class="webspirio-logo-img">
+							<span>Developed with ❤️ by <strong>Webspirio</strong></span>
+						</div>
+						<div class="webspirio-links">
+							<a href="https://webspirio.com" target="_blank">Website</a>
+							<a href="https://github.com/webspirio" target="_blank">GitHub</a>
+							<a href="mailto:contact@webspirio.com">Contact</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<script type="text/javascript">
+		function toggleRybbitFields(enabled) {
+			// Toggle field states
+			var scriptUrlField = document.getElementById('clickwise_rybbit_script_url');
+			var siteIdField = document.getElementById('clickwise_rybbit_site_id');
+			var apiVersionField = document.getElementById('clickwise_rybbit_api_version');
+			var testButton = document.getElementById('test-rybbit-btn');
+			var sendTestButton = document.getElementById('send-test-rybbit-btn');
+
+			if (scriptUrlField) scriptUrlField.disabled = !enabled;
+			if (siteIdField) siteIdField.disabled = !enabled;
+			if (apiVersionField) apiVersionField.disabled = !enabled;
+			if (testButton) testButton.disabled = !enabled;
+			if (sendTestButton) sendTestButton.disabled = !enabled;
+
+			// Clear notifications when disabled
+			if (!enabled) {
+				var $container = jQuery('#test-rybbit-btn').closest('td').find('.clickwise-notification-container');
+				if ($container.length) {
+					$container.find('.clickwise-inline-notification').remove();
+					$container.addClass('empty');
+				}
+			}
+
+			// Update status indicator in tab
+			var tabLink = document.querySelector('a[href*="tab=rybbit"]');
+			if (tabLink) {
+				var statusDot = tabLink.querySelector('.status-dot');
+				if (statusDot) {
+					if (enabled) {
+						statusDot.classList.add('active');
+					} else {
+						statusDot.classList.remove('active');
+					}
+				}
+			}
+		}
+
+		function toggleGAFields(enabled) {
+			// Toggle field states
+			var measurementIdField = document.getElementById('clickwise_ga_measurement_id');
+			var apiSecretField = document.getElementById('clickwise_ga_api_secret');
+			var testButton = document.getElementById('test-ga-btn');
+			var sendTestButton = document.getElementById('send-test-ga-btn');
+
+			if (measurementIdField) measurementIdField.disabled = !enabled;
+			if (apiSecretField) apiSecretField.disabled = !enabled;
+			if (testButton) testButton.disabled = !enabled;
+			if (sendTestButton) sendTestButton.disabled = !enabled;
+
+			// Clear notifications when disabled
+			if (!enabled) {
+				var $container = jQuery('#test-ga-btn').closest('td').find('.clickwise-notification-container');
+				if ($container.length) {
+					$container.find('.clickwise-inline-notification').remove();
+					$container.addClass('empty');
+				}
+			}
+
+			// Update status indicator in tab
+			var tabLink = document.querySelector('a[href*="tab=google_analytics"]');
+			if (tabLink) {
+				var statusDot = tabLink.querySelector('.status-dot');
+				if (statusDot) {
+					if (enabled) {
+						statusDot.classList.add('active');
+					} else {
+						statusDot.classList.remove('active');
+					}
+				}
+			}
+		}
+
+		function testHandler(handler) {
+			var btn = document.getElementById("test-" + handler + "-btn");
+			var $container = jQuery(btn).closest('td').find('.clickwise-notification-container');
+
+			if (!btn) return;
+
+			// Use the feedback system if available
+			var feedback = null;
+			if (window.ClickwiseButtonFeedback) {
+				feedback = new ClickwiseButtonFeedback(btn);
+				feedback.loading('Testing...');
+			} else {
+				btn.disabled = true;
+				btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Testing...';
+			}
+
+			// Clear previous notifications
+			$container.find('.clickwise-inline-notification').remove();
+			$container.removeClass('empty');
+
+			var data = {
+				action: "clickwise_test_handler",
+				handler: handler,
+				nonce: clickwise_admin.nonce
+			};
+
+			if (handler === "rybbit") {
+				data.script_url = document.getElementById("clickwise_rybbit_script_url").value;
+				data.site_id = document.getElementById("clickwise_rybbit_site_id").value;
+				data.api_version = document.getElementById("clickwise_rybbit_api_version").value;
+			} else if (handler === "ga") {
+				data.measurement_id = document.getElementById("clickwise_ga_measurement_id").value;
+				data.api_secret = document.getElementById("clickwise_ga_api_secret").value;
+			}
+
+			jQuery.post(clickwise_admin.ajax_url, data, function(response) {
+				if (response.success) {
+					if (feedback) {
+						feedback.success('Connection successful!');
+					} else {
+						btn.disabled = false;
+						btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+					}
+
+					setTimeout(() => {
+						showNotification($container, 'success', response.data);
+					}, 1000);
+				} else {
+					if (feedback) {
+						feedback.error('Test failed!');
+					} else {
+						btn.disabled = false;
+						btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+					}
+
+					setTimeout(() => {
+						showNotification($container, 'error', response.data);
+					}, 1000);
+				}
+			}).fail(function() {
+				if (feedback) {
+					feedback.error('Connection failed!');
+				} else {
+					btn.disabled = false;
+					btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+				}
+
+				setTimeout(() => {
+					showNotification($container, 'error', 'Connection failed! Please check your network and try again.');
+				}, 1000);
+			});
+		}
+
+		function sendTestEvent(handler) {
+			var btn = document.getElementById("send-test-" + handler + "-btn");
+			var $container = jQuery(btn).closest('td').find('.clickwise-notification-container');
+
+			if (!btn) return;
+
+			// Use the feedback system if available
+			var feedback = null;
+			if (window.ClickwiseButtonFeedback) {
+				feedback = new ClickwiseButtonFeedback(btn);
+				feedback.loading('Loading...');
+			} else {
+				btn.disabled = true;
+				btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Loading...';
+			}
+
+			// Clear previous notifications
+			$container.find('.clickwise-inline-notification').remove();
+			$container.removeClass('empty');
+
+			if (handler === "rybbit") {
+				// Use the same approach as sandbox - load script and send via client-side
+				loadRybbitScript().then(function() {
+					if (feedback) {
+						feedback.loading('Sending...');
+					} else {
+						btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Sending...';
+					}
+
+					try {
+						window.rybbit.event('test_event_from_admin', {
+							test_mode: true,
+							source: 'admin_settings',
+							timestamp: Date.now()
+						});
+
+						setTimeout(() => {
+							if (feedback) {
+								feedback.success('Event sent!');
+							} else {
+								btn.disabled = false;
+								btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+							}
+
+							setTimeout(() => {
+								showNotification($container, 'success', 'Test event sent successfully via Rybbit script!');
+							}, 1000);
+						}, 500);
+					} catch (e) {
+						if (feedback) {
+							feedback.error('Failed to send!');
+						} else {
+							btn.disabled = false;
+							btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+						}
+
+						setTimeout(() => {
+							showNotification($container, 'error', 'Failed to send event: ' + e.message);
+						}, 1000);
+					}
+				}).catch(function(err) {
+					if (feedback) {
+						feedback.error('Script failed!');
+					} else {
+						btn.disabled = false;
+						btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+					}
+
+					setTimeout(() => {
+						showNotification($container, 'error', err);
+					}, 1000);
+				});
+			} else if (handler === "ga") {
+				// For GA, we can't easily load gtag dynamically, so inform user
+				setTimeout(() => {
+					if (feedback) {
+						feedback.error('Not supported!');
+					} else {
+						btn.disabled = false;
+						btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+					}
+
+					setTimeout(() => {
+						showNotification($container, 'error', 'Google Analytics test events are best sent from the Sandbox tab where the full tracking environment is available.');
+					}, 1000);
+				}, 500);
+			}
+		}
+
+		function loadRybbitScript() {
+			if (window.rybbitScriptPromise) return window.rybbitScriptPromise;
+
+			window.rybbitScriptPromise = new Promise(function(resolve, reject) {
+				if (window.rybbit) {
+					resolve();
+					return;
+				}
+
+				var scriptUrl = document.getElementById('clickwise_rybbit_script_url').value;
+				var siteId = document.getElementById('clickwise_rybbit_site_id').value;
+
+				if (!scriptUrl || !siteId) {
+					reject('Script URL or Site ID not configured.');
+					return;
+				}
+
+				// Pre-set configuration to disable auto-tracking
+				window.rybbit_config = window.rybbit_config || {};
+				window.rybbit_config.track_pageview = false;
+				window.rybbit_config.manual = true;
+
+				var script = document.createElement('script');
+				script.src = scriptUrl;
+				script.setAttribute('data-site-id', siteId);
+				script.setAttribute('data-auto-track-pageview', 'false');
+				script.setAttribute('data-manual', 'true');
+
+				script.onload = function() {
+					setTimeout(() => {
+						if (window.rybbit) {
+							resolve();
+						} else {
+							reject('Rybbit script loaded but rybbit object not found.');
+						}
+					}, 100);
+				};
+
+				script.onerror = function() {
+					reject('Failed to load Rybbit script. Please check your Script URL.');
+				};
+
+				document.head.appendChild(script);
+			});
+
+			return window.rybbitScriptPromise;
+		}
+
+		function showNotification($container, type, message) {
+			var notificationClass = 'clickwise-notification-' + type;
+			var $notification = jQuery('<div class="clickwise-inline-notification ' + notificationClass + '"><span class="clickwise-notification-icon"></span><span class="clickwise-notification-message">' + message + '</span></div>');
+
+			$container.append($notification);
+
+			setTimeout(() => {
+				$notification.addClass('clickwise-notification-show');
+			}, 50);
+
+			setTimeout(() => {
+				$notification.removeClass('clickwise-notification-show');
+				setTimeout(() => {
+					$notification.remove();
+					if ($container.find('.clickwise-inline-notification').length === 0) {
+						$container.addClass('empty');
+					}
+				}, 300);
+			}, 4000);
+		}
+
+		// Initialize field states when page loads
+		document.addEventListener('DOMContentLoaded', function() {
+			var rybbitCheckbox = document.querySelector('input[name="clickwise_rybbit_enabled"]');
+			if (rybbitCheckbox) {
+				toggleRybbitFields(rybbitCheckbox.checked);
+			}
+
+			var gaCheckbox = document.querySelector('input[name="clickwise_ga_enabled"]');
+			if (gaCheckbox) {
+				toggleGAFields(gaCheckbox.checked);
+			}
+		});
+		</script>
 		<?php
 	}
 
@@ -972,7 +1351,14 @@ class Clickwise_Admin {
 									<td><?php echo esc_html( $event['type'] ); ?></td>
 									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
 									<td>
-										<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+										<div class="button-group">
+											<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+											<button type="button" class="button button-primary clickwise-track-event"
+												data-key="<?php echo esc_attr( $event['key'] ); ?>"
+												data-name="<?php echo esc_attr( $event['name'] ); ?>"
+												data-action="untrack"
+												data-status="tracked">Untrack</button>
+										</div>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -1009,7 +1395,7 @@ class Clickwise_Admin {
 					<tbody>
 						<?php if ( empty( $ignored_events ) ) : ?>
 							<tr><td colspan="5">No ignored events.</td></tr>
-						<? else : ?>
+						<?php else : ?>
 							<?php foreach ( $ignored_events as $event ) : ?>
 								<tr>
 									<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
@@ -1017,7 +1403,14 @@ class Clickwise_Admin {
 									<td><?php echo esc_html( $event['type'] ); ?></td>
 									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
 									<td>
-										<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+										<div class="button-group">
+											<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
+											<button type="button" class="button button-primary clickwise-track-event"
+												data-key="<?php echo esc_attr( $event['key'] ); ?>"
+												data-name="<?php echo esc_attr( $event['name'] ); ?>"
+												data-action="track"
+												data-status="ignored">Track</button>
+										</div>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -1088,7 +1481,21 @@ class Clickwise_Admin {
 												</td>
 												<td><?php echo esc_html( $event['type'] ); ?></td>
 												<td>
-													<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details</button>
+													<div class="button-group">
+														<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details</button>
+														<?php
+														$is_tracked = $event['status'] === 'tracked';
+														$button_text = $is_tracked ? 'Untrack' : 'Track';
+														$button_action = $is_tracked ? 'untrack' : 'track';
+														?>
+														<button type="button" class="button button-primary clickwise-track-event"
+															data-key="<?php echo esc_attr( $event['key'] ); ?>"
+															data-name="<?php echo esc_attr( $event['name'] ); ?>"
+															data-action="<?php echo esc_attr( $button_action ); ?>"
+															data-status="<?php echo esc_attr( $event['status'] ); ?>">
+															<?php echo esc_html( $button_text ); ?>
+														</button>
+													</div>
 												</td>
 											</tr>
 										<?php endforeach; ?>
@@ -1126,7 +1533,11 @@ class Clickwise_Admin {
 						</tr>
 						<tr>
 							<th>Example Detail</th>
-							<td><pre id="modal-event-detail"></pre></td>
+							<td>
+								<div class="clickwise-code-wrapper" style="height: 200px;">
+									<pre id="modal-event-detail" class="clickwise-code-backdrop"></pre>
+								</div>
+							</td>
 						</tr>
 						<tr>
 							<th>User-Friendly Name (Alias)</th>
@@ -1155,11 +1566,14 @@ class Clickwise_Admin {
 			</div>
 		</div>
 		<style>
-			#modal-event-detail .string { color: #008000; }
-			#modal-event-detail .number { color: #0000ff; }
-			#modal-event-detail .boolean { color: #b22222; }
-			#modal-event-detail .null { color: #808080; }
-			#modal-event-detail .key { color: #a52a2a; font-weight: bold; }
+			/* Override code backdrop for modal use */
+			#modal-event-detail.clickwise-code-backdrop {
+				position: static; /* Remove absolute positioning */
+				pointer-events: auto; /* Enable pointer events */
+				background: var(--cw-cyan-950); /* Add background */
+				overflow: auto; /* Enable scrolling */
+				height: 100%; /* Fill container */
+			}
 		</style>
 		<?php
 	}
@@ -1475,7 +1889,7 @@ class Clickwise_Admin {
 			// Rybbit configuration grouped here
 			$script_url = get_option( 'clickwise_rybbit_script_url', get_option( 'clickwise_script_url', '' ) );
 			$site_id = get_option( 'clickwise_rybbit_site_id', get_option( 'clickwise_site_id', '' ) );
-			$api_version = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v1' ) );
+			$api_version = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v2' ) );
 
 			echo '<tr><th scope="row"><label for="clickwise_rybbit_script_url">Script URL</label></th>';
 			echo '<td><input type="url" name="clickwise_rybbit_script_url" id="clickwise_rybbit_script_url" value="' . esc_attr( $script_url ) . '" class="regular-text" placeholder="https://tracking.example.com/api/script.js">';
@@ -1521,13 +1935,149 @@ class Clickwise_Admin {
 		echo '</div>';
 	}
 
-	public function render_rybbit_tab() {
-		$this->render_handler_card( 'rybbit', 'Rybbit Analytics', 'Configure Rybbit analytics for comprehensive event tracking and user behavior analysis.' );
+	public function render_rybbit_section_description() {
+		?>
+		<p>Configure Rybbit analytics for comprehensive event tracking and user behavior analysis.</p>
+		<?php
 	}
 
-	public function render_ga_tab() {
-		$this->render_handler_card( 'ga', 'Google Analytics 4', 'Configure Google Analytics 4 for industry-standard web analytics and conversion tracking.' );
+	public function render_rybbit_enabled_field() {
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		?>
+		<label>
+			<input type="checkbox" name="clickwise_rybbit_enabled" value="1" <?php checked( 1, $enabled ); ?> onchange="toggleRybbitFields(this.checked)" />
+			Enable Rybbit Analytics tracking
+		</label>
+		<p class="description">Turn this on to start sending analytics data to Rybbit.</p>
+		<?php
 	}
+
+	public function render_rybbit_script_url_field() {
+		$script_url = get_option( 'clickwise_rybbit_script_url', get_option( 'clickwise_script_url', '' ) );
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<input type="url" name="clickwise_rybbit_script_url" id="clickwise_rybbit_script_url"
+			   value="<?php echo esc_attr( $script_url ); ?>" class="regular-text"
+			   placeholder="https://tracking.example.com/api/script.js" <?php echo $disabled; ?> />
+		<p class="description">The URL to your Rybbit tracking script</p>
+		<?php
+	}
+
+	public function render_rybbit_site_id_field() {
+		$site_id = get_option( 'clickwise_rybbit_site_id', get_option( 'clickwise_site_id', '' ) );
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<input type="text" name="clickwise_rybbit_site_id" id="clickwise_rybbit_site_id"
+			   value="<?php echo esc_attr( $site_id ); ?>" class="regular-text"
+			   placeholder="your-site-id" <?php echo $disabled; ?> />
+		<p class="description">Your unique Site ID found in the Rybbit dashboard</p>
+		<?php
+	}
+
+	public function render_rybbit_api_version_field() {
+		$api_version = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v2' ) );
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<select name="clickwise_rybbit_api_version" id="clickwise_rybbit_api_version" <?php echo $disabled; ?>>
+			<option value="v1" <?php selected( 'v1', $api_version ); ?>>v1 (Legacy)</option>
+			<option value="v2" <?php selected( 'v2', $api_version ); ?>>v2 (Modern)</option>
+		</select>
+		<p class="description">Select the API version compatible with your Rybbit instance</p>
+		<?php
+	}
+
+	public function render_rybbit_test_field() {
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+			<button type="button" class="button button-primary" onclick="testHandler('rybbit')"
+					id="test-rybbit-btn" <?php echo $disabled; ?>>
+				<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>
+				Test Connection
+			</button>
+			<button type="button" class="button" onclick="sendTestEvent('rybbit')"
+					id="send-test-rybbit-btn" <?php echo $disabled; ?>>
+				<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>
+				Send Test Event
+			</button>
+		</div>
+		<div class="clickwise-notification-container empty"></div>
+		<p class="description">
+			Verify your configuration and send test events to Rybbit.
+			<strong>💡 Tip:</strong> Visit the <a href="?page=clickwise-settings&tab=sandbox">Sandbox tab</a> to send custom test events and experiment with different data!
+		</p>
+		<?php
+	}
+
+	public function render_ga_section_description() {
+		?>
+		<p>Configure Google Analytics 4 for industry-standard web analytics and conversion tracking.</p>
+		<?php
+	}
+
+	public function render_ga_enabled_field() {
+		$enabled = get_option( 'clickwise_ga_enabled' );
+		?>
+		<label>
+			<input type="checkbox" name="clickwise_ga_enabled" value="1" <?php checked( 1, $enabled ); ?> onchange="toggleGAFields(this.checked)" />
+			Enable Google Analytics 4 tracking
+		</label>
+		<p class="description">Turn this on to start sending analytics data to Google Analytics 4.</p>
+		<?php
+	}
+
+	public function render_ga_measurement_id_field() {
+		$measurement_id = get_option( 'clickwise_ga_measurement_id', '' );
+		$enabled = get_option( 'clickwise_ga_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<input type="text" name="clickwise_ga_measurement_id" id="clickwise_ga_measurement_id"
+			   value="<?php echo esc_attr( $measurement_id ); ?>" class="regular-text"
+			   placeholder="G-XXXXXXXXXX" <?php echo $disabled; ?> />
+		<p class="description">Your Google Analytics 4 Measurement ID (starts with G-)</p>
+		<?php
+	}
+
+	public function render_ga_api_secret_field() {
+		$api_secret = get_option( 'clickwise_ga_api_secret', '' );
+		$enabled = get_option( 'clickwise_ga_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<input type="password" name="clickwise_ga_api_secret" id="clickwise_ga_api_secret"
+			   value="<?php echo esc_attr( $api_secret ); ?>" class="regular-text"
+			   placeholder="API Secret Key" <?php echo $disabled; ?> />
+		<p class="description">Your Google Analytics 4 Measurement Protocol API Secret</p>
+		<?php
+	}
+
+	public function render_ga_test_field() {
+		$enabled = get_option( 'clickwise_ga_enabled' );
+		$disabled = $enabled ? '' : 'disabled';
+		?>
+		<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+			<button type="button" class="button button-primary" onclick="testHandler('ga')"
+					id="test-ga-btn" <?php echo $disabled; ?>>
+				<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>
+				Test Connection
+			</button>
+			<button type="button" class="button" onclick="sendTestEvent('ga')"
+					id="send-test-ga-btn" <?php echo $disabled; ?>>
+				<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>
+				Send Test Event
+			</button>
+		</div>
+		<div class="clickwise-notification-container empty"></div>
+		<p class="description">
+			Verify your configuration and send test events to Google Analytics 4.
+			<strong>💡 Tip:</strong> Visit the <a href="?page=clickwise-settings&tab=sandbox">Sandbox tab</a> to send custom test events and experiment with different data!
+		</p>
+		<?php
+	}
+
 
 	public function render_handler_card( $handler, $title, $desc ) {
 		$enabled_option = "clickwise_{$handler}_enabled";
@@ -1595,62 +2145,7 @@ class Clickwise_Admin {
 		$this->render_handler_card( $args['handler'], $args['title'], $args['desc'] );
 	}
 
-	private function render_rybbit_config_fields() {
-		$script_url = get_option( 'clickwise_rybbit_script_url', get_option( 'clickwise_script_url', '' ) );
-		$site_id = get_option( 'clickwise_rybbit_site_id', get_option( 'clickwise_site_id', '' ) );
-		$api_version = get_option( 'clickwise_rybbit_api_version', get_option( 'clickwise_api_version', 'v1' ) );
 
-		echo '<div style="display: grid; gap: 20px;">';
-
-		// Script URL
-		echo '<div>';
-		echo '<label for="clickwise_rybbit_script_url" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Script URL</label>';
-		echo '<input type="url" name="clickwise_rybbit_script_url" id="clickwise_rybbit_script_url" value="' . esc_attr( $script_url ) . '" class="regular-text" style="width: 100%; padding: 8px 12px;" placeholder="https://tracking.example.com/api/script.js">';
-		echo '<p style="margin: 5px 0 0 0; color: #6b7280; font-size: 13px;">The URL to your Rybbit tracking script</p>';
-		echo '</div>';
-
-		// Site ID
-		echo '<div>';
-		echo '<label for="clickwise_rybbit_site_id" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Site ID</label>';
-		echo '<input type="text" name="clickwise_rybbit_site_id" id="clickwise_rybbit_site_id" value="' . esc_attr( $site_id ) . '" class="regular-text" style="width: 100%; padding: 8px 12px;" placeholder="your-site-id">';
-		echo '<p style="margin: 5px 0 0 0; color: #6b7280; font-size: 13px;">Your unique Site ID found in the Rybbit dashboard</p>';
-		echo '</div>';
-
-		// API Version
-		echo '<div>';
-		echo '<label for="clickwise_rybbit_api_version" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">API Version</label>';
-		echo '<select name="clickwise_rybbit_api_version" id="clickwise_rybbit_api_version" style="padding: 8px 12px;">';
-		echo '<option value="v1" ' . selected( 'v1', $api_version, false ) . '>v1 (Legacy)</option>';
-		echo '<option value="v2" ' . selected( 'v2', $api_version, false ) . '>v2 (Modern)</option>';
-		echo '</select>';
-		echo '<p style="margin: 5px 0 0 0; color: #6b7280; font-size: 13px;">Select the API version compatible with your Rybbit instance</p>';
-		echo '</div>';
-
-		echo '</div>';
-	}
-
-	private function render_ga_config_fields() {
-		$ga_measurement_id = get_option( 'clickwise_ga_measurement_id', '' );
-		$ga_api_secret = get_option( 'clickwise_ga_api_secret', '' );
-
-		echo '<div style="display: grid; gap: 20px;">';
-
-		// Measurement ID
-		echo '<div>';
-		echo '<label for="clickwise_ga_measurement_id" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Measurement ID <span style="color: #ef4444;">*</span></label>';
-		echo '<input type="text" name="clickwise_ga_measurement_id" id="clickwise_ga_measurement_id" value="' . esc_attr( $ga_measurement_id ) . '" class="regular-text" style="width: 100%; padding: 8px 12px;" placeholder="G-XXXXXXXXXX">';
-		echo '<p style="margin: 5px 0 0 0; color: #6b7280; font-size: 13px;">Your GA4 Measurement ID (required for tracking)</p>';
-		echo '</div>';
-
-		// API Secret
-		echo '<div>';
-		echo '<label for="clickwise_ga_api_secret" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">API Secret</label>';
-		echo '<input type="text" name="clickwise_ga_api_secret" id="clickwise_ga_api_secret" value="' . esc_attr( $ga_api_secret ) . '" class="regular-text" style="width: 100%; padding: 8px 12px;" placeholder="Optional for enhanced validation">';
-		echo '<p style="margin: 5px 0 0 0; color: #6b7280; font-size: 13px;">Your GA4 Measurement Protocol API Secret (optional, but recommended for server-side events)</p>';
-		echo '</div>';
-
-		echo '</div>';
-	}
 
 	private function add_single_handler_javascript( $handler ) {
 		static $js_added = false;
