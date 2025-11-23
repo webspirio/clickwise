@@ -222,10 +222,40 @@
     font-size: 12px;
 }
 
+.webspirio-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.webspirio-logo-img {
+    width: 20px;
+    height: 20px;
+}
+
 .webspirio-logo strong {
     color: var(--cw-cyan-400);
     font-size: 14px;
-    display: block;
+}
+
+.webspirio-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    font-size: 11px;
+}
+
+.webspirio-links a {
+    color: var(--cw-cyan-400);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.webspirio-links a:hover {
+    opacity: 1;
+    text-decoration: underline;
 }
 
 /* Buttons & Links */
@@ -270,6 +300,7 @@
 .clickwise-main-panel input[type="number"],
 .clickwise-main-panel input[type="email"],
 .clickwise-main-panel input[type="password"],
+.clickwise-main-panel input[type="url"],
 .clickwise-main-panel select,
 .clickwise-main-panel textarea {
     background-color: var(--cw-cyan-950);
@@ -281,6 +312,11 @@
     min-height: 40px;
     /* Ensure enough height */
     line-height: 1.5;
+}
+
+.clickwise-main-panel .regular-text {
+    width: 100%;
+    max-width: 500px;
 }
 
 .clickwise-main-panel select {
@@ -305,6 +341,22 @@
     box-shadow: 0 0 0 1px var(--cw-cyan-400);
     outline: none;
     color: var(--cw-cyan-50) !important;
+}
+
+/* Disabled field styling */
+.clickwise-main-panel input:disabled,
+.clickwise-main-panel select:disabled,
+.clickwise-main-panel button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--cw-gray-800) !important;
+    color: var(--cw-gray-500) !important;
+    border-color: var(--cw-gray-700) !important;
+}
+
+.clickwise-main-panel input:disabled:hover,
+.clickwise-main-panel select:disabled:hover {
+    border-color: var(--cw-gray-700) !important;
 }
 
 .clickwise-main-panel select:hover {
@@ -947,4 +999,118 @@ body.settings_page_clickwise-settings .notice-error {
 .clickwise-session-block.deleting {
     opacity: 0.6;
     pointer-events: none;
+}
+
+/* Spinning animation for test buttons */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Button group styling for Details + Track buttons */
+.button-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.clickwise-track-event {
+    background: var(--cw-cyan-800) !important;
+    border-color: var(--cw-cyan-700) !important;
+    color: var(--cw-cyan-50) !important;
+    padding: 0 8px !important;
+    line-height: 1.5 !important;
+    height: 28px !important;
+    border-radius: 3px !important;
+    font-size: 11px !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+    font-weight: normal !important;
+}
+
+.clickwise-track-event:hover {
+    background: var(--cw-cyan-700) !important;
+    border-color: var(--cw-cyan-600) !important;
+    color: var(--cw-cyan-50) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(14, 116, 144, 0.3) !important;
+}
+
+.clickwise-track-event:focus {
+    background: var(--cw-cyan-700) !important;
+    border-color: var(--cw-cyan-400) !important;
+    box-shadow: 0 0 0 1px var(--cw-cyan-400) !important;
+}
+
+/* Untrack button styling */
+.clickwise-track-event[data-action="untrack"] {
+    background: rgba(220, 38, 38, 0.15) !important;
+    border-color: #dc2626 !important;
+    color: #fef2f2 !important;
+}
+
+.clickwise-track-event[data-action="untrack"]:hover {
+    background: rgba(220, 38, 38, 0.25) !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+}
+
+.clickwise-track-event[data-action="untrack"]:focus {
+    background: rgba(220, 38, 38, 0.15) !important;
+    border-color: #dc2626 !important;
+    color: #fef2f2 !important;
+    box-shadow: 0 0 0 1px #dc2626 !important;
+}
+
+/* Smooth transition animations for button state changes */
+.clickwise-track-event {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Row update flash animation */
+.clickwise-row-updated {
+    animation: clickwise-row-flash 0.6s ease-out;
+}
+
+@keyframes clickwise-row-flash {
+    0% {
+        background-color: rgba(14, 116, 144, 0.1);
+        transform: scale(1);
+    }
+
+    50% {
+        background-color: rgba(14, 116, 144, 0.2);
+        transform: scale(1.002);
+    }
+
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+/* Smooth status indicator transitions */
+tr[data-status] td:first-child {
+    transition: all 0.3s ease;
+}
+
+/* Responsive button group */
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .button-group .button {
+        width: 100%;
+        text-align: center;
+    }
 }
