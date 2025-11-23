@@ -164,7 +164,9 @@ class Clickwise_Admin {
 					'example_detail' => json_encode( $detail ), // Update example with latest
 					// Optionally update name if it was generic before? 
 					// Let's update name if the existing one is just the type (generic) and we have a better one now
-					'name' => ($existing['name'] === $existing['type'] && $name !== $type) ? $name : $existing['name']
+					'name' => ($existing['name'] === $existing['type'] && $name !== $type) ? $name : $existing['name'],
+					'session_id' => $session_id,
+					'session_timestamp' => time()
 				),
 				array( 'id' => $existing['id'] )
 			);
@@ -245,10 +247,17 @@ class Clickwise_Admin {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'clickwise_events';
 
-		$wpdb->delete(
-			$table_name,
-			array( 'session_id' => $session_id )
-		);
+		// 1. Unlink tracked events from this session (preserve them)
+		$wpdb->query( $wpdb->prepare( 
+			"UPDATE $table_name SET session_id = NULL, session_timestamp = NULL WHERE session_id = %s AND status = 'tracked'", 
+			$session_id 
+		) );
+
+		// 2. Delete non-tracked events from this session
+		$wpdb->query( $wpdb->prepare( 
+			"DELETE FROM $table_name WHERE session_id = %s", 
+			$session_id 
+		) );
 
 		wp_send_json_success( 'Session deleted' );
 	}
