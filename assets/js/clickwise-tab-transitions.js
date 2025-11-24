@@ -76,6 +76,11 @@ jQuery(document).ready(function ($) {
                         setTimeout(window.initializeDefaultHandlerSelection, 100);
                     }
 
+                    // Re-initialize Remote Config fetching for Rybbit tab
+                    if ($('#clickwise-remote-config-container').length > 0 && window.fetchRybbitRemoteConfig) {
+                        setTimeout(window.fetchRybbitRemoteConfig, 100);
+                    }
+
                     // Update URL
                     window.history.pushState({ href: href }, '', href);
 
