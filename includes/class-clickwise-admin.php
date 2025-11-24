@@ -425,7 +425,7 @@ class Clickwise_Admin {
 
 		add_settings_field( 'clickwise_ga_measurement_id', 'Measurement ID', array( $this, 'render_ga_measurement_id_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
 
-		add_settings_field( 'clickwise_ga_api_secret', 'API Secret', array( $this, 'render_ga_api_secret_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+		add_settings_field( 'clickwise_ga_api_secret', 'API Secret (Optional)', array( $this, 'render_ga_api_secret_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
 
 		add_settings_field( 'clickwise_ga_test', 'Test Connection', array( $this, 'render_ga_test_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
 
@@ -549,7 +549,8 @@ class Clickwise_Admin {
 						$ga_enabled = get_option( 'clickwise_ga_enabled' );
 						echo $ga_enabled ? '<span class="status-dot active"></span>' : '<span class="status-dot"></span>';
 						?>
-						Google Analytics
+						GA4
+						<span class="coming-soon-badge">Coming Soon</span>
 					</a>
 					<a href="?page=clickwise-settings&tab=general" class="clickwise-nav-item <?php echo $active_tab == 'general' ? 'active' : ''; ?>">General</a>
 					<a href="?page=clickwise-settings&tab=events" class="clickwise-nav-item <?php echo $active_tab == 'events' ? 'active' : ''; ?>">Events & Forms</a>
@@ -571,8 +572,14 @@ class Clickwise_Admin {
 			<?php endif; ?>
 
 			<div class="clickwise-body">
-				<div class="clickwise-main-panel">
-					<?php if ( $active_tab === 'events_manager' ) : ?>
+				<div class="clickwise-main-panel <?php echo $active_tab == 'google_analytics' ? 'clickwise-coming-soon-overlay' : ''; ?>">
+					<?php if ( $active_tab === 'google_analytics' ) : ?>
+						<div class="clickwise-coming-soon-content">
+							<div class="clickwise-coming-soon-icon">🚧</div>
+							<h2>Coming Soon</h2>
+							<p>Google Analytics 4 integration is currently in development. We're working hard to bring you seamless GA4 tracking capabilities. Stay tuned!</p>
+						</div>
+					<?php elseif ( $active_tab === 'events_manager' ) : ?>
 						<?php $this->render_events_manager_tab(); ?>
 					<?php elseif ( $active_tab === 'sandbox' ) : ?>
 						<?php $this->render_sandbox_tab(); ?>
@@ -1783,8 +1790,8 @@ class Clickwise_Admin {
 		?>
 		<input type="password" name="clickwise_ga_api_secret" id="clickwise_ga_api_secret"
 			   value="<?php echo esc_attr( $api_secret ); ?>" class="regular-text"
-			   placeholder="API Secret Key" <?php echo $disabled; ?> />
-		<p class="description">Your Google Analytics 4 Measurement Protocol API Secret</p>
+			   placeholder="API Secret Key (Optional)" <?php echo $disabled; ?> />
+		<p class="description">Only required for the "Test Connection" button below. Not needed for standard tracking.</p>
 		<?php
 	}
 
