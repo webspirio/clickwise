@@ -32,4 +32,6 @@ function run_clickwise_analytics_wordpress() {
 	$plugin->run();
 }
 
+register_activation_hook( __FILE__, array( 'Clickwise_Analytics', 'activate' ) );
+
 run_clickwise_analytics_wordpress();

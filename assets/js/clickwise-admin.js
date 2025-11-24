@@ -349,14 +349,14 @@ jQuery(document).ready(function ($) {
 
             // Shake the send button
             button.addClass('clickwise-error-shake');
-            setTimeout(function() {
+            setTimeout(function () {
                 button.removeClass('clickwise-error-shake');
             }, 500);
 
             // Highlight the handler selection area
             var $handlerSelection = $('.clickwise-handler-selection');
             $handlerSelection.addClass('clickwise-error-highlight');
-            setTimeout(function() {
+            setTimeout(function () {
                 $handlerSelection.removeClass('clickwise-error-highlight');
             }, 2000);
 
@@ -374,7 +374,7 @@ jQuery(document).ready(function ($) {
             button.addClass('clickwise-error-shake');
             var $eventNameInput = $('#clickwise-sandbox-name');
             $eventNameInput.addClass('clickwise-error-shake');
-            setTimeout(function() {
+            setTimeout(function () {
                 button.removeClass('clickwise-error-shake');
                 $eventNameInput.removeClass('clickwise-error-shake');
             }, 500);
@@ -401,7 +401,7 @@ jQuery(document).ready(function ($) {
             button.addClass('clickwise-error-shake');
             var $propsTextarea = $('#clickwise-sandbox-props');
             $propsTextarea.addClass('clickwise-error-shake');
-            setTimeout(function() {
+            setTimeout(function () {
                 button.removeClass('clickwise-error-shake');
                 $propsTextarea.removeClass('clickwise-error-shake');
             }, 500);
@@ -1197,7 +1197,7 @@ jQuery(document).ready(function ($) {
     window.selectedHandlers = new Set();
 
     // Auto-select all enabled handlers by default
-    window.initializeDefaultHandlerSelection = function() {
+    window.initializeDefaultHandlerSelection = function () {
         var $handlers = $('.clickwise-handler-chip:not(.disabled) input[type="checkbox"]');
 
         if ($handlers.length === 0) {
@@ -1207,7 +1207,7 @@ jQuery(document).ready(function ($) {
         // Clear and reinitialize
         window.selectedHandlers.clear();
 
-        $handlers.each(function() {
+        $handlers.each(function () {
             var $checkbox = $(this);
             var handler = $checkbox.data('handler');
 
@@ -1232,12 +1232,12 @@ jQuery(document).ready(function ($) {
 
         console.log('🎯 Found', logoAnimations.length, 'SMIL animations for ultra-responsive control');
 
-        logoAnimations.forEach(function(anim, index) {
-            anim.addEventListener('beginEvent', function() {
+        logoAnimations.forEach(function (anim, index) {
+            anim.addEventListener('beginEvent', function () {
                 console.log('⚡ Animation', index, 'started:', anim.id);
             });
 
-            anim.addEventListener('endEvent', function() {
+            anim.addEventListener('endEvent', function () {
                 console.log('✅ Animation', index, 'finished:', anim.id);
             });
         });
@@ -1264,7 +1264,7 @@ jQuery(document).ready(function ($) {
         try {
             if (logoAnimations.length > 0) {
                 // Immediately stop and restart all SMIL animations
-                logoAnimations.forEach(function(anim) {
+                logoAnimations.forEach(function (anim) {
                     try {
                         // Force stop current animation
                         anim.endElement();
@@ -1274,7 +1274,7 @@ jQuery(document).ready(function ($) {
                 });
 
                 // Restart all animations immediately - no setTimeout delays!
-                logoAnimations.forEach(function(anim) {
+                logoAnimations.forEach(function (anim) {
                     try {
                         anim.beginElement();
                     } catch (e) {
@@ -1285,7 +1285,7 @@ jQuery(document).ready(function ($) {
                 // Fun spam-click visual feedback
                 if (source === 'logo-click') {
                     $logo.addClass('clickwise-spam-glow');
-                    setTimeout(function() {
+                    setTimeout(function () {
                         $logo.removeClass('clickwise-spam-glow');
                     }, 200);
                 }
@@ -1298,7 +1298,7 @@ jQuery(document).ready(function ($) {
                 $logo.addClass('clickwise-replay-animation');
 
                 // Clean up CSS class after animation
-                setTimeout(function() {
+                setTimeout(function () {
                     $logo.removeClass('clickwise-replay-animation');
                 }, 600); // Match CSS animation duration
             }
@@ -1310,7 +1310,7 @@ jQuery(document).ready(function ($) {
             $logo.removeClass('clickwise-replay-animation');
             $logo[0].offsetHeight; // Force reflow
             $logo.addClass('clickwise-replay-animation');
-            setTimeout(function() {
+            setTimeout(function () {
                 $logo.removeClass('clickwise-replay-animation');
             }, 600);
         }
@@ -1320,7 +1320,7 @@ jQuery(document).ready(function ($) {
     setTimeout(setupAnimationEventListeners, 100);
 
     // Make logo clickable and animate on click
-    $(document).on('click', '#clickwise-admin-logo', function(e) {
+    $(document).on('click', '#clickwise-admin-logo', function (e) {
         e.preventDefault();
         replayLogoAnimation('logo-click');
     });
@@ -1333,7 +1333,7 @@ jQuery(document).ready(function ($) {
     });
 
     // Form submission handler with smart debouncing
-    $('.clickwise-admin-wrapper form').on('submit', function() {
+    $('.clickwise-admin-wrapper form').on('submit', function () {
         console.log('Form submitted');
         // Immediate trigger - debouncing happens inside the function
         replayLogoAnimation('form-submit');
@@ -1362,7 +1362,7 @@ jQuery(document).ready(function ($) {
     }
 
     // Single click handler for the entire chip
-    $(document).on('click', '.clickwise-handler-chip:not(.disabled)', function(e) {
+    $(document).on('click', '.clickwise-handler-chip:not(.disabled)', function (e) {
         // Prevent event bubbling
         e.preventDefault();
         e.stopPropagation();
@@ -1393,7 +1393,7 @@ jQuery(document).ready(function ($) {
 
         // Quick scale animation for immediate feedback
         $chipContent.css('transform', 'scale(0.95)');
-        setTimeout(function() {
+        setTimeout(function () {
             $chipContent.css('transform', '');
         }, 100);
     });
@@ -1402,9 +1402,269 @@ jQuery(document).ready(function ($) {
     window.initializeDefaultHandlerSelection();
 
     // Simple fix: reinitialize whenever user interacts with sandbox area
-    $(document).on('click focus', '.clickwise-sandbox', function() {
+    $(document).on('click focus', '.clickwise-sandbox', function () {
         setTimeout(window.initializeDefaultHandlerSelection, 50);
     });
+
+    // Dismiss service notice
+    $(document).on('click', '.clickwise-notice-dismiss', function () {
+        $.post(clickwise_admin.ajax_url, {
+            action: 'clickwise_dismiss_service_notice',
+            nonce: clickwise_admin.nonce
+        }, function () {
+            $('#clickwise-service-notice').fadeOut();
+        });
+    });
+
+    // --- Helper Functions from Inline Script (Refactored) ---
+
+    window.toggleRybbitFields = function (enabled) {
+        var scriptUrlField = document.getElementById('clickwise_rybbit_script_url');
+        var siteIdField = document.getElementById('clickwise_rybbit_site_id');
+        var apiVersionField = document.getElementById('clickwise_rybbit_api_version');
+        var testButton = document.getElementById('test-rybbit-btn');
+        var sendTestButton = document.getElementById('send-test-rybbit-btn');
+
+        if (scriptUrlField) scriptUrlField.disabled = !enabled;
+        if (siteIdField) siteIdField.disabled = !enabled;
+        if (apiVersionField) apiVersionField.disabled = !enabled;
+        if (testButton) testButton.disabled = !enabled;
+        if (sendTestButton) sendTestButton.disabled = !enabled;
+
+        if (!enabled) {
+            var $container = $('#test-rybbit-btn').closest('td').find('.clickwise-notification-container');
+            if ($container.length) {
+                $container.find('.clickwise-inline-notification').remove();
+                $container.addClass('empty');
+            }
+        }
+
+        var tabLink = document.querySelector('a[href*="tab=rybbit"]');
+        if (tabLink) {
+            var statusDot = tabLink.querySelector('.status-dot');
+            if (statusDot) {
+                if (enabled) {
+                    statusDot.classList.add('active');
+                } else {
+                    statusDot.classList.remove('active');
+                }
+            }
+        }
+    };
+
+    window.toggleGAFields = function (enabled) {
+        var measurementIdField = document.getElementById('clickwise_ga_measurement_id');
+        var apiSecretField = document.getElementById('clickwise_ga_api_secret');
+        var testButton = document.getElementById('test-ga-btn');
+        var sendTestButton = document.getElementById('send-test-ga-btn');
+
+        if (measurementIdField) measurementIdField.disabled = !enabled;
+        if (apiSecretField) apiSecretField.disabled = !enabled;
+        if (testButton) testButton.disabled = !enabled;
+        if (sendTestButton) sendTestButton.disabled = !enabled;
+
+        if (!enabled) {
+            var $container = $('#test-ga-btn').closest('td').find('.clickwise-notification-container');
+            if ($container.length) {
+                $container.find('.clickwise-inline-notification').remove();
+                $container.addClass('empty');
+            }
+        }
+
+        var tabLink = document.querySelector('a[href*="tab=google_analytics"]');
+        if (tabLink) {
+            var statusDot = tabLink.querySelector('.status-dot');
+            if (statusDot) {
+                if (enabled) {
+                    statusDot.classList.add('active');
+                } else {
+                    statusDot.classList.remove('active');
+                }
+            }
+        }
+    };
+
+    window.testHandler = function (handler) {
+        var btn = document.getElementById("test-" + handler + "-btn");
+        var $container = $(btn).closest('td').find('.clickwise-notification-container');
+
+        if (!btn) return;
+
+        var feedback = null;
+        if (window.ClickwiseButtonFeedback) {
+            feedback = new ClickwiseButtonFeedback(btn);
+            feedback.loading('Testing...');
+        } else {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Testing...';
+        }
+
+        $container.find('.clickwise-inline-notification').remove();
+        $container.removeClass('empty');
+
+        var data = {
+            action: "clickwise_test_handler",
+            handler: handler,
+            nonce: clickwise_admin.nonce
+        };
+
+        if (handler === "rybbit") {
+            data.script_url = document.getElementById("clickwise_rybbit_script_url").value;
+            data.site_id = document.getElementById("clickwise_rybbit_site_id").value;
+            data.api_version = document.getElementById("clickwise_rybbit_api_version").value;
+        } else if (handler === "ga") {
+            data.measurement_id = document.getElementById("clickwise_ga_measurement_id").value;
+            data.api_secret = document.getElementById("clickwise_ga_api_secret").value;
+        }
+
+        $.post(clickwise_admin.ajax_url, data, function (response) {
+            if (response.success) {
+                if (feedback) {
+                    feedback.success('Connection successful!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+                }
+                setTimeout(() => {
+                    showNotification($container, 'success', response.data);
+                }, 1000);
+            } else {
+                if (feedback) {
+                    feedback.error('Test failed!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+                }
+                setTimeout(() => {
+                    showNotification($container, 'error', response.data);
+                }, 1000);
+            }
+        }).fail(function () {
+            if (feedback) {
+                feedback.error('Connection failed!');
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="dashicons dashicons-admin-tools" style="vertical-align: middle; margin-right: 5px;"></span>Test Connection';
+            }
+            setTimeout(() => {
+                showNotification($container, 'error', 'Connection failed! Please check your network and try again.');
+            }, 1000);
+        });
+    };
+
+    window.sendTestEvent = function (handler) {
+        var btn = document.getElementById("send-test-" + handler + "-btn");
+        var $container = $(btn).closest('td').find('.clickwise-notification-container');
+
+        if (!btn) return;
+
+        var feedback = null;
+        if (window.ClickwiseButtonFeedback) {
+            feedback = new ClickwiseButtonFeedback(btn);
+            feedback.loading('Loading...');
+        } else {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Loading...';
+        }
+
+        $container.find('.clickwise-inline-notification').remove();
+        $container.removeClass('empty');
+
+        if (handler === "rybbit") {
+            // Use existing loadClickwiseScript
+            loadClickwiseScript().then(function () {
+                if (feedback) {
+                    feedback.loading('Sending...');
+                } else {
+                    btn.innerHTML = '<span class="dashicons dashicons-update-alt" style="vertical-align: middle; margin-right: 5px; animation: spin 1s linear infinite;"></span>Sending...';
+                }
+
+                try {
+                    window.rybbit.event('test_event_from_admin', {
+                        test_mode: true,
+                        source: 'admin_settings',
+                        timestamp: Date.now()
+                    });
+
+                    setTimeout(() => {
+                        if (feedback) {
+                            feedback.success('Event sent!');
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+                        }
+                        setTimeout(() => {
+                            showNotification($container, 'success', 'Test event sent successfully via Rybbit script!');
+                        }, 1000);
+                    }, 500);
+                } catch (e) {
+                    if (feedback) {
+                        feedback.error('Failed to send!');
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+                    }
+                    setTimeout(() => {
+                        showNotification($container, 'error', 'Failed to send event: ' + e.message);
+                    }, 1000);
+                }
+            }).catch(function (err) {
+                if (feedback) {
+                    feedback.error('Script failed!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+                }
+                setTimeout(() => {
+                    showNotification($container, 'error', err);
+                }, 1000);
+            });
+        } else if (handler === "ga") {
+            setTimeout(() => {
+                if (feedback) {
+                    feedback.error('Not supported!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="dashicons dashicons-media-code" style="vertical-align: middle; margin-right: 5px;"></span>Send Test Event';
+                }
+                setTimeout(() => {
+                    showNotification($container, 'error', 'Google Analytics test events are best sent from the Sandbox tab where the full tracking environment is available.');
+                }, 1000);
+            }, 500);
+        }
+    };
+
+    function showNotification($container, type, message) {
+        var notificationClass = 'clickwise-notification-' + type;
+        var $notification = $('<div class="clickwise-inline-notification ' + notificationClass + '"><span class="clickwise-notification-icon"></span><span class="clickwise-notification-message">' + message + '</span></div>');
+
+        $container.append($notification);
+
+        setTimeout(() => {
+            $notification.addClass('clickwise-notification-show');
+        }, 50);
+
+        setTimeout(() => {
+            $notification.removeClass('clickwise-notification-show');
+            setTimeout(() => {
+                $notification.remove();
+                if ($container.find('.clickwise-inline-notification').length === 0) {
+                    $container.addClass('empty');
+                }
+            }, 300);
+        }, 4000);
+    }
+
+    // Initialize field states when page loads
+    var rybbitCheckbox = document.querySelector('input[name="clickwise_rybbit_enabled"]');
+    if (rybbitCheckbox) {
+        toggleRybbitFields(rybbitCheckbox.checked);
+    }
+
+    var gaCheckbox = document.querySelector('input[name="clickwise_ga_enabled"]');
+    if (gaCheckbox) {
+        toggleGAFields(gaCheckbox.checked);
+    }
 
 
 
