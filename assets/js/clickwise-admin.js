@@ -1337,6 +1337,18 @@ jQuery(document).ready(function ($) {
         console.log('Form submitted');
         // Immediate trigger - debouncing happens inside the function
         replayLogoAnimation('form-submit');
+
+        // Check if we're on the Rybbit tab and refresh remote config after save
+        var urlParams = new URLSearchParams(window.location.search);
+        var currentTab = urlParams.get('tab') || 'general';
+        if (currentTab === 'rybbit') {
+            // Delay to allow form to save first
+            setTimeout(function () {
+                if ($('#clickwise-remote-config-container').length > 0) {
+                    window.fetchRybbitRemoteConfig();
+                }
+            }, 1500);
+        }
     });
 
     // Modern Handler Selection Functionality
@@ -1527,6 +1539,10 @@ jQuery(document).ready(function ($) {
                 }
                 setTimeout(() => {
                     showNotification($container, 'success', response.data);
+                    // Refresh remote configuration after successful test
+                    if (handler === 'rybbit') {
+                        window.fetchRybbitRemoteConfig();
+                    }
                 }, 1000);
             } else {
                 if (feedback) {
@@ -1666,6 +1682,142 @@ jQuery(document).ready(function ($) {
         toggleGAFields(gaCheckbox.checked);
     }
 
+    // --- Remote Configuration Fetching ---
+    window.fetchRybbitRemoteConfig = function fetchRybbitRemoteConfig() {
+        var container = $('#clickwise-remote-config-container');
+        if (container.length === 0) {
+            return; // Not on Rybbit tab
+        }
+
+        var loadingDiv = container.find('.clickwise-remote-config-loading');
+        var contentDiv = container.find('.clickwise-remote-config-content');
+        var errorDiv = container.find('.clickwise-remote-config-error');
+
+        // Show loading state
+        loadingDiv.show();
+        contentDiv.hide();
+        errorDiv.hide();
+
+        $.ajax({
+            url: clickwise_admin.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'clickwise_fetch_rybbit_config',
+                nonce: clickwise_admin.nonce
+            },
+            success: function (response) {
+                loadingDiv.hide();
+
+                if (response.success && response.data) {
+                    renderRemoteConfigSettings(response.data);
+                    contentDiv.show();
+                } else {
+                    var errorMsg = response.data || 'Failed to fetch remote configuration.';
+                    errorDiv.find('.clickwise-error-message').text('❌ ' + errorMsg);
+                    errorDiv.show();
+                }
+            },
+            error: function (xhr, status, error) {
+                loadingDiv.hide();
+                errorDiv.find('.clickwise-error-message').text('❌ Connection error: ' + error);
+                errorDiv.show();
+            }
+        });
+    }
+
+    function renderRemoteConfigSettings(config) {
+        var contentDiv = $('.clickwise-remote-config-content');
+
+        // SVG Icons for cross-platform consistency
+        var svgIcons = {
+            pageview: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
+            refresh: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>',
+            link: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+            globe: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>',
+            zap: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+            bug: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="6" width="8" height="14" rx="4"></rect><path d="m8 6-2-2"></path><path d="m16 6 2-2"></path><path d="M8 14h8"></path><path d="M8 18h8"></path><path d="m9 20-2 2"></path><path d="m15 20 2 2"></path></svg>',
+            video: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>'
+        };
+
+        // Configuration mapping with icons and descriptions
+        var settings = [
+            {
+                key: 'trackInitialPageView',
+                label: 'Track Initial Pageview',
+                description: 'Automatically track a pageview event when a page loads',
+                icon: svgIcons.pageview
+            },
+            {
+                key: 'trackSpaNavigation',
+                label: 'Track SPA Navigation',
+                description: 'Track pageviews on Single Page Application route changes',
+                icon: svgIcons.refresh
+            },
+            {
+                key: 'trackUrlParams',
+                label: 'Track URL Parameters',
+                description: 'Include URL query strings in tracked data',
+                icon: svgIcons.link
+            },
+            {
+                key: 'trackOutbound',
+                label: 'Track Outbound Links',
+                description: 'Automatically track clicks on external links',
+                icon: svgIcons.globe
+            },
+            {
+                key: 'webVitals',
+                label: 'Track Web Vitals',
+                description: 'Track Core Web Vitals performance metrics',
+                icon: svgIcons.zap
+            },
+            {
+                key: 'trackErrors',
+                label: 'Capture Errors',
+                description: 'Enable automatic error tracking',
+                icon: svgIcons.bug
+            },
+            {
+                key: 'sessionReplay',
+                label: 'Session Replay',
+                description: 'Enable session replay recording',
+                icon: svgIcons.video
+            }
+        ];
+
+        var html = '<div class="clickwise-remote-config-grid">';
+
+        settings.forEach(function (setting, index) {
+            var isEnabled = config[setting.key] === true;
+            var statusClass = isEnabled ? 'enabled' : 'disabled';
+            var statusIcon = isEnabled ? '✓' : '✗';
+            var statusText = isEnabled ? 'Enabled' : 'Disabled';
+
+            // Add staggered animation delay for smooth sequential appearance
+            var animationDelay = (index * 0.05).toFixed(2);
+
+            html += '<div class="clickwise-config-card ' + statusClass + '" style="animation-delay: ' + animationDelay + 's;">';
+            html += '  <div class="clickwise-config-icon">' + setting.icon + '</div>';
+            html += '  <div class="clickwise-config-info">';
+            html += '    <div class="clickwise-config-title">' + setting.label + '</div>';
+            html += '    <div class="clickwise-config-desc">' + setting.description + '</div>';
+            html += '  </div>';
+            html += '  <div class="clickwise-config-status ' + statusClass + '">';
+            html += '    <span class="status-icon">' + statusIcon + '</span>';
+            html += '    <span class="status-text">' + statusText + '</span>';
+            html += '  </div>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+
+        contentDiv.html(html);
+    }
+
+    // Fetch remote config when on Rybbit tab
+    if ($('#clickwise-remote-config-container').length > 0) {
+        window.fetchRybbitRemoteConfig();
+    }
 
 
 });

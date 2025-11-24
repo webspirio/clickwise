@@ -1756,6 +1756,10 @@ textarea.clickwise-error-shake {
 /* Coming Soon Overlay */
 .clickwise-coming-soon-overlay {
     position: relative;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .clickwise-coming-soon-overlay::before {
@@ -1773,14 +1777,13 @@ textarea.clickwise-error-shake {
 }
 
 .clickwise-coming-soon-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
     text-align: center;
     z-index: 11;
     padding: var(--cw-spacing-2xl);
     max-width: 500px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .clickwise-coming-soon-icon {
@@ -1808,6 +1811,7 @@ textarea.clickwise-error-shake {
     margin: 0 0 var(--cw-spacing-md) 0;
     border: none;
     padding: 0;
+    word-wrap: break-word;
 }
 
 .clickwise-coming-soon-content p {
@@ -1815,6 +1819,47 @@ textarea.clickwise-error-shake {
     font-size: 16px;
     line-height: 1.6;
     margin: 0;
+    word-wrap: break-word;
+}
+
+/* Responsive adjustments for coming soon overlay */
+@media (max-width: 768px) {
+    .clickwise-coming-soon-content {
+        padding: var(--cw-spacing-lg);
+        max-width: 90%;
+    }
+
+    .clickwise-coming-soon-icon {
+        font-size: 48px;
+        margin-bottom: var(--cw-spacing-md);
+    }
+
+    .clickwise-coming-soon-content h2 {
+        font-size: 24px;
+    }
+
+    .clickwise-coming-soon-content p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .clickwise-coming-soon-content {
+        padding: var(--cw-spacing-md);
+    }
+
+    .clickwise-coming-soon-icon {
+        font-size: 36px;
+    }
+
+    .clickwise-coming-soon-content h2 {
+        font-size: 20px;
+    }
+
+    .clickwise-coming-soon-content p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
 }
 
 /* Coming Soon Badge */
@@ -1822,13 +1867,279 @@ textarea.clickwise-error-shake {
     display: inline-flex;
     align-items: center;
     padding: 2px 8px;
-    background: linear-gradient(135deg, var(--cw-cyan-600), var(--cw-cyan-500));
-    color: white;
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--cw-cyan-300);
     font-size: 10px;
     font-weight: 600;
     border-radius: var(--cw-radius-full);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-left: 6px;
-    box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    opacity: 0.7;
+}
+
+/* Remote Configuration Styles */
+.clickwise-remote-config-container {
+    margin-top: 20px;
+}
+
+.clickwise-remote-config-loading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 30px;
+    background: var(--cw-cyan-950);
+    border-radius: var(--cw-radius-md);
+    border: 1px solid var(--cw-cyan-800);
+}
+
+.clickwise-remote-config-loading p {
+    margin: 0;
+    color: var(--cw-cyan-200);
+    font-size: 14px;
+}
+
+.clickwise-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--cw-cyan-800);
+    border-top-color: var(--cw-cyan-400);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.clickwise-remote-config-error {
+    padding: 20px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--cw-radius-md);
+    color: #fca5a5;
+}
+
+.clickwise-remote-config-error p {
+    margin: 0;
+}
+
+.clickwise-remote-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 15px;
+}
+
+.clickwise-config-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: var(--cw-cyan-950);
+    border: 1px solid var(--cw-cyan-800);
+    border-radius: var(--cw-radius-md);
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: clickwise-config-card-appear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes clickwise-config-card-appear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.clickwise-config-card:hover {
+    border-color: var(--cw-cyan-700);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.clickwise-config-card.enabled {
+    border-left: 3px solid #22c55e;
+}
+
+.clickwise-config-card.disabled {
+    border-left: 3px solid var(--cw-cyan-700);
+    opacity: 0.7;
+}
+
+.clickwise-config-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cw-cyan-900);
+    border-radius: var(--cw-radius-sm);
+    color: var(--cw-cyan-400);
+}
+
+.clickwise-config-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+}
+
+.clickwise-config-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.clickwise-config-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--cw-cyan-50);
+    margin-bottom: 4px;
+}
+
+.clickwise-config-desc {
+    font-size: 12px;
+    color: var(--cw-cyan-300);
+    line-height: 1.4;
+}
+
+.clickwise-config-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: var(--cw-radius-sm);
+    flex-shrink: 0;
+}
+
+.clickwise-config-status.enabled {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.clickwise-config-status.disabled {
+    background: rgba(107, 114, 128, 0.1);
+}
+
+.clickwise-config-status .status-icon {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.clickwise-config-status.enabled .status-icon {
+    color: #22c55e;
+}
+
+.clickwise-config-status.disabled .status-icon {
+    color: var(--cw-cyan-600);
+}
+
+.clickwise-config-status .status-text {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clickwise-config-status.enabled .status-text {
+    color: #22c55e;
+}
+
+.clickwise-config-status.disabled .status-text {
+    color: var(--cw-cyan-500);
+}
+
+.clickwise-remote-config-notice {
+    padding: 15px 20px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: var(--cw-radius-md);
+    margin-top: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .clickwise-remote-config-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .clickwise-config-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .clickwise-config-status {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Event Manager Table - Dynamic Column Widths */
+.clickwise-events-table {
+    table-layout: auto !important;
+}
+
+.clickwise-events-table th,
+.clickwise-events-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Checkbox column - minimal width */
+.clickwise-events-table .check-column {
+    width: 40px;
+}
+
+/* Event Name column - allow more space */
+.clickwise-events-table th:nth-child(2),
+.clickwise-events-table td:nth-child(2) {
+    min-width: 150px;
+    max-width: 250px;
+}
+
+/* Original Name column */
+.clickwise-events-table th:nth-child(3),
+.clickwise-events-table td:nth-child(3) {
+    min-width: 120px;
+    max-width: 200px;
+}
+
+/* Type column - compact */
+.clickwise-events-table th:nth-child(4),
+.clickwise-events-table td:nth-child(4) {
+    width: 80px;
+}
+
+/* Selector column - allow wrapping for long selectors */
+.clickwise-events-table th:nth-child(5),
+.clickwise-events-table td:nth-child(5) {
+    min-width: 200px;
+    max-width: 400px;
+    white-space: normal;
+    word-break: break-all;
+}
+
+/* Actions column - fixed width for buttons */
+.clickwise-events-table th:nth-child(6),
+.clickwise-events-table td:nth-child(6) {
+    width: 200px;
+    text-align: right;
+}
+
+/* Button group styling */
+.clickwise-events-table .button-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
