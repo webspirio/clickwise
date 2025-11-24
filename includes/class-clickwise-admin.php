@@ -367,6 +367,51 @@ class Clickwise_Admin {
 		}
 	}
 
+	public function ajax_fetch_rybbit_config() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Permission denied' );
+		}
+
+		$script_url = get_option( 'clickwise_rybbit_script_url', '' );
+		$site_id = get_option( 'clickwise_rybbit_site_id', '' );
+
+		if ( empty( $script_url ) || empty( $site_id ) ) {
+			wp_send_json_error( 'Script URL and Site ID must be configured first.' );
+		}
+
+		// Extract base URL from script URL (remove /api/script.js)
+		$base_url = preg_replace( '#/api/script\.js$#', '', $script_url );
+		$config_url = $base_url . '/api/site/' . $site_id . '/tracking-config';
+
+		$response = wp_remote_get( $config_url, array( 
+			'timeout' => 10,
+			'headers' => array(
+				'Accept' => 'application/json',
+			)
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( 'Failed to fetch configuration: ' . $response->get_error_message() );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+
+		if ( $code !== 200 ) {
+			wp_send_json_error( 'Failed to fetch configuration. HTTP Status: ' . $code );
+		}
+
+		$config = json_decode( $body, true );
+
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			wp_send_json_error( 'Invalid JSON response from server.' );
+		}
+
+		wp_send_json_success( $config );
+	}
+
 	public function add_settings_link( $links ) {
 		$settings_link = '<a href="options-general.php?page=clickwise-settings">Settings</a>';
 		array_unshift( $links, $settings_link );
@@ -387,10 +432,7 @@ class Clickwise_Admin {
 
 		// --- General Settings ---
 		// (Handler settings moved to handlers tab)
-		register_setting( 'clickwise-settings-general', 'clickwise_track_pgv' );
-		register_setting( 'clickwise-settings-general', 'clickwise_track_spa' );
-		register_setting( 'clickwise-settings-general', 'clickwise_track_query' );
-		register_setting( 'clickwise-settings-general', 'clickwise_track_errors' );
+		// Removed: track_pgv, track_spa, track_query, track_errors (now controlled by Rybbit remote config)
 		register_setting( 'clickwise-settings-general', 'clickwise_dev_mode' );
 		register_setting( 'clickwise-settings-general', 'clickwise_ignore_admin' );
 
@@ -418,6 +460,8 @@ class Clickwise_Admin {
 
 		add_settings_field( 'clickwise_rybbit_test', 'Test Connection', array( $this, 'render_rybbit_test_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
 
+	add_settings_field( 'clickwise_rybbit_remote_config', 'Remote Configuration', array( $this, 'render_rybbit_remote_config_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+
 		// --- Tab: Google Analytics Handler ---
 		add_settings_section( 'clickwise_ga_section', 'Google Analytics 4 Configuration', array( $this, 'render_ga_section_description' ), 'clickwise-settings-google-analytics' );
 
@@ -432,26 +476,8 @@ class Clickwise_Admin {
 		// --- Tab: General ---
 		add_settings_section( 'clickwise_general_section', 'General Configuration', null, 'clickwise-settings-general' );
 
-		add_settings_field( 'clickwise_track_pgv', 'Pageviews', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_track_pgv', 
-			'label' => 'Track initial pageview',
-			'desc' => 'Automatically track a pageview event when a page loads. Disable this if you want to manually trigger pageviews.'
-		) );
-		add_settings_field( 'clickwise_track_spa', 'SPA Support', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_track_spa', 
-			'label' => 'Track virtual pageviews on History API changes',
-			'desc' => 'Enable this for Single Page Applications (SPAs) to track pageviews when the URL changes without a full reload.'
-		) );
-		add_settings_field( 'clickwise_track_query', 'Query Parameters', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_track_query', 
-			'label' => 'Include URL query parameters in tracking',
-			'desc' => 'If enabled, the full URL with query parameters (e.g., ?utm_source=google) will be recorded. Useful for marketing attribution.'
-		) );
-		add_settings_field( 'clickwise_track_errors', 'JavaScript Errors', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_track_errors', 
-			'label' => 'Automatically track JavaScript errors',
-			'desc' => 'Capture uncaught JavaScript exceptions and send them as error events to Rybbit.'
-		) );
+		// Removed: Pageviews, SPA Support, Query Parameters, JavaScript Errors
+	// These settings are now controlled by Rybbit's remote configuration
 		add_settings_field( 'clickwise_dev_mode', 'Debug Mode', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
 			'id' => 'clickwise_dev_mode', 
 			'label' => 'Enable Developer Mode',
@@ -1750,6 +1776,41 @@ class Clickwise_Admin {
 		<p class="description">
 			Verify your configuration and send test events to Rybbit.
 			<strong>💡 Tip:</strong> Visit the <a href="?page=clickwise-settings&tab=sandbox">Sandbox tab</a> to send custom test events and experiment with different data!
+		</p>
+		<?php
+	}
+
+	public function render_rybbit_remote_config_field() {
+		$enabled = get_option( 'clickwise_rybbit_enabled' );
+		$script_url = get_option( 'clickwise_rybbit_script_url', '' );
+		$site_id = get_option( 'clickwise_rybbit_site_id', '' );
+		
+		if ( ! $enabled || empty( $script_url ) || empty( $site_id ) ) {
+			?>
+			<div class="clickwise-remote-config-notice">
+				<p style="color: var(--cw-cyan-300); margin: 0;">
+					⚠️ Configure and enable Rybbit Analytics above to view remote configuration settings.
+				</p>
+			</div>
+			<?php
+			return;
+		}
+		?>
+		<div id="clickwise-remote-config-container" class="clickwise-remote-config-container">
+			<div class="clickwise-remote-config-loading">
+				<div class="clickwise-spinner"></div>
+				<p>Loading remote configuration from Rybbit...</p>
+			</div>
+			<div class="clickwise-remote-config-content" style="display: none;">
+				<!-- Content will be populated by JavaScript -->
+			</div>
+			<div class="clickwise-remote-config-error" style="display: none;">
+				<p class="clickwise-error-message"></p>
+			</div>
+		</div>
+		<p class="description">
+			These settings are controlled through your <strong>Rybbit dashboard</strong> and cannot be changed here. 
+			They are fetched in real-time from your Rybbit instance.
 		</p>
 		<?php
 	}

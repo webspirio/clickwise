@@ -106,6 +106,7 @@ class Clickwise_Analytics {
 		add_action( 'wp_ajax_clickwise_dismiss_service_notice', array( $plugin_admin, 'ajax_dismiss_service_notice' ) );
 		add_action( 'wp_ajax_clickwise_test_form_feedback', array( $plugin_admin, 'ajax_test_form_feedback' ) );
 		add_action( 'wp_ajax_clickwise_untrack_event', array( $plugin_admin, 'ajax_untrack_event' ) );
+		add_action( 'wp_ajax_clickwise_fetch_rybbit_config', array( $plugin_admin, 'ajax_fetch_rybbit_config' ) );
 		
 		add_action( 'admin_footer', array( $this, 'print_queued_events' ) );
 	}
