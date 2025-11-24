@@ -75,624 +75,237 @@ class Clickwise_Admin {
 		// Enqueue on settings page AND frontend (for admin bar)
 		if ( 'settings_page_clickwise-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-			wp_enqueue_style( 'clickwise-admin-css', CLICKWISE_URL . 'assets/css/clickwise-admin.css', array(), CLICKWISE_VERSION );
-			wp_enqueue_style( 'clickwise-admin-bar-css', CLICKWISE_URL . 'assets/css/clickwise-admin-bar.css', array(), CLICKWISE_VERSION );
-			wp_enqueue_style( 'clickwise-pattern-ui-css', CLICKWISE_URL . 'assets/css/clickwise-pattern-ui.css', array(), CLICKWISE_VERSION );
-			wp_enqueue_style( 'clickwise-event-rules-css', CLICKWISE_URL . 'assets/css/clickwise-event-rules.css', array(), CLICKWISE_VERSION );
-			wp_enqueue_style( 'clickwise-form-feedback-css', CLICKWISE_URL . 'assets/css/clickwise-form-feedback.css', array(), CLICKWISE_VERSION );
-			wp_enqueue_style( 'clickwise-google-fonts', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap', array(), null );
-			wp_enqueue_script( 'clickwise-admin', CLICKWISE_URL . 'assets/js/clickwise-admin.js', array( 'jquery' ), CLICKWISE_VERSION, true );
-			wp_enqueue_script( 'clickwise-pattern-ui', CLICKWISE_URL . 'assets/js/clickwise-pattern-ui.js', array( 'jquery' ), CLICKWISE_VERSION, true );
-			wp_enqueue_script( 'clickwise-event-rules', CLICKWISE_URL . 'assets/js/clickwise-event-rules.js', array( 'jquery' ), CLICKWISE_VERSION, true );
-			wp_enqueue_script( 'clickwise-tab-transitions', CLICKWISE_URL . 'assets/js/clickwise-tab-transitions.js', array( 'jquery' ), CLICKWISE_VERSION, true );
-			wp_enqueue_script( 'clickwise-form-feedback', CLICKWISE_URL . 'assets/js/clickwise-form-feedback.js', array( 'jquery' ), CLICKWISE_VERSION, true );
-				wp_localize_script( 'clickwise-admin', 'clickwise_admin', array(
-					'ajax_url' => admin_url( 'admin-ajax.php' ),
+				
+				$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
+				// Auto-detect dev mode if localhost:5173 is reachable (optional, but manual constant is safer for now)
+				// For this environment, let's assume dev mode if the constant is not defined but we are in a local env
+				if ( ! defined( 'CLICKWISE_REACT_DEV' ) && ( wp_get_environment_type() === 'local' || wp_get_environment_type() === 'development' ) ) {
+					$is_dev = true;
+				}
+
+				if ( $is_dev ) {
+					// Vite Dev Server
+					wp_enqueue_script( 'clickwise-vite-client', 'http://localhost:5173/@vite/client', array(), null, true );
+					wp_enqueue_script( 'clickwise-react-app', 'http://localhost:5173/src/main.tsx', array( 'clickwise-vite-client' ), null, true );
+				} else {
+					// Production Build
+					$manifest_path = CLICKWISE_PATH . 'assets/dist/.vite/manifest.json';
+					if ( file_exists( $manifest_path ) ) {
+						$manifest = json_decode( file_get_contents( $manifest_path ), true );
+						if ( isset( $manifest['src/main.tsx'] ) ) {
+							$entry = $manifest['src/main.tsx'];
+							wp_enqueue_script( 'clickwise-react-app', CLICKWISE_URL . 'assets/dist/' . $entry['file'], array(), CLICKWISE_VERSION, true );
+							if ( isset( $entry['css'] ) ) {
+								foreach ( $entry['css'] as $css_file ) {
+									wp_enqueue_style( 'clickwise-react-css', CLICKWISE_URL . 'assets/dist/' . $css_file, array(), CLICKWISE_VERSION );
+								}
+							}
+						}
+					}
+				}
+
+				// Pass data to React
+				wp_localize_script( 'clickwise-react-app', 'clickwiseSettings', array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
-					'events'   => $this->get_events_for_admin_js(),
-					'script_url' => get_option( 'clickwise_script_url' ),
-					'site_id'    => get_option( 'clickwise_site_id' )
+					'restUrl' => esc_url_raw( rest_url() ),
+					'restNonce' => wp_create_nonce( 'wp_rest' ),
+					'scriptUrl' => get_option( 'clickwise_script_url' ),
+					'siteId'    => get_option( 'clickwise_site_id' ),
+					'currentUser' => wp_get_current_user(),
+					'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
+					'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+					'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
 				) );
+
+				// Add module type for Vite scripts
+				add_filter( 'script_loader_tag', array( $this, 'add_type_attribute' ), 10, 3 );
 			}
 		}
 	}
 
-	public function ajax_toggle_recording() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
+	public function add_type_attribute( $tag, $handle, $src ) {
+		if ( 'clickwise-vite-client' === $handle || 'clickwise-react-app' === $handle ) {
+			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>';
 		}
-
-		$user_id = get_current_user_id();
-		$current = get_user_meta( $user_id, 'clickwise_recording_mode', true );
-		$new_state = ! $current;
-		
-		update_user_meta( $user_id, 'clickwise_recording_mode', $new_state );
-
-		if ( $new_state ) {
-			// Start new session
-			$session_id = uniqid( 'sess_' );
-			update_user_meta( $user_id, 'clickwise_current_session_id', $session_id );
-			update_user_meta( $user_id, 'clickwise_current_session_start', time() );
-		}
-
-		wp_send_json_success( $new_state );
-	}
-
-	public function ajax_record_event() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$event_data = isset( $_POST['event'] ) ? $_POST['event'] : array();
-		if ( empty( $event_data ) || empty( $event_data['type'] ) || empty( $event_data['detail'] ) ) {
-			wp_send_json_error( 'Invalid event data' );
-		}
-
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'clickwise_events';
-
-		$type     = sanitize_text_field( $event_data['type'] );
-		$detail   = $event_data['detail']; // Already an object/array from JS
-		$selector = isset( $event_data['selector'] ) ? sanitize_text_field( $event_data['selector'] ) : '';
-		
-		$name = isset( $event_data['name'] ) ? sanitize_text_field( $event_data['name'] ) : $type;
-
-		// Generate a unique key for the event based on type and selector (or name if custom)
-		// For clicks/forms, selector is key. For custom events, type is key.
-		$key_string = $type . '|' . $selector;
-		$event_key  = md5( $key_string );
-
-		// Check if exists
-		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_key = %s", $event_key ), ARRAY_A );
-
-		$now = current_time( 'mysql' );
-		
-		// Use provided session ID or generate new one
-		$session_id = isset( $_POST['session_id'] ) && ! empty( $_POST['session_id'] ) 
-			? sanitize_text_field( $_POST['session_id'] ) 
-			: uniqid( 'sess_' );
-
-		if ( $existing ) {
-			// Update last seen
-			$wpdb->update(
-				$table_name,
-				array(
-					'last_seen' => $now,
-					'example_detail' => json_encode( $detail ), // Update example with latest
-					// Optionally update name if it was generic before? 
-					// Let's update name if the existing one is just the type (generic) and we have a better one now
-					'name' => ($existing['name'] === $existing['type'] && $name !== $type) ? $name : $existing['name'],
-					'session_id' => $session_id,
-					'session_timestamp' => time()
-				),
-				array( 'id' => $existing['id'] )
-			);
-			$status = $existing['status'];
-		} else {
-			// Insert new
-			$wpdb->insert(
-				$table_name,
-				array(
-					'event_key'      => $event_key,
-					'type'           => $type,
-					'name'           => $name,
-					'alias'          => '',
-					'selector'       => $selector,
-					'status'         => 'pending',
-					'first_seen'     => $now,
-					'last_seen'      => $now,
-					'example_detail' => json_encode( $detail ),
-					'session_id'     => $session_id,
-					'session_timestamp' => time()
-				)
-			);
-			$status = 'pending';
-		}
-
-		wp_send_json_success( array( 'status' => $status, 'key' => $event_key ) );
-	}
-
-	public function ajax_update_event_status() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$key    = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
-		$status = isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : '';
-		$alias  = isset( $_POST['alias'] ) ? sanitize_text_field( $_POST['alias'] ) : '';
-
-		if ( empty( $key ) || empty( $status ) ) {
-			wp_send_json_error( 'Missing parameters' );
-		}
-
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'clickwise_events';
-
-		$data = array( 'status' => $status );
-		if ( isset( $_POST['alias'] ) ) {
-			$data['alias'] = $alias;
-		}
-
-		$updated = $wpdb->update(
-			$table_name,
-			$data,
-			array( 'event_key' => $key )
-		);
-
-		if ( $updated !== false ) {
-			wp_send_json_success( 'Event updated' );
-		} else {
-			wp_send_json_error( 'Update failed' );
-		}
-	}
-
-	public function ajax_untrack_event() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
-		$action = isset( $_POST['action_type'] ) ? sanitize_text_field( $_POST['action_type'] ) : 'untrack';
-
-		if ( empty( $key ) ) {
-			wp_send_json_error( 'Missing event key' );
-		}
-
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'clickwise_events';
-
-		// Determine new status based on action
-		if ( $action === 'untrack' ) {
-			$new_status = 'ignored';
-			$success_message = 'Event untracked successfully';
-		} else {
-			$new_status = 'tracked';
-			$success_message = 'Event tracked successfully';
-		}
-
-		// Update the status
-		$updated = $wpdb->update(
-			$table_name,
-			array( 'status' => $new_status ),
-			array( 'event_key' => $key )
-		);
-
-		if ( $updated !== false ) {
-			wp_send_json_success( array(
-				'message' => $success_message,
-				'new_status' => $new_status,
-				'new_action' => $new_status === 'tracked' ? 'untrack' : 'track',
-				'new_text' => $new_status === 'tracked' ? 'Untrack' : 'Track'
-			) );
-		} else {
-			wp_send_json_error( 'Status update failed' );
-		}
-	}
-
-	public function ajax_delete_session() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : '';
-
-		if ( empty( $session_id ) ) {
-			wp_send_json_error( 'Missing session ID' );
-		}
-
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'clickwise_events';
-
-		// 1. Unlink tracked events from this session (preserve them)
-		$wpdb->query( $wpdb->prepare( 
-			"UPDATE $table_name SET session_id = NULL, session_timestamp = NULL WHERE session_id = %s AND status = 'tracked'", 
-			$session_id 
-		) );
-
-		// 2. Delete non-tracked events from this session
-		$wpdb->query( $wpdb->prepare( 
-			"DELETE FROM $table_name WHERE session_id = %s", 
-			$session_id 
-		) );
-
-		wp_send_json_success( 'Session deleted' );
-	}
-
-	public function ajax_bulk_action() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$action = isset( $_POST['bulk_action'] ) ? sanitize_text_field( $_POST['bulk_action'] ) : '';
-		$keys   = isset( $_POST['keys'] ) ? $_POST['keys'] : array();
-
-		// Debug logging
-		error_log( 'Clickwise Bulk Action - Action: ' . $action );
-		error_log( 'Clickwise Bulk Action - Keys: ' . print_r( $keys, true ) );
-
-		if ( empty( $action ) || empty( $keys ) || ! is_array( $keys ) ) {
-			wp_send_json_error( 'Invalid request - Action: ' . $action . ', Keys count: ' . count( $keys ) );
-		}
-
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'clickwise_events';
-
-		$sanitized_keys = array_map( 'sanitize_text_field', $keys );
-		// Prepare IN clause
-		$placeholders = implode( ',', array_fill( 0, count( $sanitized_keys ), '%s' ) );
-
-		if ( $action === 'delete' ) {
-			$sql = "DELETE FROM $table_name WHERE event_key IN ($placeholders)";
-			$result = $wpdb->query( $wpdb->prepare( $sql, $sanitized_keys ) );
-			error_log( 'Clickwise Bulk Delete - Affected rows: ' . $result );
-
-			if ( $result === false ) {
-				wp_send_json_error( 'Database error during delete: ' . $wpdb->last_error );
-			}
-		} elseif ( in_array( $action, array( 'tracked', 'ignored', 'pending' ) ) ) {
-			// Map action values to status values
-			$status = $action;
-			if ( $action === 'tracked' ) {
-				$status = 'tracked';
-			} elseif ( $action === 'ignored' ) {
-				$status = 'ignored';
-			}
-
-			$sql = "UPDATE $table_name SET status = %s WHERE event_key IN ($placeholders)";
-			$params = array_merge( array( $status ), $sanitized_keys );
-			$result = $wpdb->query( $wpdb->prepare( $sql, $params ) );
-			error_log( 'Clickwise Bulk Update - Status: ' . $status . ', Affected rows: ' . $result );
-
-			if ( $result === false ) {
-				wp_send_json_error( 'Database error during update: ' . $wpdb->last_error );
-			}
-		} else {
-			wp_send_json_error( 'Invalid action: ' . $action );
-		}
-
-		$message = $action === 'delete' ? 'Events deleted successfully' : 'Events updated successfully';
-		wp_send_json_success( $message );
-	}
-
-	public function ajax_test_connection() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$url = isset( $_POST['url'] ) ? esc_url_raw( $_POST['url'] ) : '';
-
-		if ( empty( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-			wp_send_json_error( 'Invalid URL' );
-		}
-
-		$response = wp_remote_head( $url, array( 'timeout' => 5 ) );
-
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( 'Connection failed: ' . $response->get_error_message() );
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-
-		if ( $code >= 200 && $code < 300 ) {
-			wp_send_json_success( 'Connection successful! Script found.' );
-		} else {
-			wp_send_json_error( 'Connection failed. HTTP Status: ' . $code );
-		}
-	}
-
-	public function ajax_fetch_rybbit_config() {
-		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Permission denied' );
-		}
-
-		$script_url = get_option( 'clickwise_rybbit_script_url', '' );
-		$site_id = get_option( 'clickwise_rybbit_site_id', '' );
-
-		if ( empty( $script_url ) || empty( $site_id ) ) {
-			wp_send_json_error( 'Script URL and Site ID must be configured first.' );
-		}
-
-		// Extract base URL from script URL (remove /api/script.js)
-		$base_url = preg_replace( '#/api/script\.js$#', '', $script_url );
-		$config_url = $base_url . '/api/site/' . $site_id . '/tracking-config';
-
-		$response = wp_remote_get( $config_url, array( 
-			'timeout' => 10,
-			'headers' => array(
-				'Accept' => 'application/json',
-			)
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( 'Failed to fetch configuration: ' . $response->get_error_message() );
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-
-		if ( $code !== 200 ) {
-			wp_send_json_error( 'Failed to fetch configuration. HTTP Status: ' . $code );
-		}
-
-		$config = json_decode( $body, true );
-
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			wp_send_json_error( 'Invalid JSON response from server.' );
-		}
-
-		wp_send_json_success( $config );
-	}
-
-	public function add_settings_link( $links ) {
-		$settings_link = '<a href="options-general.php?page=clickwise-settings">Settings</a>';
-		array_unshift( $links, $settings_link );
-		return $links;
+		return $tag;
 	}
 
 	public function register_settings() {
 		// --- Rybbit Handler Settings ---
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version' );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version', array( 'show_in_rest' => true ) );
 
-		// --- Google Analytics Handler Settings ---
-		register_setting( 'clickwise-settings-google-analytics', 'clickwise_ga_enabled' );
-		register_setting( 'clickwise-settings-google-analytics', 'clickwise_ga_measurement_id' );
-		register_setting( 'clickwise-settings-google-analytics', 'clickwise_ga_api_secret' );
+		add_settings_section(
+			'clickwise_rybbit_section',
+			'Rybbit Analytics',
+			array( $this, 'render_rybbit_section_description' ),
+			'clickwise-settings-rybbit'
+		);
 
-		// --- General Settings ---
-		// (Handler settings moved to handlers tab)
-		// Removed: track_pgv, track_spa, track_query, track_errors (now controlled by Rybbit remote config)
-		register_setting( 'clickwise-settings-general', 'clickwise_dev_mode' );
-		register_setting( 'clickwise-settings-general', 'clickwise_ignore_admin' );
+		add_settings_field(
+			'clickwise_rybbit_enabled',
+			'Enable Rybbit',
+			array( $this, 'render_rybbit_enabled_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
 
-		// --- Events Settings ---
-		register_setting( 'clickwise-settings-events', 'clickwise_event_prefixes' );
-		register_setting( 'clickwise-settings-events', 'clickwise_track_forms' );
-		register_setting( 'clickwise-settings-events', 'clickwise_track_links' );
+		add_settings_field(
+			'clickwise_rybbit_script_url',
+			'Script URL',
+			array( $this, 'render_rybbit_script_url_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
 
-		// --- Advanced Settings ---
-		register_setting( 'clickwise-settings-advanced', 'clickwise_skip_patterns' );
-		register_setting( 'clickwise-settings-advanced', 'clickwise_mask_patterns' );
-		register_setting( 'clickwise-settings-advanced', 'clickwise_debounce' );
-		register_setting( 'clickwise-settings-advanced', 'clickwise_session_replay' );
+		add_settings_field(
+			'clickwise_rybbit_site_id',
+			'Site ID',
+			array( $this, 'render_rybbit_site_id_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
 
-		// --- Tab: Rybbit Handler ---
-		add_settings_section( 'clickwise_rybbit_section', 'Rybbit Analytics Configuration', array( $this, 'render_rybbit_section_description' ), 'clickwise-settings-rybbit' );
+		add_settings_field(
+			'clickwise_rybbit_api_version',
+			'API Version',
+			array( $this, 'render_rybbit_api_version_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
 
-		add_settings_field( 'clickwise_rybbit_enabled', 'Enable Rybbit Analytics', array( $this, 'render_rybbit_enabled_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+		add_settings_field(
+			'clickwise_rybbit_test',
+			'Test Connection',
+			array( $this, 'render_rybbit_test_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
+		
+		add_settings_field(
+			'clickwise_rybbit_remote_config',
+			'Remote Configuration',
+			array( $this, 'render_rybbit_remote_config_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section'
+		);
 
-		add_settings_field( 'clickwise_rybbit_script_url', 'Script URL', array( $this, 'render_rybbit_script_url_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
 
-		add_settings_field( 'clickwise_rybbit_site_id', 'Site ID', array( $this, 'render_rybbit_site_id_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+		// --- Google Analytics Settings ---
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_enabled', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_measurement_id', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_api_secret', array( 'show_in_rest' => true ) );
 
-		add_settings_field( 'clickwise_rybbit_api_version', 'API Version', array( $this, 'render_rybbit_api_version_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+		add_settings_section(
+			'clickwise_ga_section',
+			'Google Analytics 4',
+			array( $this, 'render_ga_section_description' ),
+			'clickwise-settings-ga'
+		);
 
-		add_settings_field( 'clickwise_rybbit_test', 'Test Connection', array( $this, 'render_rybbit_test_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+		add_settings_field(
+			'clickwise_ga_enabled',
+			'Enable GA4',
+			array( $this, 'render_ga_enabled_field' ),
+			'clickwise-settings-ga',
+			'clickwise_ga_section'
+		);
 
-	add_settings_field( 'clickwise_rybbit_remote_config', 'Remote Configuration', array( $this, 'render_rybbit_remote_config_field' ), 'clickwise-settings-rybbit', 'clickwise_rybbit_section' );
+		add_settings_field(
+			'clickwise_ga_measurement_id',
+			'Measurement ID',
+			array( $this, 'render_ga_measurement_id_field' ),
+			'clickwise-settings-ga',
+			'clickwise_ga_section'
+		);
 
-		// --- Tab: Google Analytics Handler ---
-		add_settings_section( 'clickwise_ga_section', 'Google Analytics 4 Configuration', array( $this, 'render_ga_section_description' ), 'clickwise-settings-google-analytics' );
+		add_settings_field(
+			'clickwise_ga_api_secret',
+			'API Secret',
+			array( $this, 'render_ga_api_secret_field' ),
+			'clickwise-settings-ga',
+			'clickwise_ga_section'
+		);
 
-		add_settings_field( 'clickwise_ga_enabled', 'Enable Google Analytics 4', array( $this, 'render_ga_enabled_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+		add_settings_field(
+			'clickwise_ga_test',
+			'Test Connection',
+			array( $this, 'render_ga_test_field' ),
+			'clickwise-settings-ga',
+			'clickwise_ga_section'
+		);
 
-		add_settings_field( 'clickwise_ga_measurement_id', 'Measurement ID', array( $this, 'render_ga_measurement_id_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
 
-		add_settings_field( 'clickwise_ga_api_secret', 'API Secret (Optional)', array( $this, 'render_ga_api_secret_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+		// --- General Settings (Legacy/Fallback) ---
+		register_setting( 'clickwise-settings-general', 'clickwise_script_url', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-general', 'clickwise_site_id', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-general', 'clickwise_api_version', array( 'show_in_rest' => true ) );
 
-		add_settings_field( 'clickwise_ga_test', 'Test Connection', array( $this, 'render_ga_test_field' ), 'clickwise-settings-google-analytics', 'clickwise_ga_section' );
+		add_settings_section(
+			'clickwise_general_section',
+			'General Settings',
+			null,
+			'clickwise-settings-general'
+		);
 
-		// --- Tab: General ---
-		add_settings_section( 'clickwise_general_section', 'General Configuration', null, 'clickwise-settings-general' );
+		add_settings_field(
+			'clickwise_script_url',
+			'Script URL',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-general',
+			'clickwise_general_section',
+			array( 'id' => 'clickwise_script_url', 'desc' => 'Legacy setting (use Rybbit tab)' )
+		);
 
-		// Removed: Pageviews, SPA Support, Query Parameters, JavaScript Errors
-	// These settings are now controlled by Rybbit's remote configuration
-		add_settings_field( 'clickwise_dev_mode', 'Debug Mode', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_dev_mode', 
-			'label' => 'Enable Developer Mode',
-			'desc' => 'Log all tracking events to the browser console for debugging purposes.'
-		) );
-		add_settings_field( 'clickwise_ignore_admin', 'Ignore Admin Interface', array( $this, 'render_checkbox_field' ), 'clickwise-settings-general', 'clickwise_general_section', array( 
-			'id' => 'clickwise_ignore_admin', 
-			'label' => 'Ignore interactions with Admin Bar and Plugin UI',
-			'desc' => 'Prevents tracking of clicks on the WordPress Admin Bar and Clickwise Recorder interface.'
-		) );
+		add_settings_field(
+			'clickwise_site_id',
+			'Site ID',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-general',
+			'clickwise_general_section',
+			array( 'id' => 'clickwise_site_id', 'desc' => 'Legacy setting (use Rybbit tab)' )
+		);
 
-		// Note: Handler-specific settings are now in the Handlers tab
 
-		// --- Tab: Events & Forms ---
-		add_settings_section( 'clickwise_events_section', 'Events & Interactions', null, 'clickwise-settings-events' );
+		// --- Events & Forms Settings ---
+		register_setting( 'clickwise-settings-events', 'clickwise_event_patterns', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-events', 'clickwise_event_rules', array( 'show_in_rest' => true ) );
 
-		add_settings_field( 'clickwise_event_prefixes', 'Custom Event Rules', array( $this, 'render_event_rules_field' ), 'clickwise-settings-events', 'clickwise_events_section', array(
-			'id' => 'clickwise_event_prefixes',
-			'desc' => 'Define flexible rules to automatically track events. Support for prefixes, contains, patterns, exact matches, and regex.'
-		) );
-		add_settings_field( 'clickwise_track_forms', 'Form Submissions', array( $this, 'render_checkbox_field' ), 'clickwise-settings-events', 'clickwise_events_section', array( 
-			'id' => 'clickwise_track_forms', 
-			'label' => 'Automatically track form submissions',
-			'desc' => 'Detects standard HTML form submissions and records them as events.'
-		) );
-		add_settings_field( 'clickwise_track_links', 'Outbound Links', array( $this, 'render_checkbox_field' ), 'clickwise-settings-events', 'clickwise_events_section', array( 
-			'id' => 'clickwise_track_links', 
-			'label' => 'Track clicks on external links',
-			'desc' => 'Records clicks on links that lead to other domains.'
-		) );
+		add_settings_section(
+			'clickwise_events_section',
+			'Events & Forms',
+			null,
+			'clickwise-settings-events'
+		);
 
-		// --- Tab: Advanced ---
-		add_settings_section( 'clickwise_advanced_section', 'Advanced Configuration', null, 'clickwise-settings-advanced' );
+		add_settings_field(
+			'clickwise_event_patterns',
+			'URL Patterns',
+			array( $this, 'render_pattern_list_field' ),
+			'clickwise-settings-events',
+			'clickwise_events_section',
+			array( 'id' => 'clickwise_event_patterns', 'desc' => 'Define URL patterns to include/exclude.' )
+		);
 
-		add_settings_field( 'clickwise_skip_patterns', 'Skip Patterns', array( $this, 'render_pattern_list_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
-			'id' => 'clickwise_skip_patterns', 
-			'desc' => 'URL patterns to exclude from tracking. Use * for wildcards (e.g., /admin/*).' 
-		) );
-		add_settings_field( 'clickwise_mask_patterns', 'Mask Patterns', array( $this, 'render_pattern_list_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
-			'id' => 'clickwise_mask_patterns', 
-			'desc' => 'URL patterns to mask/anonymize in reports (e.g., /user/*).' 
-		) );
-		add_settings_field( 'clickwise_debounce', 'Debounce (ms)', array( $this, 'render_text_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
-			'id' => 'clickwise_debounce', 
-			'type' => 'number',
-			'desc' => 'Delay in milliseconds before sending events (default: 500).'
-		) );
-		add_settings_field( 'clickwise_session_replay', 'Session Replay', array( $this, 'render_checkbox_field' ), 'clickwise-settings-advanced', 'clickwise_advanced_section', array( 
-			'id' => 'clickwise_session_replay', 
-			'label' => 'Enable session replay recording (High resource usage)',
-			'desc' => 'Records user interactions for session replay. <strong>Warning:</strong> This can increase bandwidth usage and impact client performance.'
-		) );
+		add_settings_field(
+			'clickwise_event_rules',
+			'Event Rules',
+			array( $this, 'render_event_rules_field' ),
+			'clickwise-settings-events',
+			'clickwise_events_section',
+			array( 'id' => 'clickwise_event_rules', 'desc' => 'Define rules for auto-tracking events.' )
+		);
 	}
 
 	public function display_options_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'general';
 		?>
-		<div class="clickwise-admin-wrapper">
-			<div class="clickwise-header">
-				<div class="clickwise-brand">
-					<div class="clickwise-logo-icon">
-						<?php
-						$logo_path = CLICKWISE_PATH . 'assets/images/logo-transparent-full-256x256.svg';
-						if ( file_exists( $logo_path ) ) {
-							$svg_content = file_get_contents( $logo_path );
-							// Add ID and style to the SVG tag
-							echo str_replace( '<svg', '<svg id="clickwise-admin-logo" style="width: 64px; height: 64px;"', $svg_content );
-						}
-						?>
-					</div>
-					<div class="clickwise-title-group">
-						<h1>Clickwise</h1>
-						<span class="clickwise-subtitle">WordPress Event Tracking Plugin</span>
-					</div>
-				</div>
-				<div class="clickwise-header-actions">
-					<a href="https://webspirio.com/contact" target="_blank" class="button button-primary clickwise-header-btn">Get a free quote</a>
-				</div>
-			</div>
-
-			<div class="clickwise-nav-container">
-				<nav class="clickwise-nav">
-					<a href="?page=clickwise-settings&tab=rybbit" class="clickwise-nav-item <?php echo $active_tab == 'rybbit' ? 'active' : ''; ?>">
-						<?php
-						$rybbit_enabled = get_option( 'clickwise_rybbit_enabled' );
-						echo $rybbit_enabled ? '<span class="status-dot active"></span>' : '<span class="status-dot"></span>';
-						?>
-						Rybbit
-					</a>
-					<a href="?page=clickwise-settings&tab=google_analytics" class="clickwise-nav-item <?php echo $active_tab == 'google_analytics' ? 'active' : ''; ?>">
-						<?php
-						$ga_enabled = get_option( 'clickwise_ga_enabled' );
-						echo $ga_enabled ? '<span class="status-dot active"></span>' : '<span class="status-dot"></span>';
-						?>
-						GA4
-						<span class="coming-soon-badge">Coming Soon</span>
-					</a>
-					<a href="?page=clickwise-settings&tab=general" class="clickwise-nav-item <?php echo $active_tab == 'general' ? 'active' : ''; ?>">General</a>
-					<a href="?page=clickwise-settings&tab=events" class="clickwise-nav-item <?php echo $active_tab == 'events' ? 'active' : ''; ?>">Events & Forms</a>
-					<a href="?page=clickwise-settings&tab=events_manager" class="clickwise-nav-item <?php echo $active_tab == 'events_manager' ? 'active' : ''; ?>">Event Manager</a>
-					<a href="?page=clickwise-settings&tab=sandbox" class="clickwise-nav-item <?php echo $active_tab == 'sandbox' ? 'active' : ''; ?>">Sandbox</a>
-					<a href="?page=clickwise-settings&tab=advanced" class="clickwise-nav-item <?php echo $active_tab == 'advanced' ? 'active' : ''; ?>">Advanced</a>
-				</nav>
-			</div>
-
-			<?php if ( ! get_user_meta( get_current_user_id(), 'clickwise_dismiss_service_notice', true ) ) : ?>
-			<div id="clickwise-service-notice" class="clickwise-notice">
-				<div class="clickwise-notice-content">
-					<p><strong>External Service Notice:</strong> This plugin connects to your Rybbit Analytics instance. <a href="https://rybbit.com" target="_blank">Learn more</a></p>
-				</div>
-				<button type="button" class="clickwise-notice-dismiss">
-					<span class="dashicons dashicons-no-alt"></span>
-				</button>
-			</div>
-			<?php endif; ?>
-
-			<div class="clickwise-body">
-				<div class="clickwise-main-panel <?php echo $active_tab == 'google_analytics' ? 'clickwise-coming-soon-overlay' : ''; ?>">
-					<?php if ( $active_tab === 'google_analytics' ) : ?>
-						<div class="clickwise-coming-soon-content">
-							<div class="clickwise-coming-soon-icon">🚧</div>
-							<h2>Coming Soon</h2>
-							<p>Google Analytics 4 integration is currently in development. We're working hard to bring you seamless GA4 tracking capabilities. Stay tuned!</p>
-						</div>
-					<?php elseif ( $active_tab === 'events_manager' ) : ?>
-						<?php $this->render_events_manager_tab(); ?>
-					<?php elseif ( $active_tab === 'sandbox' ) : ?>
-						<?php $this->render_sandbox_tab(); ?>
-					<?php else : ?>
-						<form action="options.php" method="post">
-							<?php
-							if ( $active_tab == 'rybbit' ) {
-								settings_fields( 'clickwise-settings-rybbit' );
-								do_settings_sections( 'clickwise-settings-rybbit' );
-							} elseif ( $active_tab == 'google_analytics' ) {
-								settings_fields( 'clickwise-settings-google-analytics' );
-								do_settings_sections( 'clickwise-settings-google-analytics' );
-							} elseif ( $active_tab == 'general' ) {
-								settings_fields( 'clickwise-settings-general' );
-								do_settings_sections( 'clickwise-settings-general' );
-							} elseif ( $active_tab == 'events' ) {
-								settings_fields( 'clickwise-settings-events' );
-								do_settings_sections( 'clickwise-settings-events' );
-							} elseif ( $active_tab == 'advanced' ) {
-								settings_fields( 'clickwise-settings-advanced' );
-								do_settings_sections( 'clickwise-settings-advanced' );
-							}
-							?>
-							<div class="clickwise-form-actions">
-								<?php submit_button( 'Save Changes', 'primary', 'submit', false ); ?>
-							</div>
-						</form>
-					<?php endif; ?>
-				</div>
-
-				<div class="clickwise-sidebar-panel">
-					<div class="clickwise-card clickwise-tips-card">
-						<h3>💡 Quick Tips</h3>
-						<div id="clickwise-tips-content">
-							<?php $this->render_tab_tips( $active_tab ); ?>
-						</div>
-					</div>
-					
-					<div class="clickwise-card clickwise-pro-tip-card">
-						<small><strong>🎯 Pro Tip:</strong> <span id="clickwise-rotating-tip"><?php echo $this->get_random_tip(); ?></span></small>
-					</div>
-
-					<div class="clickwise-sidebar-links">
-						<a href="https://clickwise.com/docs" target="_blank" class="clickwise-link-btn">📚 Documentation</a>
-						<a href="https://github.com/webspirio/clickwise-wp/issues" target="_blank" class="clickwise-link-btn">🐛 Report Issue</a>
-					</div>
-
-					<div class="clickwise-credits-card">
-						<div class="webspirio-logo">
-							<img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'assets/images/webspirio-logo-256x256.svg'; ?>" alt="Webspirio" class="webspirio-logo-img">
-							<span>Developed with ❤️ by <strong>Webspirio</strong></span>
-						</div>
-						<div class="webspirio-links">
-							<a href="https://webspirio.com" target="_blank">Website</a>
-							<a href="https://github.com/webspirio" target="_blank">GitHub</a>
-							<a href="mailto:contact@webspirio.com">Contact</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
+		<div id="clickwise-admin-app"></div>
 		<?php
 	}
 

@@ -1,0 +1,11 @@
+{
+  "src/main.tsx": {
+    "file": "assets/main-DSuLCd8C.js",
+    "name": "main",
+    "src": "src/main.tsx",
+    "isEntry": true,
+    "css": [
+      "assets/main-C4_z_51A.css"
+    ]
+  }
+}
