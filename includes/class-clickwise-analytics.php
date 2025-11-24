@@ -38,6 +38,13 @@ class Clickwise_Analytics {
 	protected static $event_queue = array();
 
 	/**
+	 * The admin object.
+	 *
+	 * @var      Clickwise_Admin
+	 */
+	protected $plugin_admin;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 */
 	public function __construct() {
@@ -46,13 +53,16 @@ class Clickwise_Analytics {
 
 		$this->load_dependencies();
 		$this->set_locale();
+		
+		// Instantiate admin class once
+		$this->plugin_admin = new Clickwise_Admin( $this->plugin_name, $this->version );
+		
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		$this->define_integrations();
 
 		// Add settings link to plugins page
-		$plugin_admin = new Clickwise_Admin( $this->plugin_name, $this->version );
-		add_filter( 'plugin_action_links_' . plugin_basename( CLICKWISE_PATH . 'clickwise.php' ), array( $plugin_admin, 'add_settings_link' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( CLICKWISE_PATH . 'clickwise.php' ), array( $this->plugin_admin, 'add_settings_link' ) );
 	}
 
 	/**
@@ -77,7 +87,7 @@ class Clickwise_Analytics {
 	 * Register all of the hooks related to the admin area functionality.
 	 */
 	private function define_admin_hooks() {
-		$plugin_admin = new Clickwise_Admin( $this->plugin_name, $this->version );
+		$plugin_admin = $this->plugin_admin;
 
 		add_action( 'admin_menu', array( $plugin_admin, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $plugin_admin, 'register_settings' ) );
@@ -194,10 +204,27 @@ class Clickwise_Analytics {
 	 * Run the loader to execute all of the hooks with WordPress.
 	 */
 	public function run() {
-		// Create table and migrate on activation/run (simplified for this context)
-		// In a real plugin, this should be on activation hook, but putting it here ensures it runs for the user now.
-		$this->create_events_table();
-		$this->migrate_events_data();
+		// Migration check on admin init, not every run
+		if ( is_admin() ) {
+			add_action( 'admin_init', array( $this, 'check_migration' ) );
+		}
+	}
+
+	/**
+	 * Check if migration is needed.
+	 */
+	public function check_migration() {
+		if ( get_option( 'clickwise_discovered_events' ) ) {
+			$this->migrate_events_data();
+		}
+	}
+
+	/**
+	 * Activation hook callback.
+	 */
+	public static function activate() {
+		$plugin = new self();
+		$plugin->create_events_table();
 	}
 
 	/**
