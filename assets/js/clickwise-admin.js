@@ -857,6 +857,45 @@ jQuery(document).ready(function ($) {
         $('#clickwise-event-modal').css('display', 'flex').hide().fadeIn();
     });
 
+    // Open Event Details Modal (from row click)
+    $(document).on('click', '.clickwise-clickable-row', function () {
+        var row = $(this);
+        var key = row.data('key');
+        var event = clickwise_admin.events[key];
+
+        if (!event) {
+            alert('Event data not found.');
+            return;
+        }
+
+        $('#modal-event-type').text(event.type);
+        $('#modal-event-name').text(event.name);
+        $('#modal-event-selector').text(event.selector || '-');
+
+        // Robust JSON Parsing & Highlighting
+        var detailHtml = '';
+        try {
+            var raw = event.example_detail || event.example; // Try new column name first, fallback to old
+            var parsed = raw ? parsePotentialJSON(raw) : {};
+            detailHtml = syntaxHighlight(parsed);
+        } catch (e) {
+            detailHtml = event.example_detail || event.example || '{}';
+        }
+        $('#modal-event-detail').html(detailHtml);
+
+        $('#modal-event-alias').val(event.alias || '');
+        $('#modal-event-status').val(event.status);
+
+        // Store key for save
+        $('#clickwise-modal-save').data('key', key);
+
+        // Capture initial state
+        initialModalState = getModalState();
+
+        // Show modal (flex to center)
+        $('#clickwise-event-modal').css('display', 'flex').hide().fadeIn();
+    });
+
     // Close Modal Actions
     $('#clickwise-modal-cancel, #clickwise-modal-close-x').on('click', function () {
         closeModal();
@@ -888,10 +927,28 @@ jQuery(document).ready(function ($) {
         $('#' + target).show();
     });
 
-    // Select All Checkbox
+    // Select All Checkbox (Updated for responsive table)
     $(document).on('change', '.clickwise-select-all', function () {
         var isChecked = $(this).is(':checked');
-        $(this).closest('table').find('input[name="keys[]"]').prop('checked', isChecked);
+        var container = $(this).closest('.clickwise-responsive-table, table');
+        container.find('input[name="keys[]"]').prop('checked', isChecked);
+    });
+
+    // Update Select All checkbox when individual checkboxes change
+    $(document).on('change', 'input[name="keys[]"]', function () {
+        var container = $(this).closest('.clickwise-responsive-table, table');
+        var selectAllCheckbox = container.find('.clickwise-select-all');
+        var individualCheckboxes = container.find('input[name="keys[]"]');
+        var totalCheckboxes = individualCheckboxes.length;
+        var checkedCheckboxes = individualCheckboxes.filter(':checked').length;
+
+        if (checkedCheckboxes === 0) {
+            selectAllCheckbox.prop('checked', false).prop('indeterminate', false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+            selectAllCheckbox.prop('checked', true).prop('indeterminate', false);
+        } else {
+            selectAllCheckbox.prop('checked', false).prop('indeterminate', true);
+        }
     });
 
     // Bulk Actions
@@ -904,10 +961,19 @@ jQuery(document).ready(function ($) {
             keys.push($(this).val());
         });
 
-        if (action === '-1' || keys.length === 0) {
-            alert('Please select an action and at least one event.');
+        if (action === '-1') {
+            alert('Please select a bulk action.');
             return;
         }
+
+        if (keys.length === 0) {
+            alert('Please select at least one event.');
+            return;
+        }
+
+        // Debug logging
+        console.log('Bulk action:', action);
+        console.log('Selected keys:', keys);
 
         if (action === 'delete' && !confirm('Are you sure you want to delete these events?')) {
             return;
@@ -923,11 +989,19 @@ jQuery(document).ready(function ($) {
             keys: keys
         }, function (response) {
             if (response.success) {
-                location.reload();
+                // Show success message briefly before reload
+                button.text('Success!');
+                setTimeout(function() {
+                    location.reload();
+                }, 500);
             } else {
-                alert('Error: ' + response.data);
+                alert('Error: ' + (response.data || 'Unknown error occurred'));
                 button.prop('disabled', false).text('Apply');
             }
+        }).fail(function(xhr, textStatus, errorThrown) {
+            console.error('Bulk action failed:', textStatus, errorThrown);
+            alert('Request failed: ' + errorThrown);
+            button.prop('disabled', false).text('Apply');
         });
     });
 
