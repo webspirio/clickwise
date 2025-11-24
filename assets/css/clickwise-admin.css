@@ -42,6 +42,9 @@
     /* WP Admin spacing adjustment */
     box-sizing: border-box;
     min-height: calc(100vh - 100px);
+    overflow: hidden; /* Prevent container overflow */
+    width: calc(100% - 40px); /* Account for margins */
+    max-width: 100%;
 }
 
 .clickwise-admin-wrapper * {
@@ -171,6 +174,9 @@
 .clickwise-body {
     display: flex;
     gap: var(--cw-spacing-xl);
+    overflow: hidden; /* Prevent overflow */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .clickwise-main-panel {
@@ -179,6 +185,8 @@
     border-radius: var(--cw-radius-lg);
     padding: var(--cw-spacing-xl);
     border: 1px solid var(--cw-cyan-800);
+    min-width: 0; /* Allow shrinking below content size */
+    overflow-x: auto; /* Handle internal overflow */
 }
 
 .clickwise-sidebar-panel {
@@ -186,7 +194,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--cw-spacing-md);
-    min-width: 280px;
+    min-width: 250px; /* Reduced from 280px */
+    max-width: 320px; /* Add maximum width */
+    overflow: hidden; /* Prevent sidebar overflow */
 }
 
 /* Cards */
@@ -418,19 +428,61 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .clickwise-body {
-        flex-direction: column;
+        gap: var(--cw-spacing-md); /* Reduce gap on smaller screens */
     }
 
     .clickwise-sidebar-panel {
+        min-width: 220px; /* Further reduce minimum width */
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .clickwise-body {
+        flex-direction: column;
+        gap: var(--cw-spacing-lg);
+        overflow: visible; /* Allow vertical stacking */
+    }
+
+    .clickwise-main-panel {
+        flex: none;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .clickwise-sidebar-panel {
+        flex: none;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
         flex-direction: row;
         flex-wrap: wrap;
+        overflow: visible;
     }
 
     .clickwise-sidebar-panel>* {
-        flex: 1;
+        flex: 1 1 280px; /* Grow, shrink, basis 280px */
         min-width: 250px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .clickwise-admin-wrapper {
+        padding: var(--cw-spacing-lg);
+        margin: 10px 10px 0 0;
+        width: calc(100% - 20px);
+    }
+
+    .clickwise-body {
+        gap: var(--cw-spacing-md);
+    }
+
+    .clickwise-sidebar-panel>* {
+        flex: 1 1 100%;
+        min-width: 0;
     }
 }
 
@@ -2085,61 +2137,331 @@ textarea.clickwise-error-shake {
 }
 
 /* Event Manager Table - Dynamic Column Widths */
-.clickwise-events-table {
-    table-layout: auto !important;
+/* Responsive Table Layout */
+.clickwise-responsive-table {
+    background: transparent;
+    border-radius: var(--cw-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--cw-cyan-700);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.clickwise-events-table th,
-.clickwise-events-table td {
+.clickwise-table-header {
+    display: grid;
+    grid-template-columns: 50px 0.8fr 150px 130px 200px 120px;
+    gap: var(--cw-spacing-sm);
+    padding: var(--cw-spacing-sm) var(--cw-spacing-md);
+    background: var(--cw-cyan-800);
+    font-weight: 600;
+    border-bottom: 1px solid var(--cw-cyan-600);
+    color: var(--cw-cyan-100);
+    min-height: 40px;
+}
+
+/* Ignored events header has different column structure */
+.clickwise-table-header.ignored-events-header {
+    grid-template-columns: 50px 1fr 130px 200px 120px;
+}
+
+.clickwise-header-cell {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    height: 100%;
+}
+
+.clickwise-header-cell.check-column {
+    justify-content: center;
+}
+
+.clickwise-header-cell.check-column input[type="checkbox"] {
+    margin: 0;
+    transform: scale(1.1);
+}
+
+.clickwise-table-body {
+    max-height: 600px;
+    overflow-y: auto;
+    background: var(--cw-cyan-950);
+}
+
+.clickwise-table-row {
+    display: grid;
+    grid-template-columns: 50px 0.8fr 150px 130px 200px 120px;
+    gap: var(--cw-spacing-sm);
+    padding: var(--cw-spacing-sm) var(--cw-spacing-md);
+    border-bottom: 1px solid var(--cw-cyan-800);
+    transition: all 0.2s ease;
+    align-items: center;
+    background: var(--cw-cyan-950);
+    min-height: 48px;
+}
+
+/* Alternating row colors */
+.clickwise-table-row:nth-child(even) {
+    background: rgba(22, 78, 99, 0.3);
+    /* Cyan 900 with opacity - matching previous design */
+}
+
+.clickwise-table-row:nth-child(odd) {
+    background: var(--cw-cyan-950);
+}
+
+/* Ignored events row has different column structure */
+.ignored-events-header~.clickwise-table-body .clickwise-table-row {
+    grid-template-columns: 50px 1fr 130px 200px 120px;
+}
+
+.clickwise-clickable-row {
+    cursor: pointer;
+    position: relative;
+}
+
+.clickwise-clickable-row:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--cw-cyan-400), var(--cw-cyan-500));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.clickwise-clickable-row:hover {
+    background: var(--cw-cyan-900) !important;
+    /* Override alternating colors on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
+}
+
+.clickwise-clickable-row:hover:before {
+    opacity: 1;
+}
+
+/* Add subtle click feedback */
+.clickwise-clickable-row:active {
+    transform: translateY(0px);
+    transition: transform 0.1s ease;
+}
+
+.clickwise-cell {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    overflow: hidden;
+    color: var(--cw-cyan-100);
+}
+
+.clickwise-cell.check-column {
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.clickwise-cell.check-column input[type="checkbox"] {
+    margin: 0;
+    transform: scale(1.1);
+}
+
+.clickwise-cell.event-name,
+.clickwise-cell.original-name {
+    font-weight: 600;
+}
+
+.clickwise-cell.event-name strong,
+.clickwise-cell.original-name strong {
+    color: var(--cw-cyan-50);
+}
+
+.clickwise-cell.type {
+    justify-content: center;
+}
+
+.clickwise-type-badge {
+    background: linear-gradient(135deg, var(--cw-cyan-500), var(--cw-cyan-400));
+    color: var(--cw-cyan-950);
+    padding: 4px 10px;
+    border-radius: var(--cw-radius-full);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(6, 182, 212, 0.3);
+    border: 1px solid var(--cw-cyan-300);
+}
+
+.clickwise-cell.selector {
+    overflow-x: auto;
+}
+
+.clickwise-cell.selector code {
+    background: linear-gradient(135deg, var(--cw-cyan-900), var(--cw-cyan-800));
+    color: var(--cw-cyan-100);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
     white-space: nowrap;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
+    border: 1px solid var(--cw-cyan-700);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
-/* Checkbox column - minimal width */
-.clickwise-events-table .check-column {
-    width: 40px;
+.clickwise-cell.actions {
+    justify-content: center;
 }
 
-/* Event Name column - allow more space */
-.clickwise-events-table th:nth-child(2),
-.clickwise-events-table td:nth-child(2) {
-    min-width: 150px;
-    max-width: 250px;
+/* Enhanced button styling in table */
+.clickwise-cell.actions .button {
+    background: linear-gradient(135deg, var(--cw-cyan-600), var(--cw-cyan-500));
+    border: 1px solid var(--cw-cyan-400);
+    color: var(--cw-cyan-950);
+    font-weight: 600;
+    border-radius: var(--cw-radius-sm);
+    padding: 4px 10px;
+    font-size: 11px;
+    transition: all 0.2s ease;
+    height: 28px;
 }
 
-/* Original Name column */
-.clickwise-events-table th:nth-child(3),
-.clickwise-events-table td:nth-child(3) {
-    min-width: 120px;
-    max-width: 200px;
+.clickwise-cell.actions .button:hover {
+    background: linear-gradient(135deg, var(--cw-cyan-500), var(--cw-cyan-400));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(6, 182, 212, 0.3);
 }
 
-/* Type column - compact */
-.clickwise-events-table th:nth-child(4),
-.clickwise-events-table td:nth-child(4) {
-    width: 80px;
+.clickwise-empty-state {
+    text-align: center;
+    padding: var(--cw-spacing-2xl);
+    color: var(--cw-cyan-300);
+    font-style: italic;
+    background: linear-gradient(135deg, rgba(22, 78, 99, 0.1), rgba(6, 182, 212, 0.05));
+    border: 2px dashed var(--cw-cyan-700);
+    border-radius: var(--cw-radius-md);
+    margin: var(--cw-spacing-md);
+    font-size: 16px;
+    position: relative;
 }
 
-/* Selector column - allow wrapping for long selectors */
-.clickwise-events-table th:nth-child(5),
-.clickwise-events-table td:nth-child(5) {
-    min-width: 200px;
-    max-width: 400px;
-    white-space: normal;
-    word-break: break-all;
+.clickwise-empty-state:before {
+    content: '🔍';
+    display: block;
+    font-size: 32px;
+    margin-bottom: var(--cw-spacing-sm);
+    opacity: 0.7;
 }
 
-/* Actions column - fixed width for buttons */
-.clickwise-events-table th:nth-child(6),
-.clickwise-events-table td:nth-child(6) {
-    width: 200px;
-    text-align: right;
+/* Mobile Responsive Design */
+@media (max-width: 1200px) {
+
+    .clickwise-table-header,
+    .clickwise-table-row {
+        grid-template-columns: 50px 0.8fr 110px 150px 100px;
+    }
+
+    .clickwise-table-header.ignored-events-header,
+    .ignored-events-header~.clickwise-table-body .clickwise-table-row {
+        grid-template-columns: 50px 1fr 110px 150px 100px;
+    }
+
+    .clickwise-cell.original-name {
+        display: none;
+    }
+
+    .clickwise-header-cell.original-name {
+        display: none;
+    }
 }
 
-/* Button group styling */
-.clickwise-events-table .button-group {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
+@media (max-width: 768px) {
+    .clickwise-responsive-table {
+        margin: 0 -10px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .clickwise-table-header {
+        display: none;
+    }
+
+    .clickwise-table-row {
+        display: block;
+        border-radius: var(--cw-radius-md);
+        margin: var(--cw-spacing-md);
+        border: 1px solid var(--cw-cyan-700);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    /* Maintain alternating colors on mobile */
+    .clickwise-table-row:nth-child(even) {
+        background: rgba(22, 78, 99, 0.3);
+    }
+
+    .clickwise-table-row:nth-child(odd) {
+        background: var(--cw-cyan-950);
+    }
+
+    .clickwise-cell {
+        display: flex;
+        padding: var(--cw-spacing-md);
+        border-bottom: 1px solid var(--cw-cyan-800);
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .clickwise-cell:last-child {
+        border-bottom: none;
+    }
+
+    .clickwise-cell:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--cw-cyan-300);
+        min-width: 120px;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .clickwise-cell.check-column {
+        justify-content: center;
+        border-bottom: 1px solid var(--cw-cyan-800);
+        padding: var(--cw-spacing-sm);
+        background: rgba(14, 116, 144, 0.2);
+    }
+
+    .clickwise-cell.check-column:before {
+        display: none;
+    }
+
+    .clickwise-cell.actions {
+        justify-content: center;
+        background: rgba(14, 116, 144, 0.1);
+    }
+
+    .clickwise-cell.actions:before {
+        display: none;
+    }
+
+    /* Enhanced mobile styling for type badges */
+    .clickwise-cell.type .clickwise-type-badge {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    /* Enhanced mobile styling for code */
+    .clickwise-cell.selector code {
+        max-width: 200px;
+        padding: 6px 10px;
+    }
 }

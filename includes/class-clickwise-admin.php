@@ -316,8 +316,12 @@ class Clickwise_Admin {
 		$action = isset( $_POST['bulk_action'] ) ? sanitize_text_field( $_POST['bulk_action'] ) : '';
 		$keys   = isset( $_POST['keys'] ) ? $_POST['keys'] : array();
 
+		// Debug logging
+		error_log( 'Clickwise Bulk Action - Action: ' . $action );
+		error_log( 'Clickwise Bulk Action - Keys: ' . print_r( $keys, true ) );
+
 		if ( empty( $action ) || empty( $keys ) || ! is_array( $keys ) ) {
-			wp_send_json_error( 'Invalid request' );
+			wp_send_json_error( 'Invalid request - Action: ' . $action . ', Keys count: ' . count( $keys ) );
 		}
 
 		global $wpdb;
@@ -329,14 +333,35 @@ class Clickwise_Admin {
 
 		if ( $action === 'delete' ) {
 			$sql = "DELETE FROM $table_name WHERE event_key IN ($placeholders)";
-			$wpdb->query( $wpdb->prepare( $sql, $sanitized_keys ) );
-		} elseif ( in_array( $action, array( 'track', 'ignore', 'pending' ) ) ) {
+			$result = $wpdb->query( $wpdb->prepare( $sql, $sanitized_keys ) );
+			error_log( 'Clickwise Bulk Delete - Affected rows: ' . $result );
+
+			if ( $result === false ) {
+				wp_send_json_error( 'Database error during delete: ' . $wpdb->last_error );
+			}
+		} elseif ( in_array( $action, array( 'tracked', 'ignored', 'pending' ) ) ) {
+			// Map action values to status values
+			$status = $action;
+			if ( $action === 'tracked' ) {
+				$status = 'tracked';
+			} elseif ( $action === 'ignored' ) {
+				$status = 'ignored';
+			}
+
 			$sql = "UPDATE $table_name SET status = %s WHERE event_key IN ($placeholders)";
-			$params = array_merge( array( $action ), $sanitized_keys );
-			$wpdb->query( $wpdb->prepare( $sql, $params ) );
+			$params = array_merge( array( $status ), $sanitized_keys );
+			$result = $wpdb->query( $wpdb->prepare( $sql, $params ) );
+			error_log( 'Clickwise Bulk Update - Status: ' . $status . ', Affected rows: ' . $result );
+
+			if ( $result === false ) {
+				wp_send_json_error( 'Database error during update: ' . $wpdb->last_error );
+			}
+		} else {
+			wp_send_json_error( 'Invalid action: ' . $action );
 		}
 
-		wp_send_json_success( 'Bulk action completed' );
+		$message = $action === 'delete' ? 'Events deleted successfully' : 'Events updated successfully';
+		wp_send_json_success( $message );
 	}
 
 	public function ajax_test_connection() {
@@ -1094,43 +1119,50 @@ class Clickwise_Admin {
 						<button type="button" class="button action clickwise-apply-bulk">Apply</button>
 					</div>
 				</div>
-				<table class="widefat fixed striped">
-					<thead>
-						<tr>
-							<td id="cb" class="manage-column column-cb check-column"><input type="checkbox" class="clickwise-select-all"></td>
-							<th>Event Name (Alias)</th>
-							<th>Original Name</th>
-							<th>Type</th>
-							<th>Selector</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
+				<div class="clickwise-responsive-table">
+					<div class="clickwise-table-header">
+						<div class="clickwise-header-cell check-column">
+							<input type="checkbox" class="clickwise-select-all">
+						</div>
+						<div class="clickwise-header-cell event-name">Event Name</div>
+						<div class="clickwise-header-cell original-name">Original Name</div>
+						<div class="clickwise-header-cell type">Type</div>
+						<div class="clickwise-header-cell selector">Selector</div>
+						<div class="clickwise-header-cell actions">Actions</div>
+					</div>
+					<div class="clickwise-table-body">
 						<?php if ( empty( $tracked_events ) ) : ?>
-							<tr><td colspan="6">No tracked events yet.</td></tr>
+							<div class="clickwise-empty-state">No tracked events yet.</div>
 						<?php else : ?>
 							<?php foreach ( $tracked_events as $event ) : ?>
-								<tr>
-									<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
-									<td><strong><?php echo esc_html( isset($event['alias']) && $event['alias'] ? $event['alias'] : $event['name'] ); ?></strong></td>
-									<td><?php echo esc_html( $event['name'] ); ?></td>
-									<td><?php echo esc_html( $event['type'] ); ?></td>
-									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
-									<td>
-										<div class="button-group">
-											<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
-											<button type="button" class="button button-primary clickwise-track-event"
-												data-key="<?php echo esc_attr( $event['key'] ); ?>"
-												data-name="<?php echo esc_attr( $event['name'] ); ?>"
-												data-action="untrack"
-												data-status="tracked">Untrack</button>
-										</div>
-									</td>
-								</tr>
+								<div class="clickwise-table-row clickwise-clickable-row" data-key="<?php echo esc_attr( $event['key'] ); ?>">
+									<div class="clickwise-cell check-column" onclick="event.stopPropagation();">
+										<input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>">
+									</div>
+									<div class="clickwise-cell event-name" data-label="Event Name:">
+										<strong><?php echo esc_html( isset($event['alias']) && $event['alias'] ? $event['alias'] : $event['name'] ); ?></strong>
+									</div>
+									<div class="clickwise-cell original-name" data-label="Original Name:">
+										<?php echo esc_html( $event['name'] ); ?>
+									</div>
+									<div class="clickwise-cell type" data-label="Type:">
+										<span class="clickwise-type-badge"><?php echo esc_html( $event['type'] ); ?></span>
+									</div>
+									<div class="clickwise-cell selector" data-label="Selector:">
+										<code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code>
+									</div>
+									<div class="clickwise-cell actions" onclick="event.stopPropagation();">
+										<button type="button" class="button button-primary clickwise-track-event"
+											data-key="<?php echo esc_attr( $event['key'] ); ?>"
+											data-name="<?php echo esc_attr( $event['name'] ); ?>"
+											data-action="untrack"
+											data-status="tracked">Untrack</button>
+									</div>
+								</div>
 							<?php endforeach; ?>
 						<?php endif; ?>
-					</tbody>
-				</table>
+					</div>
+				</div>
 			</form>
 		</div>
 
@@ -1148,41 +1180,46 @@ class Clickwise_Admin {
 						<button type="button" class="button action clickwise-apply-bulk">Apply</button>
 					</div>
 				</div>
-				<table class="widefat fixed striped">
-					<thead>
-						<tr>
-							<td class="manage-column column-cb check-column"><input type="checkbox" class="clickwise-select-all"></td>
-							<th>Original Name</th>
-							<th>Type</th>
-							<th>Selector</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
+				<div class="clickwise-responsive-table">
+					<div class="clickwise-table-header ignored-events-header">
+						<div class="clickwise-header-cell check-column">
+							<input type="checkbox" class="clickwise-select-all">
+						</div>
+						<div class="clickwise-header-cell original-name">Original Name</div>
+						<div class="clickwise-header-cell type">Type</div>
+						<div class="clickwise-header-cell selector">Selector</div>
+						<div class="clickwise-header-cell actions">Actions</div>
+					</div>
+					<div class="clickwise-table-body">
 						<?php if ( empty( $ignored_events ) ) : ?>
-							<tr><td colspan="5">No ignored events.</td></tr>
+							<div class="clickwise-empty-state">No ignored events.</div>
 						<?php else : ?>
 							<?php foreach ( $ignored_events as $event ) : ?>
-								<tr>
-									<th scope="row" class="check-column"><input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>"></th>
-									<td><?php echo esc_html( $event['name'] ); ?></td>
-									<td><?php echo esc_html( $event['type'] ); ?></td>
-									<td><code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code></td>
-									<td>
-										<div class="button-group">
-											<button type="button" class="button clickwise-open-details" data-key="<?php echo esc_attr( $event['key'] ); ?>">Details / Edit</button>
-											<button type="button" class="button button-primary clickwise-track-event"
-												data-key="<?php echo esc_attr( $event['key'] ); ?>"
-												data-name="<?php echo esc_attr( $event['name'] ); ?>"
-												data-action="track"
-												data-status="ignored">Track</button>
-										</div>
-									</td>
-								</tr>
+								<div class="clickwise-table-row clickwise-clickable-row" data-key="<?php echo esc_attr( $event['key'] ); ?>">
+									<div class="clickwise-cell check-column" onclick="event.stopPropagation();">
+										<input type="checkbox" name="keys[]" value="<?php echo esc_attr( $event['key'] ); ?>">
+									</div>
+									<div class="clickwise-cell original-name" data-label="Original Name:">
+										<strong><?php echo esc_html( $event['name'] ); ?></strong>
+									</div>
+									<div class="clickwise-cell type" data-label="Type:">
+										<span class="clickwise-type-badge"><?php echo esc_html( $event['type'] ); ?></span>
+									</div>
+									<div class="clickwise-cell selector" data-label="Selector:">
+										<code><?php echo esc_html( isset($event['selector']) ? $event['selector'] : '' ); ?></code>
+									</div>
+									<div class="clickwise-cell actions" onclick="event.stopPropagation();">
+										<button type="button" class="button button-primary clickwise-track-event"
+											data-key="<?php echo esc_attr( $event['key'] ); ?>"
+											data-name="<?php echo esc_attr( $event['name'] ); ?>"
+											data-action="track"
+											data-status="ignored">Track</button>
+									</div>
+								</div>
 							<?php endforeach; ?>
 						<?php endif; ?>
-					</tbody>
-				</table>
+					</div>
+				</div>
 			</form>
 		</div>
 
