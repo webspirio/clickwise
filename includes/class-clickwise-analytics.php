@@ -70,6 +70,7 @@ class Clickwise_Analytics {
 	 */
 	private function load_dependencies() {
 		require_once CLICKWISE_PATH . 'includes/class-clickwise-admin.php';
+		require_once CLICKWISE_PATH . 'includes/class-clickwise-rest-api.php';
 	}
 
 	/**
