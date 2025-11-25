@@ -1,0 +1,222 @@
+/* Styles for the Clickwise admin page */
+.clickwise-sandbox-log {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 200px;
+    overflow-y: scroll;
+    font-family: monospace;
+}
+.clickwise-sandbox-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+.clickwise-sandbox-log-title {
+    font-weight: bold;
+}
+.clickwise-clear-log-btn {
+    cursor: pointer;
+    color: #0073aa;
+    text-decoration: underline;
+}
+.clickwise-log-entry {
+    margin-bottom: 5px;
+}
+.clickwise-log-entry .log-time {
+    color: #999;
+    margin-right: 10px;
+}
+.clickwise-handler-selection {
+    margin-bottom: 20px;
+}
+.clickwise-handler-chips {
+    display: flex;
+    gap: 10px;
+}
+.clickwise-handler-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+.clickwise-handler-chip.disabled {
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+    color: #999;
+}
+.clickwise-handler-chip input[type="checkbox"] {
+    display: none;
+}
+.clickwise-handler-chip .chip-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.clickwise-handler-chip .chip-status {
+    font-size: 0.8em;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+}
+.clickwise-handler-chip .chip-status.disabled {
+    background-color: #ccc;
+    color: #fff;
+}
+.clickwise-notification-container {
+    margin-top: 15px;
+}
+.clickwise-inline-notification {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.clickwise-inline-notification.clickwise-notification-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.clickwise-notification-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+.clickwise-notification-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+.clickwise-notification-icon {
+    margin-right: 10px;
+}
+.clickwise-responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.clickwise-table-header,
+.clickwise-table-row {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 0;
+}
+.clickwise-table-header {
+    font-weight: bold;
+}
+.clickwise-table-row:hover {
+    background-color: #f5f5f5;
+}
+.clickwise-cell {
+    flex: 1;
+    padding: 5px 10px;
+}
+.check-column {
+    flex: 0 0 50px;
+}
+.clickwise-session-block {
+    border: 1px solid #ccd0d4;
+    background: #fff;
+    margin-bottom: 20px;
+}
+.clickwise-session-header {
+    padding: 10px 15px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ccd0d4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.clickwise-session-content {
+    padding: 0;
+}
+.clickwise-modal-wrapper {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.clickwise-modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 600px;
+}
+.clickwise-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.clickwise-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+    margin-top: 20px;
+}
+#modal-event-detail.clickwise-code-backdrop {
+    position: static;
+    pointer-events: auto;
+    background: var(--cw-cyan-950);
+    overflow: auto;
+    height: 100%;
+}
+.clickwise-remote-config-container {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+.clickwise-remote-config-loading,
+.clickwise-remote-config-error {
+    text-align: center;
+    padding: 20px;
+}
+.clickwise-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #0073aa;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.clickwise-handler-single-card {
+    padding: 30px;
+    border-radius: 12px;
+    position: relative;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.handler-single-config {
+    opacity: 0.3;
+    pointer-events: none;
+}

@@ -3,6 +3,8 @@ module.exports = {
     darkMode: ["class"],
     content: [
         './src/**/*.{ts,tsx,js,jsx}',
+        './includes/**/*.php',
+        './*.php',
     ],
     prefix: "",
     theme: {
@@ -14,6 +16,9 @@ module.exports = {
             },
         },
         extend: {
+            fontFamily: {
+                sans: ['Poppins', 'sans-serif'],
+            },
             colors: {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",

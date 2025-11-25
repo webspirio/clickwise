@@ -17,8 +17,8 @@ Thumbs.db
 
 # Node modules (if using build tools)
 node_modules/
-package-lock.json
-yarn.lock
+yarn-error.log
+.mcp.json
 
 # Build artifacts (if using build tools)
 /dist/
@@ -33,6 +33,7 @@ composer.lock
 
 # Environment files
 .env
+.envrc
 .env.local
 
 # OS generated files
