@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { ArrowUpRight, Users, MousePointer2, Activity, Clock, Loader2 } from "lucide-react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { api, DashboardStats, ChartDataPoint, ActivityItem } from "@/lib/api"
+import { api, type DashboardStats, type ChartDataPoint, type ActivityItem } from "@/lib/api"
 
 export function Dashboard() {
     const [loading, setLoading] = useState(true)
@@ -201,13 +201,14 @@ export function Dashboard() {
                             {recentActivity.length > 0 ? (
                                 recentActivity.map((item, i) => {
                                     // Map icon names to icon components
-                                    const IconComponent = {
+                                    const iconMap: Record<string, React.ComponentType<any>> = {
                                         MousePointer2,
                                         Activity,
                                         Users,
                                         ArrowUpRight,
                                         Clock
-                                    }[item.icon] || Activity;
+                                    };
+                                    const IconComponent = iconMap[item.icon] || Activity;
 
                                     return (
                                         <div key={i} className="flex items-center">
