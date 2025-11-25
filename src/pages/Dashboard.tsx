@@ -49,8 +49,8 @@ export function Dashboard() {
     }
 
     const loadDashboardData = async () => {
-        if (!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_site_id) {
-            setError('Rybbit API key or Site ID not configured. Please check your settings.')
+        if (!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_website_id) {
+            setError('Rybbit API key or Website ID not configured. Please check your settings.')
             setLoading(false)
             return
         }
@@ -65,12 +65,13 @@ export function Dashboard() {
                 timeRange.customEnd
             )
 
+            // Fetch overview stats
             const [overviewData, pagesData, countriesData, devicesData, browsersData] = await Promise.all([
-                api.getRybbitOverview(settings.clickwise_rybbit_site_id, rybbitTimeRange),
-                api.getRybbitMetric(settings.clickwise_rybbit_site_id, 'pathname', rybbitTimeRange, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_site_id, 'country', rybbitTimeRange, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_site_id, 'device_type', rybbitTimeRange, { limit: 5 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_site_id, 'browser', rybbitTimeRange, { limit: 10 }),
+                api.getRybbitOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, { limit: 10 }),
             ])
 
             setRybbitOverview(overviewData)
@@ -94,17 +95,20 @@ export function Dashboard() {
         setRefreshing(false)
     }
 
-    const formatNumber = (num: number) => {
-        return new Intl.NumberFormat().format(num)
+    const formatNumber = (num: number | null | undefined) => {
+        if (typeof num !== 'number') return '...';
+        return new Intl.NumberFormat().format(num);
     }
 
-    const formatDuration = (seconds: number) => {
+    const formatDuration = (seconds: number | null | undefined) => {
+        if (typeof seconds !== 'number') return '...';
         const minutes = Math.floor(seconds / 60)
         const remainingSeconds = Math.floor(seconds % 60)
         return `${minutes}m ${remainingSeconds}s`
     }
 
-    const formatPercentage = (num: number) => {
+    const formatPercentage = (num: number | null | undefined) => {
+        if (typeof num !== 'number') return '...';
         return `${num.toFixed(1)}%`
     }
 
@@ -262,7 +266,7 @@ export function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                                {rybbitOverview ? rybbitOverview.pages_per_session.toFixed(2) : '...'}
+                                {rybbitOverview && typeof rybbitOverview.pages_per_session === 'number' ? rybbitOverview.pages_per_session.toFixed(2) : '...'}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                                 Pages per visit
@@ -361,8 +365,8 @@ export function Dashboard() {
                                             {devices?.data?.map((_, index) => (
                                                 <Cell key={`cell-${index}`} fill={
                                                     index === 0 ? '#3b82f6' :
-                                                    index === 1 ? '#ef4444' :
-                                                    index === 2 ? '#10b981' : '#f59e0b'
+                                                        index === 1 ? '#ef4444' :
+                                                            index === 2 ? '#10b981' : '#f59e0b'
                                                 } />
                                             ))}
                                         </Pie>
@@ -411,10 +415,10 @@ export function Dashboard() {
                                         </div>
                                     </div>
                                 )) || (
-                                    <div className="text-center py-8">
-                                        <p className="text-muted-foreground">Loading geographic data...</p>
-                                    </div>
-                                )}
+                                        <div className="text-center py-8">
+                                            <p className="text-muted-foreground">Loading geographic data...</p>
+                                        </div>
+                                    )}
                             </div>
                         </CardContent>
                     </Card>
@@ -455,10 +459,10 @@ export function Dashboard() {
                                         </div>
                                     </div>
                                 )) || (
-                                    <div className="text-center py-8">
-                                        <p className="text-muted-foreground">Loading browser data...</p>
-                                    </div>
-                                )}
+                                        <div className="text-center py-8">
+                                            <p className="text-muted-foreground">Loading browser data...</p>
+                                        </div>
+                                    )}
                             </div>
                         </CardContent>
                     </Card>
@@ -511,7 +515,7 @@ export function Dashboard() {
                                             <TableCell className="text-right">
                                                 <Badge variant={
                                                     page.bounce_rate && page.bounce_rate > 70 ? 'destructive' :
-                                                    page.bounce_rate && page.bounce_rate < 30 ? 'default' : 'secondary'
+                                                        page.bounce_rate && page.bounce_rate < 30 ? 'default' : 'secondary'
                                                 }>
                                                     {page.bounce_rate ? formatPercentage(page.bounce_rate) : '-'}
                                                 </Badge>
@@ -524,12 +528,12 @@ export function Dashboard() {
                                             </TableCell>
                                         </TableRow>
                                     )) || (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8">
-                                                <p className="text-muted-foreground">Loading page data...</p>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-8">
+                                                    <p className="text-muted-foreground">Loading page data...</p>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
                                 </TableBody>
                             </Table>
                         </div>

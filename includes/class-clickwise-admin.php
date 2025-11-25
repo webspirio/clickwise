@@ -153,6 +153,31 @@ class Clickwise_Admin {
 			'show_in_rest' => true,
 			'default' => 'v2',
 		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_domain', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => 'https://app.rybbit.io',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_path', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '/api/script.js',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_tracking_id', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_website_id', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_key', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
 
 		add_settings_section(
 			'clickwise_rybbit_section',
@@ -200,13 +225,58 @@ class Clickwise_Admin {
 			'clickwise-settings-rybbit',
 			'clickwise_rybbit_section'
 		);
-		
+
 		add_settings_field(
 			'clickwise_rybbit_remote_config',
 			'Remote Configuration',
 			array( $this, 'render_rybbit_remote_config_field' ),
 			'clickwise-settings-rybbit',
 			'clickwise_rybbit_section'
+		);
+
+		add_settings_field(
+			'clickwise_rybbit_domain',
+			'Rybbit URL',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section',
+			array( 'id' => 'clickwise_rybbit_domain', 'desc' => 'Default: https://app.rybbit.io' )
+		);
+
+		add_settings_field(
+			'clickwise_rybbit_script_path',
+			'Script Path',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section',
+			array( 'id' => 'clickwise_rybbit_script_path', 'desc' => 'Default: /api/script.js' )
+		);
+
+		add_settings_field(
+			'clickwise_rybbit_tracking_id',
+			'Tracking ID',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section',
+			array( 'id' => 'clickwise_rybbit_tracking_id', 'desc' => 'Found in Site settings -> tracking script (e.g., f3026ced35a3)' )
+		);
+
+		add_settings_field(
+			'clickwise_rybbit_website_id',
+			'Website ID',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section',
+			array( 'id' => 'clickwise_rybbit_website_id', 'desc' => 'Found in URL (e.g., 3528)' )
+		);
+
+		add_settings_field(
+			'clickwise_rybbit_api_key',
+			'API Key',
+			array( $this, 'render_text_field' ),
+			'clickwise-settings-rybbit',
+			'clickwise_rybbit_section',
+			array( 'id' => 'clickwise_rybbit_api_key', 'type' => 'password', 'desc' => 'Found in Account settings' )
 		);
 
 

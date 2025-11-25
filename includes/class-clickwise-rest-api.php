@@ -198,6 +198,22 @@ class Clickwise_Rest_API {
 					'required' => false,
 					'sanitize_callback' => 'sanitize_text_field',
 				),
+				'clickwise_rybbit_domain' => array(
+					'required' => false,
+					'sanitize_callback' => 'esc_url_raw',
+				),
+				'clickwise_rybbit_script_path' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'clickwise_rybbit_tracking_id' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'clickwise_rybbit_website_id' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
 				'clickwise_ga_enabled' => array(
 					'required' => false,
 					'sanitize_callback' => 'sanitize_text_field',
@@ -798,14 +814,18 @@ class Clickwise_Rest_API {
 	 */
 	public function get_clickwise_settings( $request ) {
 		$settings = array(
-			'clickwise_rybbit_enabled' => get_option( 'clickwise_rybbit_enabled', '' ),
-			'clickwise_rybbit_site_id' => get_option( 'clickwise_rybbit_site_id', '' ),
-			'clickwise_rybbit_script_url' => get_option( 'clickwise_rybbit_script_url', '' ),
-			'clickwise_rybbit_api_version' => get_option( 'clickwise_rybbit_api_version', 'v2' ),
-			'clickwise_rybbit_api_key' => get_option( 'clickwise_rybbit_api_key', '' ),
-			'clickwise_ga_enabled' => get_option( 'clickwise_ga_enabled', '' ),
-			'clickwise_ga_measurement_id' => get_option( 'clickwise_ga_measurement_id', '' ),
-			'clickwise_ga_api_secret' => get_option( 'clickwise_ga_api_secret', '' ),
+			'clickwise_rybbit_enabled' => get_option( 'clickwise_rybbit_enabled' ),
+			'clickwise_rybbit_site_id' => get_option( 'clickwise_rybbit_site_id' ),
+			'clickwise_rybbit_script_url' => get_option( 'clickwise_rybbit_script_url' ),
+			'clickwise_rybbit_api_version' => get_option( 'clickwise_rybbit_api_version' ),
+			'clickwise_rybbit_api_key' => get_option( 'clickwise_rybbit_api_key' ),
+			'clickwise_rybbit_domain' => get_option( 'clickwise_rybbit_domain' ),
+			'clickwise_rybbit_script_path' => get_option( 'clickwise_rybbit_script_path' ),
+			'clickwise_rybbit_tracking_id' => get_option( 'clickwise_rybbit_tracking_id' ),
+			'clickwise_rybbit_website_id' => get_option( 'clickwise_rybbit_website_id' ),
+			'clickwise_ga_enabled' => get_option( 'clickwise_ga_enabled' ),
+			'clickwise_ga_measurement_id' => get_option( 'clickwise_ga_measurement_id' ),
+			'clickwise_ga_api_secret' => get_option( 'clickwise_ga_api_secret' ),
 		);
 
 		return rest_ensure_response( $settings );
@@ -815,37 +835,29 @@ class Clickwise_Rest_API {
 	 * Save Clickwise settings
 	 */
 	public function save_clickwise_settings( $request ) {
-		$params = $request->get_params();
-		$updated = array();
-
-		$setting_keys = array(
+		$settings = array(
 			'clickwise_rybbit_enabled',
 			'clickwise_rybbit_site_id',
 			'clickwise_rybbit_script_url',
 			'clickwise_rybbit_api_version',
 			'clickwise_rybbit_api_key',
+			'clickwise_rybbit_domain',
+			'clickwise_rybbit_script_path',
+			'clickwise_rybbit_tracking_id',
+			'clickwise_rybbit_website_id',
 			'clickwise_ga_enabled',
 			'clickwise_ga_measurement_id',
 			'clickwise_ga_api_secret',
 		);
 
-		foreach ( $setting_keys as $key ) {
-			if ( array_key_exists( $key, $params ) ) {
-				$value = $params[$key];
-				update_option( $key, $value );
-				$updated[$key] = $value;
+		foreach ( $settings as $setting ) {
+			if ( $request->has_param( $setting ) ) {
+				update_option( $setting, $request->get_param( $setting ) );
 			}
 		}
 
-		// Return the updated settings
-		return rest_ensure_response( array(
-			'success' => true,
-			'message' => 'Settings saved successfully',
-			'updated' => $updated,
-			'current_settings' => $this->get_clickwise_settings( $request )->get_data(),
-		) );
+		return rest_ensure_response( array( 'success' => true, 'message' => 'Settings saved successfully' ) );
 	}
 }
 
-// Initialize the REST API
 new Clickwise_Rest_API();
