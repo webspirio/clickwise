@@ -282,8 +282,10 @@ const getRybbitOverview = async (siteId: string, timeRange: TimeRange, filters?:
     const apiKey = settings.clickwise_rybbit_api_key;
     const baseUrl = settings.clickwise_rybbit_script_url?.replace('/api/script.js', '') || 'https://api.rybbit.com';
 
-    if (!apiKey) {
-        throw new Error('Rybbit API key not configured. Please check your settings.');
+    // API key is only required for cloud instances (app.rybbit.io)
+    const isCloudInstance = baseUrl.includes('app.rybbit.io') || baseUrl.includes('api.rybbit.com');
+    if (isCloudInstance && !apiKey) {
+        throw new Error('Rybbit API key required for cloud instance. Please check your settings.');
     }
 
     const params = new URLSearchParams();
@@ -303,11 +305,17 @@ const getRybbitOverview = async (siteId: string, timeRange: TimeRange, filters?:
         params.append('filters', JSON.stringify(filters));
     }
 
+    // Prepare headers - include Authorization only for cloud instances with API key
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (apiKey && apiKey.trim()) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
     const response = await fetch(`${baseUrl}/api/overview/${siteId}?${params.toString()}`, {
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
+        headers,
     });
 
     if (!response.ok) {
@@ -341,8 +349,10 @@ const getRybbitMetric = async (
     const apiKey = settings.clickwise_rybbit_api_key;
     const baseUrl = settings.clickwise_rybbit_script_url?.replace('/api/script.js', '') || 'https://api.rybbit.com';
 
-    if (!apiKey) {
-        throw new Error('Rybbit API key not configured. Please check your settings.');
+    // API key is only required for cloud instances (app.rybbit.io)
+    const isCloudInstance = baseUrl.includes('app.rybbit.io') || baseUrl.includes('api.rybbit.com');
+    if (isCloudInstance && !apiKey) {
+        throw new Error('Rybbit API key required for cloud instance. Please check your settings.');
     }
 
     const params = new URLSearchParams();
@@ -369,11 +379,17 @@ const getRybbitMetric = async (
         params.append('filters', JSON.stringify(options.filters));
     }
 
+    // Prepare headers - include Authorization only for cloud instances with API key
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (apiKey && apiKey.trim()) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
     const response = await fetch(`${baseUrl}/api/metric/${siteId}?${params.toString()}`, {
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
+        headers,
     });
 
     if (!response.ok) {
