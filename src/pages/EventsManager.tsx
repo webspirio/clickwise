@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge, Loader2, RefreshCw, Download, Plus } from "lucide-react"
-import { api, Event, EventsResponse } from "@/lib/api"
+import { api, type Event, type EventsResponse } from "@/lib/api"
 
 export function EventsManager() {
     const [loading, setLoading] = useState(true)
@@ -311,7 +311,7 @@ export function EventsManager() {
                             </CardContent>
                         </Card>
                     ) : (
-                        eventsData.sessions.map((session) => (
+                        eventsData.sessions.map((session: any) => (
                             <Card key={session.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">

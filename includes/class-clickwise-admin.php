@@ -133,10 +133,10 @@ class Clickwise_Admin {
 
 	public function register_settings() {
 		// --- Rybbit Handler Settings ---
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled' );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url' );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id' );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version' );
 
 		add_settings_section(
 			'clickwise_rybbit_section',
@@ -195,9 +195,9 @@ class Clickwise_Admin {
 
 
 		// --- Google Analytics Settings ---
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_enabled', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_measurement_id', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_api_secret', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_enabled' );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_measurement_id' );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_api_secret' );
 
 		add_settings_section(
 			'clickwise_ga_section',
@@ -240,9 +240,9 @@ class Clickwise_Admin {
 
 
 		// --- General Settings (Legacy/Fallback) ---
-		register_setting( 'clickwise-settings-general', 'clickwise_script_url', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-general', 'clickwise_site_id', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-general', 'clickwise_api_version', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-general', 'clickwise_script_url' );
+		register_setting( 'clickwise-settings-general', 'clickwise_site_id' );
+		register_setting( 'clickwise-settings-general', 'clickwise_api_version' );
 
 		add_settings_section(
 			'clickwise_general_section',
@@ -271,8 +271,8 @@ class Clickwise_Admin {
 
 
 		// --- Events & Forms Settings ---
-		register_setting( 'clickwise-settings-events', 'clickwise_event_patterns', array( 'show_in_rest' => true ) );
-		register_setting( 'clickwise-settings-events', 'clickwise_event_rules', array( 'show_in_rest' => true ) );
+		register_setting( 'clickwise-settings-events', 'clickwise_event_patterns' );
+		register_setting( 'clickwise-settings-events', 'clickwise_event_rules' );
 
 		add_settings_section(
 			'clickwise_events_section',
