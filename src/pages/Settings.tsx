@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Check, AlertCircle, Globe, Key } from "lucide-react"
+import { Loader2, Check, AlertCircle, Globe, Key, Code } from "lucide-react"
 import { api } from "@/lib/api"
 
 export function Settings() {
@@ -233,115 +233,108 @@ export function Settings() {
                         />
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-blue-500" />
+                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-sm">
+                        <h3 className="text-lg font-medium text-cyan-50 mb-4 flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-cyan-400" />
                             Tracking Configuration
                         </h3>
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Rybbit URL
-                                </label>
-                                <input
-                                    type="url"
-                                    value={rybbitDomain}
-                                    onChange={(e) => setRybbitDomain(e.target.value)}
-                                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                    placeholder="https://app.rybbit.io"
-                                />
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="space-y-2">
+                                <Label htmlFor="rybbit-url" className="text-cyan-100">Rybbit URL</Label>
+                                <div className="relative">
+                                    <Globe className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                                    <Input
+                                        id="rybbit-url"
+                                        value={rybbitDomain}
+                                        onChange={(e) => setRybbitDomain(e.target.value)}
+                                        className="pl-9 bg-cyan-950/50 border-cyan-700 text-cyan-50 placeholder:text-cyan-200/70 focus-visible:ring-cyan-500"
+                                        placeholder="https://app.rybbit.io"
+                                    />
+                                </div>
+                                <p className="text-xs text-cyan-300/70">
                                     The base URL of your Rybbit instance.
                                 </p>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Script Path
-                                </label>
-                                <input
-                                    type="text"
-                                    value={rybbitScriptPath}
-                                    onChange={(e) => setRybbitScriptPath(e.target.value)}
-                                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                    placeholder="/api/script.js"
-                                />
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="space-y-2">
+                                <Label htmlFor="script-path" className="text-cyan-100">Script Path</Label>
+                                <div className="relative">
+                                    <Code className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                                    <Input
+                                        id="script-path"
+                                        type="text"
+                                        value={rybbitScriptPath}
+                                        onChange={(e) => setRybbitScriptPath(e.target.value)}
+                                        className="pl-9 bg-cyan-950/50 border-cyan-700 text-cyan-50 placeholder:text-cyan-200/70 focus-visible:ring-cyan-500"
+                                        placeholder="/api/script.js"
+                                    />
+                                </div>
+                                <p className="text-xs text-cyan-300/70">
                                     Path to the tracking script (default: /api/script.js).
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Site Tracking ID
-                                </label>
-                                <input
-                                    type="text"
-                                    value={rybbitTrackingId}
-                                    onChange={(e) => setRybbitTrackingId(e.target.value)}
-                                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                    placeholder="e.g., f3026ced35a3"
-                                />
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                    Found in your Rybbit Site settings under tracking script.
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Key className="w-5 h-5 text-purple-500" />
+                    <div className="bg-card/30 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-sm">
+                        <h3 className="text-lg font-medium text-cyan-50 mb-4 flex items-center gap-2">
+                            <Key className="w-5 h-5 text-cyan-400" />
                             API Configuration
                         </h3>
                         <div className="space-y-4">
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                                API Key
-                                                            </label>
-                                                            <input
-                                                                type="password"
-                                                                value={rybbitApiKey}
-                                                                onChange={(e) => setRybbitApiKey(e.target.value)}
-                                                                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                                                placeholder="Enter your API Key"
-                                                            />
-                                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                                Found in your Rybbit Account settings. Required for dashboard data.
-                                                            </p>
-                                                        </div>
-                            
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                                API Version
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={rybbitApiVersion}
-                                                                onChange={(e) => setRybbitApiVersion(e.target.value)}
-                                                                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                                                placeholder="e.g., v2"
-                                                            />
-                                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                                The API version for Rybbit integration (e.g., 'v2').
-                                                            </p>
-                                                        </div>
-                            
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                                Website ID
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={rybbitWebsiteId}
-                                                                onChange={(e) => setRybbitWebsiteId(e.target.value)}
-                                                                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white"
-                                                                placeholder="e.g., 3528"
-                                                            />
-                                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                                The numeric ID from your Rybbit dashboard URL (e.g., app.rybbit.io/3528/main).
-                                                            </p>
-                                                        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="api-key" className="text-cyan-100">API Key</Label>
+                                <div className="relative">
+                                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                                    <Input
+                                        id="api-key"
+                                        type="password"
+                                        value={rybbitApiKey}
+                                        onChange={(e) => setRybbitApiKey(e.target.value)}
+                                        className="pl-9 bg-cyan-950/50 border-cyan-700 text-cyan-50 placeholder:text-cyan-200/70 focus-visible:ring-cyan-500"
+                                        placeholder="Enter your API Key"
+                                    />
+                                </div>
+                                <p className="text-xs text-cyan-300/70">
+                                    Found in your Rybbit Account settings. Required for dashboard data.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="api-version" className="text-cyan-100">API Version</Label>
+                                <div className="relative">
+                                    <Code className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                                    <Input
+                                        id="api-version"
+                                        type="text"
+                                        value={rybbitApiVersion}
+                                        onChange={(e) => setRybbitApiVersion(e.target.value)}
+                                        className="pl-9 bg-cyan-950/50 border-cyan-700 text-cyan-50 placeholder:text-cyan-200/70 focus-visible:ring-cyan-500"
+                                        placeholder="e.g., v2"
+                                    />
+                                </div>
+                                <p className="text-xs text-cyan-300/70">
+                                    The API version for Rybbit integration (e.g., 'v2').
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="website-id" className="text-cyan-100">Website ID</Label>
+                                <div className="relative">
+                                    <Globe className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                                    <Input
+                                        id="website-id"
+                                        type="text"
+                                        value={rybbitWebsiteId}
+                                        onChange={(e) => setRybbitWebsiteId(e.target.value)}
+                                        className="pl-9 bg-cyan-950/50 border-cyan-700 text-cyan-50 placeholder:text-cyan-200/70 focus-visible:ring-cyan-500"
+                                        placeholder="e.g., 3528"
+                                    />
+                                </div>
+                                <p className="text-xs text-cyan-300/70">
+                                    The numeric ID from your Rybbit dashboard URL (e.g., app.rybbit.io/3528/main).
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -350,7 +343,7 @@ export function Settings() {
                             variant="outline"
                             className="w-full sm:w-auto"
                             onClick={() => testConnection('rybbit')}
-                            disabled={!rybbitEnabled || !rybbitTrackingId || !rybbitDomain}
+                            disabled={!rybbitEnabled || !rybbitDomain}
                         >
                             Test Connection
                         </Button>
@@ -459,7 +452,7 @@ export function Settings() {
                         </CardContent>
                     </Card>
                 </TabsContent>
-            </Tabs>
-        </div>
+            </Tabs >
+        </div >
     )
 }
