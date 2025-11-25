@@ -23,6 +23,7 @@ yarn.lock
 # Build artifacts (if using build tools)
 /dist/
 /build/
+assets/dist/ # Ignore build artifacts in assets/dist
 *.min.js.map
 *.min.css.map
 
