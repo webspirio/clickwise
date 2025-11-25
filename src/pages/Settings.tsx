@@ -26,27 +26,52 @@ export function Settings() {
     const [gaApiSecret, setGaApiSecret] = useState('')
 
     useEffect(() => {
+        console.log('🚀 Settings: Component mounted, loading settings...')
         loadSettings()
     }, [])
 
     const loadSettings = async () => {
         try {
+            console.log('🔄 Settings: Loading settings...')
             setLoading(true)
             const settings = await api.getSettings()
+            console.log('📋 Settings: Raw settings from API:', settings)
 
             // Rybbit settings
-            setRybbitEnabled(settings.clickwise_rybbit_enabled === '1')
-            setRybbitSiteId(settings.clickwise_rybbit_site_id || '')
-            setRybbitScriptUrl(settings.clickwise_rybbit_script_url || '')
-            setRybbitApiVersion(settings.clickwise_rybbit_api_version || 'v2')
+            const rybbitEnabled = settings.clickwise_rybbit_enabled === '1'
+            const rybbitSiteId = settings.clickwise_rybbit_site_id || ''
+            const rybbitScriptUrl = settings.clickwise_rybbit_script_url || ''
+            const rybbitApiVersion = settings.clickwise_rybbit_api_version || 'v2'
+
+            console.log('🔧 Settings: Parsed Rybbit settings:', {
+                enabled: rybbitEnabled,
+                siteId: rybbitSiteId,
+                scriptUrl: rybbitScriptUrl,
+                apiVersion: rybbitApiVersion
+            })
+
+            setRybbitEnabled(rybbitEnabled)
+            setRybbitSiteId(rybbitSiteId)
+            setRybbitScriptUrl(rybbitScriptUrl)
+            setRybbitApiVersion(rybbitApiVersion)
 
             // GA4 settings
-            setGaEnabled(settings.clickwise_ga_enabled === '1')
-            setGaMeasurementId(settings.clickwise_ga_measurement_id || '')
-            setGaApiSecret(settings.clickwise_ga_api_secret || '')
+            const gaEnabled = settings.clickwise_ga_enabled === '1'
+            const gaMeasurementId = settings.clickwise_ga_measurement_id || ''
+            const gaApiSecret = settings.clickwise_ga_api_secret || ''
+
+            console.log('📊 Settings: Parsed GA4 settings:', {
+                enabled: gaEnabled,
+                measurementId: gaMeasurementId,
+                apiSecret: gaApiSecret ? '[HIDDEN]' : ''
+            })
+
+            setGaEnabled(gaEnabled)
+            setGaMeasurementId(gaMeasurementId)
+            setGaApiSecret(gaApiSecret)
 
         } catch (error) {
-            console.error('Failed to load settings:', error)
+            console.error('❌ Settings: Failed to load settings:', error)
             setMessage({ type: 'error', text: 'Failed to load settings' })
         } finally {
             setLoading(false)
@@ -55,6 +80,7 @@ export function Settings() {
 
     const saveSettings = async () => {
         try {
+            console.log('💾 Settings: Starting save process...')
             setSaving(true)
             setMessage(null)
 
@@ -68,14 +94,26 @@ export function Settings() {
                 clickwise_ga_api_secret: gaApiSecret,
             }
 
+            console.log('📝 Settings: Prepared settings object:', settingsToSave)
+            console.log('🔧 Settings: Current form state:', {
+                rybbitEnabled,
+                rybbitSiteId,
+                rybbitScriptUrl,
+                rybbitApiVersion,
+                gaEnabled,
+                gaMeasurementId,
+                gaApiSecret: gaApiSecret ? '[HIDDEN]' : ''
+            })
+
             await api.saveSettings(settingsToSave)
+            console.log('✅ Settings: Save completed successfully!')
             setMessage({ type: 'success', text: 'Settings saved successfully!' })
 
             // Clear message after 3 seconds
             setTimeout(() => setMessage(null), 3000)
 
         } catch (error) {
-            console.error('Failed to save settings:', error)
+            console.error('❌ Settings: Failed to save settings:', error)
             setMessage({
                 type: 'error',
                 text: error instanceof Error ? error.message : 'Failed to save settings'

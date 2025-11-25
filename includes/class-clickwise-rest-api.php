@@ -158,6 +158,13 @@ class Clickwise_Rest_API {
 			'callback' => array( $this, 'test_handler_connection' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
+
+		// Debug endpoint for settings
+		register_rest_route( $this->namespace, '/debug/settings', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'debug_settings' ),
+			'permission_callback' => array( $this, 'check_admin_permissions' ),
+		) );
 	}
 
 	/**
@@ -697,6 +704,44 @@ class Clickwise_Rest_API {
 			'message' => empty( $api_secret )
 				? 'Google Analytics connection successful! Test event sent (no API secret - cannot verify delivery).'
 				: 'Google Analytics connection successful! Test event sent and verified.'
+		) );
+	}
+
+	/**
+	 * Debug settings registration
+	 */
+	public function debug_settings( $request ) {
+		// Get all Clickwise settings
+		$settings = array();
+		$setting_keys = array(
+			'clickwise_rybbit_enabled',
+			'clickwise_rybbit_site_id',
+			'clickwise_rybbit_script_url',
+			'clickwise_rybbit_api_version',
+			'clickwise_ga_enabled',
+			'clickwise_ga_measurement_id',
+			'clickwise_ga_api_secret'
+		);
+
+		foreach ( $setting_keys as $key ) {
+			$settings[$key] = get_option( $key, 'NOT_SET' );
+		}
+
+		// Check if settings are registered with REST API
+		global $wp_rest_server;
+		$routes = $wp_rest_server->get_routes();
+		$wp_settings_route_exists = isset( $routes['/wp/v2/settings'] );
+
+		return rest_ensure_response( array(
+			'current_settings' => $settings,
+			'wp_settings_route_exists' => $wp_settings_route_exists,
+			'registered_settings' => get_registered_settings(),
+			'current_user_can_manage_options' => current_user_can( 'manage_options' ),
+			'debug_info' => array(
+				'rest_url' => rest_url(),
+				'admin_url' => admin_url(),
+				'current_user_id' => get_current_user_id(),
+			)
 		) );
 	}
 }
