@@ -78,17 +78,26 @@ const getSettings = async () => {
         throw new Error('Clickwise settings not found');
     }
 
-    const response = await fetch(`${window.clickwiseSettings.restUrl}wp/v2/settings`, {
+    const url = `${window.clickwiseSettings.restUrl}wp/v2/settings`;
+    console.log('🔍 API: Getting settings from:', url);
+
+    const response = await fetch(url, {
         headers: {
             'X-WP-Nonce': window.clickwiseSettings.restNonce,
         },
     });
 
+    console.log('📥 API: Settings response status:', response.status);
+
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API: Settings fetch failed:', errorText);
         throw new Error('Failed to fetch settings');
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('📄 API: Settings loaded:', data);
+    return data;
 };
 
 const saveSettings = async (settings: Record<string, any>) => {
@@ -96,7 +105,11 @@ const saveSettings = async (settings: Record<string, any>) => {
         throw new Error('Clickwise settings not found');
     }
 
-    const response = await fetch(`${window.clickwiseSettings.restUrl}wp/v2/settings`, {
+    const url = `${window.clickwiseSettings.restUrl}wp/v2/settings`;
+    console.log('💾 API: Saving settings to:', url);
+    console.log('📤 API: Settings to save:', settings);
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -105,12 +118,23 @@ const saveSettings = async (settings: Record<string, any>) => {
         body: JSON.stringify(settings),
     });
 
+    console.log('📥 API: Save response status:', response.status);
+
     if (!response.ok) {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        console.error('❌ API: Settings save failed:', errorText);
+        let errorData;
+        try {
+            errorData = JSON.parse(errorText);
+        } catch (e) {
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
         throw new Error(errorData.message || 'Failed to save settings');
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('✅ API: Settings saved successfully:', data);
+    return data;
 };
 
 // Dashboard API
