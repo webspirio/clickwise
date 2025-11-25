@@ -19,6 +19,7 @@ export function Settings() {
     const [rybbitSiteId, setRybbitSiteId] = useState('')
     const [rybbitScriptUrl, setRybbitScriptUrl] = useState('')
     const [rybbitApiVersion, setRybbitApiVersion] = useState('v2')
+    const [rybbitApiKey, setRybbitApiKey] = useState('')
 
     // GA4 settings
     const [gaEnabled, setGaEnabled] = useState(false)
@@ -42,18 +43,21 @@ export function Settings() {
             const rybbitSiteId = settings.clickwise_rybbit_site_id || ''
             const rybbitScriptUrl = settings.clickwise_rybbit_script_url || ''
             const rybbitApiVersion = settings.clickwise_rybbit_api_version || 'v2'
+            const rybbitApiKey = settings.clickwise_rybbit_api_key || ''
 
             console.log('🔧 Settings: Parsed Rybbit settings:', {
                 enabled: rybbitEnabled,
                 siteId: rybbitSiteId,
                 scriptUrl: rybbitScriptUrl,
-                apiVersion: rybbitApiVersion
+                apiVersion: rybbitApiVersion,
+                apiKey: rybbitApiKey ? '[SET]' : '[NOT SET]'
             })
 
             setRybbitEnabled(rybbitEnabled)
             setRybbitSiteId(rybbitSiteId)
             setRybbitScriptUrl(rybbitScriptUrl)
             setRybbitApiVersion(rybbitApiVersion)
+            setRybbitApiKey(rybbitApiKey)
 
             // GA4 settings
             const gaEnabled = settings.clickwise_ga_enabled === '1'
@@ -89,6 +93,7 @@ export function Settings() {
                 clickwise_rybbit_site_id: rybbitSiteId,
                 clickwise_rybbit_script_url: rybbitScriptUrl,
                 clickwise_rybbit_api_version: rybbitApiVersion,
+                clickwise_rybbit_api_key: rybbitApiKey,
                 clickwise_ga_enabled: gaEnabled ? '1' : '',
                 clickwise_ga_measurement_id: gaMeasurementId,
                 clickwise_ga_api_secret: gaApiSecret,
@@ -100,6 +105,7 @@ export function Settings() {
                 rybbitSiteId,
                 rybbitScriptUrl,
                 rybbitApiVersion,
+                rybbitApiKey: rybbitApiKey ? '[HIDDEN]' : '',
                 gaEnabled,
                 gaMeasurementId,
                 gaApiSecret: gaApiSecret ? '[HIDDEN]' : ''
@@ -247,6 +253,19 @@ export function Settings() {
                                         <SelectItem value="v2">v2 (Recommended)</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="rybbit-api-key">API Key</Label>
+                                <Input
+                                    id="rybbit-api-key"
+                                    type="password"
+                                    placeholder="Enter your API Key for analytics access"
+                                    value={rybbitApiKey}
+                                    onChange={(e) => setRybbitApiKey(e.target.value)}
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    Required for dashboard analytics. Generate this in your Rybbit account settings.
+                                </p>
                             </div>
                             <div className="pt-4">
                                 <Button

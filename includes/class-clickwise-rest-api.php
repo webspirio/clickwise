@@ -194,6 +194,10 @@ class Clickwise_Rest_API {
 					'required' => false,
 					'sanitize_callback' => 'sanitize_text_field',
 				),
+				'clickwise_rybbit_api_key' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
 				'clickwise_ga_enabled' => array(
 					'required' => false,
 					'sanitize_callback' => 'sanitize_text_field',
@@ -761,6 +765,7 @@ class Clickwise_Rest_API {
 			'clickwise_rybbit_site_id',
 			'clickwise_rybbit_script_url',
 			'clickwise_rybbit_api_version',
+			'clickwise_rybbit_api_key',
 			'clickwise_ga_enabled',
 			'clickwise_ga_measurement_id',
 			'clickwise_ga_api_secret'
@@ -797,6 +802,7 @@ class Clickwise_Rest_API {
 			'clickwise_rybbit_site_id' => get_option( 'clickwise_rybbit_site_id', '' ),
 			'clickwise_rybbit_script_url' => get_option( 'clickwise_rybbit_script_url', '' ),
 			'clickwise_rybbit_api_version' => get_option( 'clickwise_rybbit_api_version', 'v2' ),
+			'clickwise_rybbit_api_key' => get_option( 'clickwise_rybbit_api_key', '' ),
 			'clickwise_ga_enabled' => get_option( 'clickwise_ga_enabled', '' ),
 			'clickwise_ga_measurement_id' => get_option( 'clickwise_ga_measurement_id', '' ),
 			'clickwise_ga_api_secret' => get_option( 'clickwise_ga_api_secret', '' ),
@@ -817,6 +823,7 @@ class Clickwise_Rest_API {
 			'clickwise_rybbit_site_id',
 			'clickwise_rybbit_script_url',
 			'clickwise_rybbit_api_version',
+			'clickwise_rybbit_api_key',
 			'clickwise_ga_enabled',
 			'clickwise_ga_measurement_id',
 			'clickwise_ga_api_secret',

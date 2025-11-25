@@ -6,6 +6,46 @@ type DashboardStats = {
     avg_session: string;
 };
 
+// Rybbit API Types
+type RybbitOverview = {
+    sessions: number;
+    pageviews: number;
+    users: number;
+    pages_per_session: number;
+    bounce_rate: number;
+    session_duration: number;
+};
+
+type RybbitMetricItem = {
+    value: string;
+    count: number;
+    percentage: number;
+    pageviews?: number;
+    pageviews_percentage?: number;
+    time_on_page_seconds?: number;
+    bounce_rate?: number;
+    pathname?: string;
+};
+
+type RybbitMetricResponse = {
+    data: RybbitMetricItem[];
+    totalCount: number;
+};
+
+type TimeRange = {
+    start_date?: string;
+    end_date?: string;
+    time_zone?: string;
+    past_minutes_start?: number;
+    past_minutes_end?: number;
+};
+
+type RybbitFilter = {
+    parameter: string;
+    type: 'equals' | 'not_equals' | 'contains' | 'not_contains';
+    value: (string | number)[];
+};
+
 type ChartDataPoint = {
     name: string;
     visits: number;
@@ -236,6 +276,165 @@ const testHandler = async (handler: 'rybbit' | 'ga') => {
     return handleResponse(response);
 };
 
+// Rybbit Analytics API
+const getRybbitOverview = async (siteId: string, timeRange: TimeRange, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
+    const settings = await getSettings();
+    const apiKey = settings.clickwise_rybbit_api_key;
+    const baseUrl = settings.clickwise_rybbit_script_url?.replace('/api/script.js', '') || 'https://api.rybbit.com';
+
+    if (!apiKey) {
+        throw new Error('Rybbit API key not configured. Please check your settings.');
+    }
+
+    const params = new URLSearchParams();
+
+    // Add time range parameters
+    if (timeRange.start_date && timeRange.end_date && timeRange.time_zone) {
+        params.append('start_date', timeRange.start_date);
+        params.append('end_date', timeRange.end_date);
+        params.append('time_zone', timeRange.time_zone);
+    } else if (timeRange.past_minutes_start && timeRange.past_minutes_end !== undefined) {
+        params.append('past_minutes_start', timeRange.past_minutes_start.toString());
+        params.append('past_minutes_end', timeRange.past_minutes_end.toString());
+    }
+
+    // Add filters if provided
+    if (filters && filters.length > 0) {
+        params.append('filters', JSON.stringify(filters));
+    }
+
+    const response = await fetch(`${baseUrl}/api/overview/${siteId}?${params.toString()}`, {
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please wait and try again.');
+        }
+        if (response.status === 401) {
+            throw new Error('Invalid API key. Please check your Rybbit settings.');
+        }
+        if (response.status === 403) {
+            throw new Error('Access denied. Please check your site permissions.');
+        }
+        throw new Error(`Failed to fetch analytics data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+};
+
+const getRybbitMetric = async (
+    siteId: string,
+    parameter: string,
+    timeRange: TimeRange,
+    options?: {
+        filters?: RybbitFilter[];
+        limit?: number;
+        page?: number;
+    }
+): Promise<RybbitMetricResponse> => {
+    const settings = await getSettings();
+    const apiKey = settings.clickwise_rybbit_api_key;
+    const baseUrl = settings.clickwise_rybbit_script_url?.replace('/api/script.js', '') || 'https://api.rybbit.com';
+
+    if (!apiKey) {
+        throw new Error('Rybbit API key not configured. Please check your settings.');
+    }
+
+    const params = new URLSearchParams();
+    params.append('parameter', parameter);
+
+    // Add time range parameters
+    if (timeRange.start_date && timeRange.end_date && timeRange.time_zone) {
+        params.append('start_date', timeRange.start_date);
+        params.append('end_date', timeRange.end_date);
+        params.append('time_zone', timeRange.time_zone);
+    } else if (timeRange.past_minutes_start && timeRange.past_minutes_end !== undefined) {
+        params.append('past_minutes_start', timeRange.past_minutes_start.toString());
+        params.append('past_minutes_end', timeRange.past_minutes_end.toString());
+    }
+
+    // Add optional parameters
+    if (options?.limit) {
+        params.append('limit', options.limit.toString());
+    }
+    if (options?.page) {
+        params.append('page', options.page.toString());
+    }
+    if (options?.filters && options.filters.length > 0) {
+        params.append('filters', JSON.stringify(options.filters));
+    }
+
+    const response = await fetch(`${baseUrl}/api/metric/${siteId}?${params.toString()}`, {
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please wait and try again.');
+        }
+        if (response.status === 401) {
+            throw new Error('Invalid API key. Please check your Rybbit settings.');
+        }
+        if (response.status === 403) {
+            throw new Error('Access denied. Please check your site permissions.');
+        }
+        throw new Error(`Failed to fetch metric data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+};
+
+// Helper function to create time ranges
+const createTimeRange = (preset: 'today' | 'week' | 'month' | '3months' | 'custom', customStart?: string, customEnd?: string): TimeRange => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    switch (preset) {
+        case 'today':
+            return {
+                past_minutes_start: 24 * 60,
+                past_minutes_end: 0
+            };
+        case 'week':
+            return {
+                past_minutes_start: 7 * 24 * 60,
+                past_minutes_end: 0
+            };
+        case 'month':
+            return {
+                past_minutes_start: 30 * 24 * 60,
+                past_minutes_end: 0
+            };
+        case '3months':
+            return {
+                past_minutes_start: 90 * 24 * 60,
+                past_minutes_end: 0
+            };
+        case 'custom':
+            if (!customStart || !customEnd) {
+                throw new Error('Custom date range requires start and end dates');
+            }
+            return {
+                start_date: customStart,
+                end_date: customEnd,
+                time_zone: timeZone
+            };
+        default:
+            return {
+                past_minutes_start: 7 * 24 * 60,
+                past_minutes_end: 0
+            };
+    }
+};
+
 export const api = {
     // Settings
     getSettings,
@@ -261,6 +460,11 @@ export const api = {
 
     // Testing
     testHandler,
+
+    // Rybbit Analytics
+    getRybbitOverview,
+    getRybbitMetric,
+    createTimeRange,
 };
 
 // Export types
@@ -270,4 +474,9 @@ export type {
     ActivityItem,
     Event,
     EventsResponse,
+    RybbitOverview,
+    RybbitMetricItem,
+    RybbitMetricResponse,
+    TimeRange,
+    RybbitFilter,
 };
