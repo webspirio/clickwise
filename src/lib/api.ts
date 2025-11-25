@@ -78,7 +78,7 @@ const getSettings = async () => {
         throw new Error('Clickwise settings not found');
     }
 
-    const url = `${window.clickwiseSettings.restUrl}wp/v2/settings`;
+    const url = `${window.clickwiseSettings.restUrl}clickwise/v1/settings`;
     console.log('🔍 API: Getting settings from:', url);
 
     const response = await fetch(url, {
@@ -105,7 +105,7 @@ const saveSettings = async (settings: Record<string, any>) => {
         throw new Error('Clickwise settings not found');
     }
 
-    const url = `${window.clickwiseSettings.restUrl}wp/v2/settings`;
+    const url = `${window.clickwiseSettings.restUrl}clickwise/v1/settings`;
     console.log('💾 API: Saving settings to:', url);
     console.log('📤 API: Settings to save:', settings);
 
