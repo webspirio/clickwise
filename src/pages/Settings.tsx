@@ -255,16 +255,16 @@ export function Settings() {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="rybbit-api-key">API Key</Label>
+                                <Label htmlFor="rybbit-api-key">Site API Key</Label>
                                 <Input
                                     id="rybbit-api-key"
                                     type="password"
-                                    placeholder="Enter your API Key for analytics access"
+                                    placeholder="Enter your Site API Key from Rybbit Site Settings"
                                     value={rybbitApiKey}
                                     onChange={(e) => setRybbitApiKey(e.target.value)}
                                 />
                                 <p className="text-sm text-muted-foreground">
-                                    Required for dashboard analytics. Generate this in your Rybbit account settings.
+                                    Get this from your self-hosted Rybbit → Site Settings → API Key section.
                                 </p>
                             </div>
                             <div className="pt-4">
