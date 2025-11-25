@@ -133,10 +133,26 @@ class Clickwise_Admin {
 
 	public function register_settings() {
 		// --- Rybbit Handler Settings ---
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id' );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version' );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_enabled', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_api_version', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => 'v2',
+		) );
 
 		add_settings_section(
 			'clickwise_rybbit_section',
@@ -195,9 +211,21 @@ class Clickwise_Admin {
 
 
 		// --- Google Analytics Settings ---
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_enabled' );
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_measurement_id' );
-		register_setting( 'clickwise-settings-ga', 'clickwise_ga_api_secret' );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_enabled', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_measurement_id', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
+		register_setting( 'clickwise-settings-ga', 'clickwise_ga_api_secret', array(
+			'type' => 'string',
+			'show_in_rest' => true,
+			'default' => '',
+		) );
 
 		add_settings_section(
 			'clickwise_ga_section',
