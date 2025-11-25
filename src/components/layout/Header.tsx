@@ -1,3 +1,4 @@
+import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 
 export function Header() {
@@ -14,6 +15,7 @@ export function Header() {
                 </div>
             </div>
             <div className="flex items-center gap-2">
+                <ModeToggle />
                 <Button variant="outline" asChild>
                     <a href="https://clickwise.com/docs" target="_blank" rel="noreferrer">Documentation</a>
                 </Button>

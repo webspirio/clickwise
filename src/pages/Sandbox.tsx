@@ -111,7 +111,7 @@ export function Sandbox() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-2">
-                <Card className="border-none shadow-md">
+                <Card className="glass-card border-none shadow-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Terminal className="h-5 w-5 text-primary" />
@@ -125,11 +125,10 @@ export function Sandbox() {
                             <Label className="text-base font-semibold">Target Handlers</Label>
                             <div className="grid gap-3">
                                 {availableHandlers.map((handler) => (
-                                    <div key={handler.id} className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${
-                                        handler.enabled
-                                            ? 'border-border hover:border-primary/50'
+                                    <div key={handler.id} className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${handler.enabled
+                                            ? 'border-border hover:border-primary/50 bg-card/50'
                                             : 'border-muted bg-muted/30 opacity-60'
-                                    }`}>
+                                        }`}>
                                         <Checkbox
                                             checked={selectedHandlers.includes(handler.id)}
                                             onCheckedChange={(checked) => handleHandlerToggle(handler.id, !!checked)}
@@ -177,7 +176,7 @@ export function Sandbox() {
                                 id="event-props"
                                 value={eventProps}
                                 onChange={(e) => setEventProps(e.target.value)}
-                                className="font-mono h-48 bg-slate-50 dark:bg-slate-900"
+                                className="font-mono h-48 bg-background/50 dark:bg-input/20 border-input"
                                 placeholder='{\n    "key": "value",\n    "user_id": "123"\n}'
                             />
                         </div>
@@ -202,7 +201,7 @@ export function Sandbox() {
                     </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md flex flex-col">
+                <Card className="glass-card border-none shadow-md flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Console Log</CardTitle>
@@ -213,7 +212,7 @@ export function Sandbox() {
                         </Button>
                     </CardHeader>
                     <CardContent className="flex-1 min-h-[300px]">
-                        <div className="bg-slate-950 text-slate-50 p-4 rounded-lg h-full overflow-y-auto font-mono text-sm shadow-inner">
+                        <div className="bg-slate-950 text-slate-50 p-4 rounded-lg h-full overflow-y-auto font-mono text-sm shadow-inner border border-white/10">
                             {logs.length === 0 ? (
                                 <div className="h-full flex items-center justify-center text-slate-500 italic">
                                     Ready to capture events...
@@ -223,7 +222,7 @@ export function Sandbox() {
                                     <div key={i} className="mb-2 border-b border-slate-800 pb-1 last:border-0">
                                         <span className={`inline-block w-4 ${log.color}`}>{log.icon}</span>
                                         <span className="text-slate-400 text-xs mr-2">[{log.timestamp}]</span>
-                                        <span className={log.type === 'error' ? 'text-red-300' : log.type === 'success' ? 'text-green-300' : 'text-slate-300'}>
+                                        <span className={log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : 'text-slate-300'}>
                                             {log.message}
                                         </span>
                                     </div>
