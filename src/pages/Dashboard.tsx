@@ -9,6 +9,19 @@ import { Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } 
 import { TimeRangeSelector, formatTimeRangeDisplay } from "@/components/TimeRangeSelector"
 import { api, type RybbitOverview, type RybbitMetricResponse } from "@/lib/api"
 
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="p-2 text-xs text-cyan-50 rounded-lg shadow-lg bg-card/80 backdrop-blur-sm border border-border">
+                <p className="font-bold text-foreground">{`${payload[0].name}`}</p>
+                <p className="text-muted-foreground">{`Sessions: ${payload[0].value}`}</p>
+            </div>
+        );
+    }
+
+    return null;
+};
+
 export function Dashboard() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -361,16 +374,21 @@ export function Dashboard() {
                                             cy="50%"
                                             outerRadius={80}
                                             fill="#8884d8"
+                                            stroke="hsl(var(--background))"
                                         >
                                             {devices?.data?.map((_, index) => (
                                                 <Cell key={`cell-${index}`} fill={
-                                                    index === 0 ? '#3b82f6' :
-                                                        index === 1 ? '#ef4444' :
-                                                            index === 2 ? '#10b981' : '#f59e0b'
+                                                    [
+                                                        'hsl(var(--primary))',
+                                                        'hsl(var(--secondary))',
+                                                        'hsl(var(--muted))',
+                                                        'hsl(var(--accent))',
+                                                    ][index % 4]
                                                 } />
                                             ))}
                                         </Pie>
                                         <RechartsTooltip
+                                            content={<CustomTooltip />}
                                             formatter={(value, name) => [formatNumber(value as number), name]}
                                         />
                                     </PieChart>
@@ -402,7 +420,7 @@ export function Dashboard() {
                                 {topCountries?.data?.slice(0, 5).map((country) => (
                                     <div key={country.value} className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <div className="w-2 h-2 rounded-full bg-blue-600" />
+                                            <div className="w-2 h-2 rounded-full bg-primary" />
                                             <span className="font-medium text-sm">{country.value}</span>
                                         </div>
                                         <div className="text-right">
@@ -446,7 +464,7 @@ export function Dashboard() {
                                 {browsers?.data?.slice(0, 5).map((browser) => (
                                     <div key={browser.value} className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <div className="w-2 h-2 rounded-full bg-green-600" />
+                                            <div className="w-2 h-2 rounded-full bg-secondary" />
                                             <span className="font-medium text-sm">{browser.value}</span>
                                         </div>
                                         <div className="text-right">
