@@ -8,8 +8,10 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Check, AlertCircle, Globe, Key, Code } from "lucide-react"
 import { api } from "@/lib/api"
+import { useSettings } from "@/contexts/SettingsContext"
 
 export function Settings() {
+    const { settings: contextSettings, refreshSettings } = useSettings()
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -31,16 +33,26 @@ export function Settings() {
     const [gaApiSecret, setGaApiSecret] = useState('')
 
     useEffect(() => {
-        console.log('🚀 Settings: Component mounted, loading settings...')
-        loadSettings()
-    }, [])
+        console.log('🚀 Settings: Component mounted or context settings updated, loading settings...')
+        if (contextSettings) {
+            loadSettings()
+        }
+    }, [contextSettings])
 
     const loadSettings = async () => {
         try {
             console.log('🔄 Settings: Loading settings...')
             setLoading(true)
-            const settings = await api.getSettings()
-            console.log('📋 Settings: Raw settings from API:', settings)
+
+            // Use settings from context instead of fetching
+            if (!contextSettings) {
+                console.log('⏳ Settings: Waiting for context settings to load...')
+                await refreshSettings()
+                return
+            }
+
+            const settings = contextSettings
+            console.log('📋 Settings: Using settings from context:', settings)
 
             // Rybbit settings
             const rybbitEnabled = settings.clickwise_rybbit_enabled === '1'
@@ -133,6 +145,11 @@ export function Settings() {
 
             await api.saveSettings(settingsToSave)
             console.log('✅ Settings: Save completed successfully!')
+
+            // Refresh settings context so Dashboard gets updated values
+            await refreshSettings()
+            console.log('🔃 Settings: Context refreshed after save')
+
             window.dispatchEvent(new Event('clickwise-trigger-logo-animation'));
             setMessage({ type: 'success', text: 'Settings saved successfully!' })
 

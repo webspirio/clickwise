@@ -278,9 +278,7 @@ const testHandler = async (handler: 'rybbit' | 'ga') => {
 
 // Rybbit Analytics API
 
-export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
-
-    const settings = await getSettings();
+export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, settings: any, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
 
     const apiKey = settings.clickwise_rybbit_api_key;
 
@@ -388,13 +386,13 @@ const getRybbitMetric = async (
     siteId: string,
     parameter: string,
     timeRange: TimeRange,
+    settings: any,
     options?: {
         filters?: RybbitFilter[];
         limit?: number;
         page?: number;
     }
 ): Promise<RybbitMetricResponse> => {
-    const settings = await getSettings();
     const apiKey = settings.clickwise_rybbit_api_key;
     const baseUrl = settings.clickwise_rybbit_domain || 'https://app.rybbit.io';
 
