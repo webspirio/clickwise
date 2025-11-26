@@ -1,14 +1,12 @@
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
+import { AnimatedLogo } from "@/components/AnimatedLogo"
 
 export function Header() {
     return (
         <div className="border-b bg-background px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-                {/* Logo placeholder - can be replaced with SVG */}
-                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
-                    C
-                </div>
+                <AnimatedLogo className="h-12 w-12" />
                 <div>
                     <h1 className="text-xl font-bold">Clickwise</h1>
                     <p className="text-sm text-muted-foreground">WordPress Event Tracking Plugin</p>
