@@ -139,15 +139,15 @@ export function Dashboard() {
 
     return (
         <TooltipProvider>
-            <div className="p-8 space-y-8 max-w-7xl mx-auto">
-                <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight text-foreground">Analytics Dashboard</h2>
                         <p className="text-muted-foreground mt-1">
                             Real-time insights from your website - {formatTimeRangeDisplay(timeRange)}
                         </p>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex flex-wrap items-center gap-2 sm:space-x-4">
                         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
                         <Button variant="outline" onClick={refreshData} disabled={refreshing}>
                             {refreshing ? (
@@ -165,9 +165,9 @@ export function Dashboard() {
                 </div>
 
                 {/* Overview Metrics Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Sessions
@@ -181,9 +181,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <Users className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview ? formatNumber(rybbitOverview.sessions) : '...'}
                             </div>
@@ -191,10 +190,11 @@ export function Dashboard() {
                                 Unique visits
                             </p>
                         </CardContent>
+                        <Users className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
 
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Pageviews
@@ -208,9 +208,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <Eye className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview ? formatNumber(rybbitOverview.pageviews) : '...'}
                             </div>
@@ -218,10 +217,11 @@ export function Dashboard() {
                                 Total page views
                             </p>
                         </CardContent>
+                        <Eye className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
 
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Unique Users
@@ -235,9 +235,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <Users className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview ? formatNumber(rybbitOverview.users) : '...'}
                             </div>
@@ -245,10 +244,11 @@ export function Dashboard() {
                                 Unique visitors
                             </p>
                         </CardContent>
+                        <Users className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
 
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Pages/Session
@@ -262,9 +262,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <BarChart3 className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview && typeof rybbitOverview.pages_per_session === 'number' ? rybbitOverview.pages_per_session.toFixed(2) : '...'}
                             </div>
@@ -272,10 +271,11 @@ export function Dashboard() {
                                 Pages per visit
                             </p>
                         </CardContent>
+                        <BarChart3 className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
 
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Bounce Rate
@@ -289,9 +289,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <TrendingUp className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview ? formatPercentage(rybbitOverview.bounce_rate) : '...'}
                             </div>
@@ -299,10 +298,11 @@ export function Dashboard() {
                                 Single-page visits
                             </p>
                         </CardContent>
+                        <TrendingUp className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
 
-                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Card className="glass-card hover:bg-card/40 transition-colors border-none shadow-md relative overflow-hidden group">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                             <div className="flex items-center space-x-2">
                                 <CardTitle className="text-sm font-medium text-muted-foreground">
                                     Avg. Duration
@@ -316,9 +316,8 @@ export function Dashboard() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <Clock className="h-4 w-4 text-cyan-500" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="relative z-10">
                             <div className="text-2xl font-bold text-foreground">
                                 {rybbitOverview ? formatDuration(rybbitOverview.session_duration) : '...'}
                             </div>
@@ -326,11 +325,12 @@ export function Dashboard() {
                                 Time on site
                             </p>
                         </CardContent>
+                        <Clock className="absolute -right-6 -bottom-6 h-24 w-24 text-cyan-500/10 -rotate-12 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" />
                     </Card>
                 </div>
 
                 {/* Charts and Data Tables Section */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                     {/* Device Types Chart */}
                     <Card className="border-none shadow-md">
                         <CardHeader>
@@ -487,7 +487,7 @@ export function Dashboard() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="rounded-md border">
+                        <div className="rounded-md border overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>

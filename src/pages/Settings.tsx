@@ -133,6 +133,7 @@ export function Settings() {
 
             await api.saveSettings(settingsToSave)
             console.log('✅ Settings: Save completed successfully!')
+            window.dispatchEvent(new Event('clickwise-trigger-logo-animation'));
             setMessage({ type: 'success', text: 'Settings saved successfully!' })
 
             // Clear message after 3 seconds
