@@ -117,6 +117,7 @@ class Clickwise_Analytics {
 	 * Register all of the hooks related to the public-fng functionality.
 	 */
 	private function define_public_hooks() {
+		add_action( 'wp_head', array( $this->plugin_admin, 'inject_frontend_preamble' ) );
 		add_action( 'wp_head', array( $this, 'add_tracking_code' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'print_queued_events' ) );

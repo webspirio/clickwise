@@ -69,6 +69,46 @@ class Clickwise_Admin {
 		}
 	}
 
+	public function inject_frontend_preamble() {
+		if ( is_admin() || ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
+		if ( ! defined( 'CLICKWISE_REACT_DEV' ) && ( wp_get_environment_type() === 'local' || wp_get_environment_type() === 'development' ) ) {
+			$is_dev = true;
+		}
+
+		if ( $is_dev ) {
+			// Inject everything directly to avoid WordPress script queue interference
+			?>
+			<script>
+			window.clickwiseSettings = <?php echo json_encode( array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
+				'restUrl' => esc_url_raw( rest_url() ),
+				'restNonce' => wp_create_nonce( 'wp_rest' ),
+				'scriptUrl' => get_option( 'clickwise_script_url' ),
+				'siteId'    => get_option( 'clickwise_site_id' ),
+				'currentUser' => wp_get_current_user(),
+				'activeTab' => '',
+				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
+			) ); ?>;
+			</script>
+			<script type="module">
+				import RefreshRuntime from "http://localhost:5173/@react-refresh"
+				RefreshRuntime.injectIntoGlobalHook(window)
+				window.$RefreshReg$ = () => {}
+				window.$RefreshSig$ = () => (type) => type
+				window.__vite_plugin_react_preamble_installed__ = true
+			</script>
+			<script type="module" crossorigin src="http://localhost:5173/@vite/client"></script>
+			<script type="module" crossorigin src="http://localhost:5173/src/main.tsx"></script>
+			<?php
+		}
+	}
+
 	public function add_admin_menu() {
 		add_options_page(
 			'Clickwise Analytics',
@@ -117,7 +157,7 @@ class Clickwise_Admin {
 		) );
 	}
 
-	public function enqueue_admin_scripts( $hook ) {
+	public function enqueue_admin_scripts( $hook = null ) {
 		// Enqueue on settings page AND frontend (for admin bar)
 		if ( 'settings_page_clickwise-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
@@ -133,8 +173,11 @@ class Clickwise_Admin {
 					// Vite Dev Server - Scripts and settings are injected directly in admin_head via inject_vite_scripts()
 					// Nothing to do here for the settings page
 					return;
+				} else if ( $is_dev && ! is_admin() ) {
+					// Dev mode on frontend - Scripts and settings are injected directly in wp_head via inject_frontend_preamble()
+					// But we still need to enqueue the admin bar handler
 				} else if ( $is_dev ) {
-					// Dev mode on frontend (admin bar) - still needs proper handling
+					// This shouldn't happen, but just in case - some other admin page in dev mode
 					wp_enqueue_script( 'clickwise-vite-client', 'http://localhost:5173/@vite/client', array(), null, false );
 					wp_enqueue_script( 'clickwise-react-app', 'http://localhost:5173/src/main.tsx', array( 'clickwise-vite-client' ), null, false );
 				} else {
@@ -170,6 +213,15 @@ class Clickwise_Admin {
 
 				// Add module type for Vite scripts
 				add_filter( 'script_loader_tag', array( $this, 'add_type_attribute' ), 10, 3 );
+
+				// Enqueue Admin Bar Handler (Always for admins)
+				wp_enqueue_script( 'clickwise-admin-bar-js', CLICKWISE_URL . 'assets/js/clickwise-admin-bar.js', array(), $this->version, true );
+				
+				// Localize settings for admin bar handler specifically
+				wp_localize_script( 'clickwise-admin-bar-js', 'clickwiseAdminBarSettings', array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'clickwise_admin_nonce' )
+				) );
 			}
 		}
 	}
@@ -262,5 +314,167 @@ class Clickwise_Admin {
 		?>
 		<div id="clickwise-admin-app"></div>
 		<?php
+	}
+
+	/**
+	 * AJAX: Toggle Recording Mode
+	 */
+	public function ajax_toggle_recording() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$current_mode = get_user_meta( get_current_user_id(), 'clickwise_recording_mode', true );
+		$new_mode = ! $current_mode;
+
+		update_user_meta( get_current_user_id(), 'clickwise_recording_mode', $new_mode );
+
+		wp_send_json_success( array( 'recording_mode' => $new_mode ) );
+	}
+
+	/**
+	 * AJAX: Record Event
+	 */
+	public function ajax_record_event() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : '';
+		$name = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
+		$selector = isset( $_POST['selector'] ) ? sanitize_text_field( $_POST['selector'] ) : '';
+		$detail = isset( $_POST['detail'] ) ? sanitize_textarea_field( $_POST['detail'] ) : '';
+		$session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : '';
+		$status = isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'tracked'; // Default to tracked if not specified
+
+		if ( empty( $type ) || empty( $selector ) ) {
+			wp_send_json_error( 'Missing required fields' );
+		}
+
+		// Generate key
+		$event_key = md5( $type . ':' . $selector );
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'clickwise_events';
+
+		// Check if exists
+		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_key = %s", $event_key ) );
+
+		if ( $existing ) {
+			// Update last seen AND session info AND status if provided
+			$update_data = array( 
+				'last_seen' => current_time( 'mysql' ),
+				'session_id' => $session_id,
+				'session_timestamp' => current_time( 'timestamp' )
+			);
+
+			// Only update status if it's explicitly 'tracked' or if we want to support other status transitions
+			// If we are just recording a 'pending' event, we shouldn't overwrite 'tracked' status.
+			// But if the user explicitly tracks it (status='tracked'), we should update.
+			if ( $status === 'tracked' ) {
+				$update_data['status'] = 'tracked';
+			}
+			
+			// Always update name and detail to keep it fresh? Maybe not if user customized name.
+			// Let's only update name if it was auto-generated or empty.
+			// For now, let's leave name alone to preserve user edits.
+
+			$wpdb->update(
+				$table_name,
+				$update_data,
+				array( 'event_key' => $event_key )
+			);
+			wp_send_json_success( array( 'status' => 'exists', 'event' => $existing ) );
+		} else {
+			// Insert
+			$wpdb->insert(
+				$table_name,
+				array(
+					'event_key'      => $event_key,
+					'type'           => $type,
+					'name'           => $name,
+					'selector'       => $selector,
+					'status'         => $status,
+					'first_seen'     => current_time( 'mysql' ),
+					'last_seen'      => current_time( 'mysql' ),
+					'example_detail' => $detail,
+					'session_id'     => $session_id,
+					'session_timestamp' => current_time( 'timestamp' )
+				)
+			);
+
+			if ( $wpdb->insert_id ) {
+				wp_send_json_success( array( 'id' => $wpdb->insert_id, 'key' => $event_key ) );
+			} else {
+				wp_send_json_error( 'DB Insert Failed' );
+			}
+		}
+	}
+
+	/**
+	 * AJAX: Update Event Status (Track/Untrack)
+	 */
+	public function ajax_update_event_status() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
+		$status = isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'pending';
+
+		if ( empty( $key ) ) {
+			wp_send_json_error( 'Missing key' );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'clickwise_events';
+
+		$wpdb->update(
+			$table_name,
+			array( 'status' => $status ),
+			array( 'event_key' => $key )
+		);
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX: Untrack/Delete Event
+	 */
+	public function ajax_untrack_event() {
+		check_ajax_referer( 'clickwise_admin_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$key = isset( $_POST['key'] ) ? sanitize_text_field( $_POST['key'] ) : '';
+		$type = isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : '';
+		$selector = isset( $_POST['selector'] ) ? sanitize_text_field( $_POST['selector'] ) : '';
+
+		// If key is missing or looks like a JS key (contains colon), try to generate MD5 from type/selector
+		if ( ( empty( $key ) || strpos( $key, ':' ) !== false ) && ! empty( $type ) && ! empty( $selector ) ) {
+			$key = md5( $type . ':' . $selector );
+		}
+
+		if ( empty( $key ) ) {
+			wp_send_json_error( 'Missing key' );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'clickwise_events';
+
+		$wpdb->delete(
+			$table_name,
+			array( 'event_key' => $key )
+		);
+
+		wp_send_json_success();
 	}
 }
