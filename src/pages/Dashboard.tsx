@@ -8,6 +8,7 @@ import { Users, Clock, Loader2, RefreshCw, Download, Info, BarChart3, TrendingUp
 import { Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { TimeRangeSelector, formatTimeRangeDisplay } from "@/components/TimeRangeSelector"
 import { api, type RybbitOverview, type RybbitMetricResponse } from "@/lib/api"
+import { useSettings } from "@/contexts/SettingsContext"
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -23,6 +24,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function Dashboard() {
+    const { settings, loading: settingsLoading } = useSettings()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [rybbitOverview, setRybbitOverview] = useState<RybbitOverview | null>(null)
@@ -31,7 +33,6 @@ export function Dashboard() {
     const [devices, setDevices] = useState<RybbitMetricResponse | null>(null)
     const [browsers, setBrowsers] = useState<RybbitMetricResponse | null>(null)
     const [refreshing, setRefreshing] = useState(false)
-    const [settings, setSettings] = useState<any>(null)
 
     // Time range state
     const [timeRange, setTimeRange] = useState<{
@@ -43,23 +44,10 @@ export function Dashboard() {
     })
 
     useEffect(() => {
-        loadSettings()
-    }, [])
-
-    useEffect(() => {
         if (settings) {
             loadDashboardData()
         }
     }, [timeRange, settings])
-
-    const loadSettings = async () => {
-        try {
-            const settingsData = await api.getSettings()
-            setSettings(settingsData)
-        } catch (err) {
-            setError('Failed to load settings. Please configure your Rybbit connection.')
-        }
-    }
 
     const loadDashboardData = async () => {
         if (!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_website_id) {
@@ -80,11 +68,11 @@ export function Dashboard() {
 
             // Fetch overview stats
             const [overviewData, pagesData, countriesData, devicesData, browsersData] = await Promise.all([
-                api.getRybbitOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, { limit: 10 }),
+                api.getRybbitOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange, settings),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, settings, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, settings, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, settings, { limit: 10 }),
+                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, settings, { limit: 10 }),
             ])
 
             setRybbitOverview(overviewData)
@@ -125,7 +113,7 @@ export function Dashboard() {
         return `${num.toFixed(1)}%`
     }
 
-    if (loading) {
+    if (loading || settingsLoading) {
         return (
             <div className="p-8 space-y-8 max-w-7xl mx-auto">
                 <div className="flex items-center justify-center h-96">
@@ -363,7 +351,7 @@ export function Dashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-[200px] w-full">
+                            <div className="h-[200px] w-full min-w-0">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
