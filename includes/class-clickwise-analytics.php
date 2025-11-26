@@ -92,6 +92,7 @@ class Clickwise_Analytics {
 
 		add_action( 'admin_menu', array( $plugin_admin, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $plugin_admin, 'register_settings' ) );
+		add_action( 'admin_head', array( $plugin_admin, 'inject_vite_scripts' ) ); // Inject Vite scripts directly in head
 		add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_admin_scripts' ) );
 		add_action( 'wp_enqueue_scripts', array( $plugin_admin, 'enqueue_admin_scripts' ) ); // For admin bar on frontend
 		add_action( 'admin_bar_menu', array( $plugin_admin, 'add_admin_bar_menu' ), 999 );

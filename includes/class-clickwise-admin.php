@@ -23,6 +23,52 @@ class Clickwise_Admin {
 		$this->version     = $version;
 	}
 
+	public function inject_vite_scripts() {
+		// Only on settings page
+		$screen = get_current_screen();
+		if ( ! $screen || 'settings_page_clickwise-settings' !== $screen->id ) {
+			return;
+		}
+
+		if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
+		if ( ! defined( 'CLICKWISE_REACT_DEV' ) && ( wp_get_environment_type() === 'local' || wp_get_environment_type() === 'development' ) ) {
+			$is_dev = true;
+		}
+
+		if ( $is_dev ) {
+			// Output settings data first
+			?>
+			<script>
+			window.clickwiseSettings = <?php echo json_encode( array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
+				'restUrl' => esc_url_raw( rest_url() ),
+				'restNonce' => wp_create_nonce( 'wp_rest' ),
+				'scriptUrl' => get_option( 'clickwise_script_url' ),
+				'siteId'    => get_option( 'clickwise_site_id' ),
+				'currentUser' => wp_get_current_user(),
+				'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
+				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
+			) ); ?>;
+			</script>
+			<script type="module">
+				import RefreshRuntime from "http://localhost:5173/@react-refresh"
+				RefreshRuntime.injectIntoGlobalHook(window)
+				window.$RefreshReg$ = () => {}
+				window.$RefreshSig$ = () => (type) => type
+				window.__vite_plugin_react_preamble_installed__ = true
+			</script>
+			<script type="module" crossorigin src="http://localhost:5173/@vite/client"></script>
+			<script type="module" crossorigin src="http://localhost:5173/src/main.tsx"></script>
+			<?php
+		}
+	}
+
 	public function add_admin_menu() {
 		add_options_page(
 			'Clickwise Analytics',
@@ -75,7 +121,7 @@ class Clickwise_Admin {
 		// Enqueue on settings page AND frontend (for admin bar)
 		if ( 'settings_page_clickwise-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-				
+
 				$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
 				// Auto-detect dev mode if localhost:5173 is reachable (optional, but manual constant is safer for now)
 				// For this environment, let's assume dev mode if the constant is not defined but we are in a local env
@@ -83,10 +129,14 @@ class Clickwise_Admin {
 					$is_dev = true;
 				}
 
-				if ( $is_dev ) {
-					// Vite Dev Server
-					wp_enqueue_script( 'clickwise-vite-client', 'http://localhost:5173/@vite/client', array(), null, true );
-					wp_enqueue_script( 'clickwise-react-app', 'http://localhost:5173/src/main.tsx', array( 'clickwise-vite-client' ), null, true );
+				if ( $is_dev && 'settings_page_clickwise-settings' === $hook ) {
+					// Vite Dev Server - Scripts and settings are injected directly in admin_head via inject_vite_scripts()
+					// Nothing to do here for the settings page
+					return;
+				} else if ( $is_dev ) {
+					// Dev mode on frontend (admin bar) - still needs proper handling
+					wp_enqueue_script( 'clickwise-vite-client', 'http://localhost:5173/@vite/client', array(), null, false );
+					wp_enqueue_script( 'clickwise-react-app', 'http://localhost:5173/src/main.tsx', array( 'clickwise-vite-client' ), null, false );
 				} else {
 					// Production Build
 					$manifest_path = CLICKWISE_PATH . 'assets/dist/.vite/manifest.json';
@@ -104,7 +154,7 @@ class Clickwise_Admin {
 					}
 				}
 
-				// Pass data to React
+				// Pass data to React (for non-settings pages or production mode)
 				wp_localize_script( 'clickwise-react-app', 'clickwiseSettings', array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
@@ -126,7 +176,15 @@ class Clickwise_Admin {
 
 	public function add_type_attribute( $tag, $handle, $src ) {
 		if ( 'clickwise-vite-client' === $handle || 'clickwise-react-app' === $handle ) {
-			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>';
+			// Replace type='text/javascript' with type='module' or add it if not present
+			$tag = str_replace( ' type=\'text/javascript\'', ' type=\'module\'', $tag );
+			if ( strpos( $tag, 'type=' ) === false ) {
+				$tag = str_replace( '<script ', '<script type=\'module\' ', $tag );
+			}
+			// Add crossorigin for Vite dev server
+			if ( strpos( $tag, 'crossorigin' ) === false ) {
+				$tag = str_replace( '<script ', '<script crossorigin ', $tag );
+			}
 		}
 		return $tag;
 	}
