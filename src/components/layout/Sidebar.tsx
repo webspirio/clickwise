@@ -17,8 +17,8 @@ export function Sidebar({ className, activeTab, onTabChange }: SidebarProps) {
     ]
 
     return (
-        <div className={cn("pb-12 w-64 border-r bg-card", className)}>
-            <div className="space-y-4 py-4">
+        <div className={cn("pb-12 w-64 glass border-r-0", className)}>
+            <div className="space-y-4">
                 <div className="px-3 py-2">
                     <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
                         Settings

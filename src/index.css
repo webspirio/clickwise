@@ -85,24 +85,36 @@
     @apply border-border;
   }
 
+  /* Fancy Mesh Gradient Background */
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    background-color: hsla(210, 40%, 98%, 1);
+    background-image:
+      radial-gradient(at 0% 0%, hsla(189, 94%, 43%, 0.25) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(250, 100%, 80%, 0.25) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(189, 94%, 43%, 0.25) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(250, 100%, 80%, 0.25) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 
   /* Dark mode background gradient */
   .dark body {
-    background-image: radial-gradient(at 0% 0%, hsla(196, 80%, 20%, 1) 0, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(189, 94%, 15%, 1) 0, transparent 50%);
+    background-color: hsla(196, 80%, 15%, 1);
+    background-image:
+      radial-gradient(at 0% 0%, hsla(196, 80%, 25%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(189, 94%, 20%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(196, 80%, 25%, 1) 0, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(189, 94%, 20%, 1) 0, transparent 50%);
     background-attachment: fixed;
   }
 
   /* Glassmorphism Utilities */
   .glass {
-    @apply bg-white/70 dark:bg-card/30 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-sm;
+    @apply bg-white/30 dark:bg-card/30 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-sm;
   }
 
   .glass-card {
-    @apply glass rounded-xl;
+    @apply glass rounded-xl transition-all duration-300 hover:shadow-xl hover:bg-white/40 dark:hover:bg-card/40;
   }
 
   /* Reset headings */
@@ -113,5 +125,26 @@
   h5,
   h6 {
     @apply text-foreground;
+  }
+
+  /* WordPress Admin Overrides */
+  #wpfooter {
+    display: none !important;
+  }
+
+  #wpbody-content {
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Fix for WP Admin Bar spacing */
+  :root {
+    --wp-admin--admin-bar--height: 32px;
+  }
+
+  @media (max-width: 782px) {
+    :root {
+      --wp-admin--admin-bar--height: 46px;
+    }
   }
 }
