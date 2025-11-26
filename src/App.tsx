@@ -34,14 +34,18 @@ function App() {
     }
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <Header />
-            <div className="flex flex-1">
-                <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-                <main className="flex-1 bg-muted/10">
-                    {renderContent()}
-                </main>
+        <div className="relative h-[calc(100vh-var(--wp-admin--admin-bar--height,32px))] w-full overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 z-50">
+                <Header />
             </div>
+            <div className="absolute top-0 bottom-0 left-0 w-64 z-40 pt-[81px]">
+                <Sidebar activeTab={activeTab} onTabChange={setActiveTab} className="h-full border-r-0" />
+            </div>
+            <main className="absolute inset-0 overflow-y-auto pt-[81px] pl-64 z-0">
+                <div className="p-6">
+                    {renderContent()}
+                </div>
+            </main>
         </div>
     )
 }

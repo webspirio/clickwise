@@ -4,7 +4,7 @@ import { AnimatedLogo } from "@/components/AnimatedLogo"
 
 export function Header() {
     return (
-        <div className="border-b bg-background px-6 py-4 flex items-center justify-between">
+        <div className="glass border-b-0 px-6 py-4 flex items-center justify-between z-10 relative">
             <div className="flex items-center gap-4">
                 <AnimatedLogo className="h-12 w-12" />
                 <div>
