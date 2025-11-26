@@ -23,7 +23,7 @@ yarn-error.log
 # Build artifacts (if using build tools)
 /dist/
 /build/
-assets/dist/ # Ignore build artifacts in assets/dist
+/assets/dist/
 *.min.js.map
 *.min.css.map
 
