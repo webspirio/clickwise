@@ -1,155 +1,229 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+/**
+ * Clickwise Recorder - Premium Overlay Styles
+ */
+:root {
+    --cw-primary: #6366f1;
+    --cw-primary-hover: #4f46e5;
+    --cw-bg: #ffffff;
+    --cw-bg-secondary: #f8fafc;
+    --cw-text: #1e293b;
+    --cw-text-secondary: #64748b;
+    --cw-border: #e2e8f0;
+    --cw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --cw-radius: 12px;
+    --cw-z-index: 2147483647;
+    --cw-font: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
+/* Overlay Container */
 #clickwise-live-overlay {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
-    width: 500px;
-    height: 450px;
-    min-width: 280px;
-    min-height: 200px;
-    background: #083344;
-    /* Cyan 950 */
-    color: #ecfeff;
-    /* Cyan 50 */
-    z-index: 999999;
-    border-radius: 16px;
-    /* Radius lg */
+    width: 380px;
+    height: 500px;
+    background: var(--cw-bg);
+    border-radius: var(--cw-radius);
+    box-shadow: var(--cw-shadow), 0 0 0 1px rgba(0,0,0,0.05);
+    z-index: var(--cw-z-index);
     display: flex;
     flex-direction: column;
-    font-family: 'Poppins', sans-serif;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-    border: 1px solid #155e75;
-    /* Cyan 800 */
-    /* Removed size transitions for smooth resizing */
-    transition: opacity 0.3s ease, border-radius 0.3s ease;
+    font-family: var(--cw-font);
+    font-size: 14px;
+    color: var(--cw-text);
+    transition: width 0.3s, height 0.3s, opacity 0.3s, transform 0.3s;
     overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
 #clickwise-live-overlay.minimized {
+    width: 240px !important;
     height: 48px !important;
-    /* Force height */
-    width: 220px !important;
-    /* Force width */
-    min-height: 48px;
-    min-width: 220px;
     overflow: hidden;
     border-radius: 24px;
-    resize: none;
-    /* Disable native resize if any */
 }
 
+/* Header */
 #clickwise-live-overlay-header {
     padding: 12px 16px;
-    border-bottom: 1px solid #155e75;
-    /* Cyan 800 */
+    background: var(--cw-bg-secondary);
+    border-bottom: 1px solid var(--cw-border);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #164e63;
-    /* Cyan 900 */
-    cursor: move;
+    justify-content: space-between;
+    cursor: grab;
     user-select: none;
-    height: 48px;
-    /* Fixed header height */
-    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
-#clickwise-live-overlay.minimized #clickwise-live-overlay-header {
-    border-bottom: none;
-    background: transparent;
-    width: 100%;
+#clickwise-live-overlay-header:active {
+    cursor: grabbing;
 }
 
-#clickwise-live-overlay-header span#clickwise-overlay-title {
+#clickwise-overlay-title {
     font-weight: 600;
-    font-size: 14px;
-    color: #ecfeff;
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.clickwise-status-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    animation: cw-pulse 2s infinite;
+}
+
+.clickwise-status-dot.stopped {
+    background: #ef4444;
+    box-shadow: none;
+    animation: none;
+}
+
+@keyframes cw-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Controls */
+.clickwise-overlay-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.clickwise-control-btn {
+    background: transparent;
+    border: none;
+    color: var(--cw-text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 24px;
+    height: 24px;
+}
+
+.clickwise-control-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--cw-text);
+}
+
+.clickwise-control-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* List */
+#clickwise-live-overlay-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background: var(--cw-bg);
+}
+
+.clickwise-event-item {
+    border-bottom: 1px solid var(--cw-border);
+    transition: background 0.2s;
+}
+
+.clickwise-event-item:hover {
+    background: var(--cw-bg-secondary);
+}
+
+.clickwise-event-summary {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    position: relative;
+}
+
+.clickwise-event-icon {
+    font-size: 16px;
+    width: 24px;
+    text-align: center;
+}
+
+.clickwise-event-content {
+    flex: 1;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Hide text in minimized mode, show only dot */
-#clickwise-live-overlay.minimized #clickwise-overlay-title {
-    font-size: 13px;
+.clickwise-track-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
 }
 
-#clickwise-live-overlay-list {
-    flex: 1;
-    overflow-y: auto;
-    margin: 0;
-    padding: 12px;
-    list-style: none;
-    font-size: 13px;
-    background: #083344;
-    /* Cyan 950 */
+.clickwise-track-badge.untracked {
+    background: #f1f5f9;
+    color: var(--cw-text-secondary);
+    border: 1px solid var(--cw-border);
 }
 
-#clickwise-live-overlay.minimized #clickwise-live-overlay-list,
-#clickwise-live-overlay.minimized #clickwise-live-overlay-footer {
-    display: none;
+.clickwise-track-badge.untracked:hover {
+    background: var(--cw-primary);
+    color: white;
+    border-color: var(--cw-primary);
 }
 
-/* Scrollbar styling */
-#clickwise-live-overlay-list::-webkit-scrollbar {
-    width: 6px;
+.clickwise-track-badge.tracked {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
 }
 
-#clickwise-live-overlay-list::-webkit-scrollbar-track {
-    background: #083344;
+.clickwise-track-badge.tracked:hover {
+    background: #f0fdf4;
+    border-color: #ef4444;
+    color: #ef4444;
 }
-
-#clickwise-live-overlay-list::-webkit-scrollbar-thumb {
-    background: #155e75;
-    border-radius: 3px;
-}
-
-#clickwise-live-overlay-list::-webkit-scrollbar-thumb:hover {
-    background: #0891b2;
-}
-
-#clickwise-live-overlay-list li {
-    margin-bottom: 8px;
-    padding: 0;
-    /* Padding moved to inner containers */
-    border-radius: 6px;
-    background: rgba(22, 78, 99, 0.4);
-    /* Cyan 900 with opacity */
-    border: 1px solid rgba(21, 94, 117, 0.3);
-    /* Cyan 800 with opacity */
-    word-wrap: break-word;
-    line-height: 1.4;
-    transition: background 0.2s;
-    display: flex;
-    flex-direction: column;
-    /* Changed to column for details */
-}
-
-#clickwise-live-overlay-list li:hover {
-    background: rgba(22, 78, 99, 0.8);
-    border-color: #155e75;
-}
-
-.clickwise-event-summary {
+.clickwise-track-badge.tracked:hover::after {
+    content: "Untrack";
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    cursor: pointer;
-    width: 100%;
-    box-sizing: border-box;
+    justify-content: center;
+    background: #fef2f2;
+    border-radius: 12px;
 }
 
+.clickwise-expand-icon {
+    font-size: 10px;
+    color: var(--cw-text-secondary);
+    transition: transform 0.2s;
+}
+
+.clickwise-event-details.open + .clickwise-event-summary .clickwise-expand-icon {
+    transform: rotate(180deg);
+}
+
+/* Details */
 .clickwise-event-details {
     display: none;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(21, 94, 117, 0.3);
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-top: 1px solid var(--cw-border);
     font-size: 12px;
+    color: var(--cw-text-secondary);
 }
 
 .clickwise-event-details.open {
@@ -157,512 +231,158 @@
 }
 
 .clickwise-detail-row {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .clickwise-detail-label {
-    color: #67e8f9;
-    /* Cyan 300 */
-    font-weight: 500;
-    display: block;
-    margin-bottom: 2px;
+    font-weight: 600;
+    color: var(--cw-text);
 }
 
-/* JSON Display */
 .clickwise-json-pre {
-    background: #083344;
-    /* Cyan 950 */
-    color: #ecfeff;
-    /* Cyan 50 */
-    padding: 12px;
-    border-radius: 4px;
-    font-family: 'Fira Code', 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    overflow-x: auto;
-    margin: 4px 0 0 0;
-    border: 1px solid #0e7490;
-    /* Cyan 700 */
-}
-
-/* JSON Syntax Colors (match sandbox) */
-.clickwise-json-pre .string {
-    color: #a5f3fc;
-    /* Cyan 200 */
-}
-
-.clickwise-json-pre .number {
-    color: #fcd34d;
-    /* Amber 300 */
-}
-
-.clickwise-json-pre .boolean {
-    color: #f87171;
-    /* Red 400 */
-}
-
-.clickwise-json-pre .null {
-    color: #9ca3af;
-    /* Gray 400 */
-}
-
-.clickwise-json-pre .key {
-    color: #22d3ee;
-    /* Cyan 400 */
-    font-weight: bold;
-}
-
-.clickwise-action-btn {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    margin-top: 8px;
-    transition: all 0.2s;
-}
-
-.clickwise-btn-track {
-    background: #059669;
-    /* Emerald 600 */
-    color: white;
-}
-
-.clickwise-btn-track:hover {
-    background: #10b981;
-}
-
-.clickwise-btn-untrack {
-    background: #475569;
-    /* Slate 600 */
+    background: #1e293b;
     color: #e2e8f0;
+    padding: 8px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0;
+    font-family: 'Menlo', monospace;
+    font-size: 11px;
 }
 
-.clickwise-btn-untrack:hover {
-    background: #64748b;
-}
-
-.clickwise-expand-icon {
-    margin-left: auto;
-    font-size: 10px;
-    color: #67e8f9;
-    transition: transform 0.2s;
-}
-
-.clickwise-event-details.open+.clickwise-event-summary .clickwise-expand-icon {
-    transform: rotate(180deg);
-}
-
+/* Footer */
 #clickwise-live-overlay-footer {
-    padding: 16px;
-    border-top: 1px solid #155e75;
-    /* Cyan 800 */
-    text-align: center;
+    padding: 12px 16px;
+    background: var(--cw-bg);
+    border-top: 1px solid var(--cw-border);
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: #164e63;
-    /* Cyan 900 */
-    position: relative;
-    /* For resize handle */
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .clickwise-overlay-btn {
-    display: block;
-    width: 100%;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 9999px;
-    /* Full radius */
-    font-size: 13px;
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
     font-weight: 500;
+    text-align: center;
     cursor: pointer;
     text-decoration: none;
-    text-align: center;
-    transition: all 0.2s ease;
-    font-family: 'Poppins', sans-serif;
-    line-height: 1.5;
+    font-size: 13px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
 }
 
-.clickwise-overlay-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.clickwise-overlay-btn:active {
-    transform: translateY(0);
-}
-
-/* Stop Button - Red/Rose */
 .clickwise-btn-stop {
-    background: #be123c;
-    /* Rose 700 */
-    color: #fff;
-    border: 1px solid #9f1239;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .clickwise-btn-stop:hover {
-    background: #e11d48;
+    background: #fecaca;
 }
 
-/* Start Button - Green/Emerald */
 .clickwise-btn-start {
-    background: #059669;
-    /* Emerald 600 */
-    color: #fff;
-    border: 1px solid #047857;
+    background: #dcfce7;
+    color: #166534;
 }
 
 .clickwise-btn-start:hover {
-    background: #10b981;
+    background: #bbf7d0;
 }
 
-/* History Button - Cyan (Primary) */
 .clickwise-btn-history {
-    background: #0891b2;
-    /* Cyan 600 */
-    color: #fff;
-    border: 1px solid #0e7490;
+    background: #f1f5f9;
+    color: var(--cw-text);
+    border: 1px solid var(--cw-border);
 }
 
 .clickwise-btn-history:hover {
-    background: #06b6d4;
-}
-
-/* Header Controls */
-.clickwise-overlay-controls {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.clickwise-overlay-close,
-.clickwise-overlay-minimize {
-    background: transparent;
-    border: none;
-    color: #67e8f9;
-    /* Cyan 300 */
-    font-size: 18px;
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-}
-
-.clickwise-overlay-close:hover,
-.clickwise-overlay-minimize:hover {
-    background: rgba(34, 211, 238, 0.1);
-    color: #ecfeff;
-}
-
-/* Status Dot */
-.clickwise-status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #22c55e;
-    /* Green 500 */
-    border-radius: 50%;
-    margin-right: 6px;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
-    animation: cw-pulse 2s infinite;
-    flex-shrink: 0;
-}
-
-.clickwise-status-dot.stopped {
-    background: #ef4444;
-    /* Red 500 */
-    box-shadow: none;
-    animation: none;
-}
-
-@keyframes cw-pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-    }
-}
-
-/* Icons */
-.clickwise-event-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
-.clickwise-icon-click {
-    color: #38bdf8;
-}
-
-/* Light Blue */
-.clickwise-icon-form {
-    color: #f472b6;
-}
-
-/* Pink */
-.clickwise-icon-input {
-    color: #fbbf24;
-}
-
-/* Amber */
-.clickwise-icon-custom {
-    color: #a78bfa;
-}
-
-/* Purple */
-
-/* Track Badge (Interactive) */
-.clickwise-track-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    margin-left: auto;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    border: 1px solid transparent;
-    user-select: none;
-}
-
-.clickwise-track-badge.tracked {
-    background: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
-    border-color: rgba(34, 197, 94, 0.3);
-}
-
-.clickwise-track-badge.tracked:hover {
-    background: rgba(34, 197, 94, 0.3);
-    border-color: #4ade80;
-}
-
-.clickwise-track-badge.untracked {
-    background: rgba(148, 163, 184, 0.2);
-    color: #94a3b8;
-    border-color: rgba(148, 163, 184, 0.3);
-}
-
-.clickwise-track-badge.untracked:hover {
-    background: rgba(148, 163, 184, 0.3);
-    color: #cbd5e1;
-    border-color: #94a3b8;
-}
-
-.clickwise-event-content {
-    flex: 1;
-    min-width: 0;
-}
-
-/* Resize Handles */
-.clickwise-resize-handle {
-    position: absolute;
-    z-index: 1000000;
-}
-
-/* Corners */
-.clickwise-resize-nw {
-    top: 0;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    cursor: nw-resize;
-}
-
-.clickwise-resize-ne {
-    top: 0;
-    right: 0;
-    width: 10px;
-    height: 10px;
-    cursor: ne-resize;
-}
-
-.clickwise-resize-sw {
-    bottom: 0;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    cursor: sw-resize;
-}
-
-.clickwise-resize-se {
-    bottom: 0;
-    right: 0;
-    width: 10px;
-    height: 10px;
-    cursor: se-resize;
-}
-
-/* Edges */
-.clickwise-resize-n {
-    top: 0;
-    left: 10px;
-    right: 10px;
-    height: 5px;
-    cursor: n-resize;
-}
-
-.clickwise-resize-s {
-    bottom: 0;
-    left: 10px;
-    right: 10px;
-    height: 5px;
-    cursor: s-resize;
-}
-
-.clickwise-resize-w {
-    left: 0;
-    top: 10px;
-    bottom: 10px;
-    width: 5px;
-    cursor: w-resize;
-}
-
-.clickwise-resize-e {
-    right: 0;
-    top: 10px;
-    bottom: 10px;
-    width: 5px;
-    cursor: e-resize;
-}
-
-/* Visible corner indicator for SE */
-.clickwise-resize-se::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 6px;
-    height: 6px;
-    border-right: 2px solid rgba(255, 255, 255, 0.3);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-#clickwise-live-overlay.minimized .clickwise-resize-handle {
-    display: none;
-}
-
-/* Duplicate Badge */
-.clickwise-duplicate-badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(148, 163, 184, 0.1);
-    color: #94a3b8;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    margin-right: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.clickwise-duplicate-badge:hover {
-    background: rgba(148, 163, 184, 0.2);
-    color: #cbd5e1;
-    border-color: #94a3b8;
-}
-
-/* Highlight Animation */
-@keyframes clickwise-flash {
-    0% {
-        background-color: rgba(34, 211, 238, 0.3);
-    }
-
-    100% {
-        background-color: transparent;
-    }
-}
-
-.clickwise-event-item.flash {
-    animation: clickwise-flash 1s ease-out;
+    background: #e2e8f0;
 }
 
 /* Settings Panel */
-.clickwise-settings-panel {
-    position: absolute;
-    top: 48px;
-    /* Below header */
-    right: 10px;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    padding: 12px;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+#clickwise-settings-panel {
     display: none;
-    min-width: 180px;
-    flex-direction: column;
-    gap: 8px;
+    padding: 16px;
+    background: var(--cw-bg);
+    border-bottom: 1px solid var(--cw-border);
 }
 
-.clickwise-settings-panel.open {
-    display: flex;
+#clickwise-settings-panel.open {
+    display: block;
 }
 
 .clickwise-setting-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #cbd5e1;
-    font-size: 13px;
+    margin-bottom: 8px;
     cursor: pointer;
-    user-select: none;
 }
 
-.clickwise-setting-row input[type="checkbox"] {
-    cursor: pointer;
-    accent-color: #06b6d4;
-    /* Cyan 500 */
-    width: 16px;
-    height: 16px;
+/* Resize Handles */
+.clickwise-resize-handle {
+    position: absolute;
+    z-index: 10;
 }
+.clickwise-resize-n { top: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
+.clickwise-resize-s { bottom: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
+.clickwise-resize-e { top: 0; right: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+.clickwise-resize-w { top: 0; left: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+.clickwise-resize-ne { top: 0; right: 0; width: 10px; height: 10px; cursor: ne-resize; }
+.clickwise-resize-nw { top: 0; left: 0; width: 10px; height: 10px; cursor: nw-resize; }
+.clickwise-resize-se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: se-resize; }
+.clickwise-resize-sw { bottom: 0; left: 0; width: 10px; height: 10px; cursor: sw-resize; }
 
-/* Header Controls Update */
-.clickwise-overlay-settings-btn {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    padding: 4px;
-    line-height: 0;
-    transition: color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Highlighter */
+.clickwise-highlighter {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2147483646;
+    border: 2px solid var(--cw-primary);
     border-radius: 4px;
+    background: rgba(99, 102, 241, 0.1);
+    transition: all 0.1s;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.5);
 }
 
-.clickwise-overlay-settings-btn:hover {
-    color: #ecfeff;
-    background: rgba(255, 255, 255, 0.1);
+.clickwise-highlighter-label {
+    position: absolute;
+    top: -28px;
+    left: 0;
+    background: var(--cw-primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.clickwise-overlay-settings-btn svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
+.clickwise-highlighter.tracked {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.clickwise-highlighter.tracked .clickwise-highlighter-label {
+    background: #22c55e;
+}
+
+/* Tooltip */
+.clickwise-tooltip {
+    position: fixed;
+    background: #1e293b;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 2147483647;
+    pointer-events: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 300px;
 }
