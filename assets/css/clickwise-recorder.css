@@ -24,7 +24,7 @@
     height: 500px;
     background: var(--cw-bg);
     border-radius: var(--cw-radius);
-    box-shadow: var(--cw-shadow), 0 0 0 1px rgba(0,0,0,0.05);
+    box-shadow: var(--cw-shadow), 0 0 0 1px rgba(0, 0, 0, 0.05);
     z-index: var(--cw-z-index);
     display: flex;
     flex-direction: column;
@@ -83,9 +83,17 @@
 }
 
 @keyframes cw-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
 }
 
 /* Controls */
@@ -110,7 +118,7 @@
 }
 
 .clickwise-control-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     color: var(--cw-text);
 }
 
@@ -195,10 +203,14 @@
     border-color: #ef4444;
     color: #ef4444;
 }
+
 .clickwise-track-badge.tracked:hover::after {
     content: "Untrack";
     position: absolute;
-    left: 0; right: 0; top: 0; bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,7 +224,7 @@
     transition: transform 0.2s;
 }
 
-.clickwise-event-details.open + .clickwise-event-summary .clickwise-expand-icon {
+.clickwise-event-details.open+.clickwise-event-summary .clickwise-expand-icon {
     transform: rotate(180deg);
 }
 
@@ -329,14 +341,70 @@
     position: absolute;
     z-index: 10;
 }
-.clickwise-resize-n { top: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
-.clickwise-resize-s { bottom: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
-.clickwise-resize-e { top: 0; right: 0; bottom: 0; width: 5px; cursor: ew-resize; }
-.clickwise-resize-w { top: 0; left: 0; bottom: 0; width: 5px; cursor: ew-resize; }
-.clickwise-resize-ne { top: 0; right: 0; width: 10px; height: 10px; cursor: ne-resize; }
-.clickwise-resize-nw { top: 0; left: 0; width: 10px; height: 10px; cursor: nw-resize; }
-.clickwise-resize-se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: se-resize; }
-.clickwise-resize-sw { bottom: 0; left: 0; width: 10px; height: 10px; cursor: sw-resize; }
+
+.clickwise-resize-n {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+}
+
+.clickwise-resize-s {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+}
+
+.clickwise-resize-e {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+}
+
+.clickwise-resize-w {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+}
+
+.clickwise-resize-ne {
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: ne-resize;
+}
+
+.clickwise-resize-nw {
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nw-resize;
+}
+
+.clickwise-resize-se {
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: se-resize;
+}
+
+.clickwise-resize-sw {
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: sw-resize;
+}
 
 /* Highlighter */
 .clickwise-highlighter {
@@ -347,7 +415,7 @@
     border-radius: 4px;
     background: rgba(99, 102, 241, 0.1);
     transition: all 0.1s;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.5);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .clickwise-highlighter-label {
@@ -361,7 +429,7 @@
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .clickwise-highlighter.tracked {
@@ -383,6 +451,35 @@
     font-size: 12px;
     z-index: 2147483647;
     pointer-events: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 300px;
+}
+
+/* Static Highlights */
+.clickwise-static-highlight {
+    position: absolute;
+    border: 2px solid #4caf50;
+    background-color: rgba(76, 175, 80, 0.2);
+    pointer-events: none;
+    z-index: 999998;
+    /* Below overlay and hover highlighter */
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.clickwise-static-highlight::after {
+    content: "✓";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #4caf50;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

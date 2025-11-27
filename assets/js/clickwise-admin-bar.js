@@ -79,3 +79,15 @@ window.clickwiseToggleRecording = function (e) {
             }
         });
 };
+
+window.clickwiseToggleHighlight = function (e) {
+    if (e) e.preventDefault();
+
+    if (window.clickwiseRecorder && typeof window.clickwiseRecorder.toggleHighlight === 'function') {
+        window.clickwiseRecorder.toggleHighlight();
+    } else {
+        // Recorder not active? Start it and enable highlight
+        localStorage.setItem('clickwise_auto_highlight', 'true');
+        window.clickwiseToggleRecording(e);
+    }
+};

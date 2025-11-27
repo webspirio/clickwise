@@ -401,7 +401,7 @@ class Clickwise_Analytics {
 			)
 		) );
 
-		if ( $recording_mode ) {
+		if ( current_user_can( 'manage_options' ) ) {
 			wp_enqueue_style( 'clickwise-recorder-css', CLICKWISE_URL . 'assets/css/clickwise-recorder.css', array(), $this->version );
 			wp_enqueue_script( 'clickwise-recorder-js', CLICKWISE_URL . 'assets/js/clickwise-recorder.js', array( $this->plugin_name ), $this->version, true );
 		}
