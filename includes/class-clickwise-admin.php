@@ -150,6 +150,16 @@ class Clickwise_Admin {
 		) );
 
 		$wp_admin_bar->add_node( array(
+			'id'     => 'clickwise-toggle-highlight',
+			'parent' => 'clickwise-analytics',
+			'title'  => 'Highlight Tracked',
+			'href'   => '#',
+			'meta'   => array(
+				'onclick' => 'clickwiseToggleHighlight(event)',
+			),
+		) );
+
+		$wp_admin_bar->add_node( array(
 			'id'     => 'clickwise-manage-events',
 			'parent' => 'clickwise-analytics',
 			'title'  => 'Manage Events',

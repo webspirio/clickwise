@@ -12,15 +12,15 @@
     // If user stops recording, we want to stay on page.
     // If user navigates away, script won't load. That's acceptable for now.
 
-    if (!config.recording_mode) return;
+    // if (!config.recording_mode) return; // Removed to allow standalone highlighting
 
-    console.log('Clickwise: Recording Mode Active');
+    // console.log('Clickwise: Recording Mode Active');
 
     /**
      * State & Configuration
      */
     const state = {
-        isRecording: true,
+        isRecording: !!config.recording_mode,
         isMinimized: false,
         events: [],
         trackedKeys: new Set(),
@@ -30,6 +30,7 @@
         settings: {
             showDuplicates: false,
             ignoreAdmin: true,
+            highlightTracked: false,
             ...loadSettings()
         }
     };
@@ -49,9 +50,18 @@
     let eventListeners = [];
 
     function init() {
-        createOverlay();
+        if (state.isRecording) {
+            createOverlay();
+        }
         setupEventListeners();
         setupHighlighter();
+
+        // Check for auto-highlight flag from admin bar
+        if (localStorage.getItem('clickwise_auto_highlight')) {
+            state.settings.highlightTracked = true;
+            saveSettings();
+            localStorage.removeItem('clickwise_auto_highlight');
+        }
 
         // Restore state
         const savedData = loadOverlayData();
@@ -68,9 +78,12 @@
         window.clickwiseRecorder = {
             stopRecording: stopRecording,
             startNewSession: startNewSession,
+            toggleHighlight: toggleHighlight,
             get isRecording() { return state.isRecording; }
         };
 
+        // Initial static highlight check
+        updateStaticHighlights();
         updateAdminBarUI();
     }
 
@@ -152,6 +165,9 @@
     function handleHover(e) {
         if (!state.isRecording) return;
         if (overlay && overlay.contains(e.target)) return;
+
+        // Ignore Admin Bar if setting enabled
+        if (state.settings.ignoreAdmin && e.target.closest('#wpadminbar')) return;
 
         // Show highlighter
         showHighlighter(e.target);
@@ -315,6 +331,9 @@
             <label class="clickwise-setting-row">
                 <input type="checkbox" id="cw-admin-check" ${state.settings.ignoreAdmin ? 'checked' : ''}> Ignore Admin Bar
             </label>
+            <label class="clickwise-setting-row">
+                <input type="checkbox" id="cw-highlight-check" ${state.settings.highlightTracked ? 'checked' : ''}> Highlight Tracked
+            </label>
         `;
 
         // List
@@ -359,6 +378,12 @@
         document.getElementById('cw-admin-check').onchange = (e) => {
             state.settings.ignoreAdmin = e.target.checked;
             saveSettings();
+        };
+        document.getElementById('cw-highlight-check').onchange = (e) => {
+            state.settings.highlightTracked = e.target.checked;
+            saveSettings();
+            updateStaticHighlights();
+            updateAdminBarUI();
         };
 
         makeDraggable(overlay, header);
@@ -435,6 +460,8 @@
 
             fetch(config.ajax_url, { method: 'POST', body: data });
         }
+
+        updateStaticHighlights();
     }
 
     /**
@@ -555,10 +582,30 @@
         } catch (e) { return {}; }
     }
 
+    function toggleHighlight() {
+        state.settings.highlightTracked = !state.settings.highlightTracked;
+        saveSettings();
+        updateStaticHighlights();
+
+        // Sync checkbox in overlay
+        const checkbox = document.getElementById('cw-highlight-check');
+        if (checkbox) checkbox.checked = state.settings.highlightTracked;
+
+        updateAdminBarUI();
+    }
+
     function updateAdminBarUI() {
         const toggleLink = document.querySelector('#wp-admin-bar-clickwise-toggle-recording > a');
         const topLevelLink = document.querySelector('#wp-admin-bar-clickwise-analytics > a');
         const topLevelItem = document.querySelector('#wp-admin-bar-clickwise-analytics');
+        const highlightLink = document.querySelector('#wp-admin-bar-clickwise-toggle-highlight > a');
+
+        // Update Highlight Switch (Common for both states)
+        if (highlightLink) {
+            const isOn = state.settings.highlightTracked;
+            const badgeStyle = `display:inline-block;padding:2px 6px;border-radius:10px;background:${isOn ? '#4caf50' : '#9ca3af'};color:white;font-size:10px;margin-left:8px;vertical-align:middle;line-height:1.2;`;
+            highlightLink.innerHTML = `Highlight Tracked <span style="${badgeStyle}">${isOn ? 'ON' : 'OFF'}</span>`;
+        }
 
         if (state.isRecording) {
             if (toggleLink) {
@@ -650,6 +697,53 @@
 
     function hideHighlighter() {
         if (highlighter) highlighter.style.display = 'none';
+    }
+
+    function updateStaticHighlights() {
+        // Remove existing
+        document.querySelectorAll('.clickwise-static-highlight').forEach(el => el.remove());
+
+        if (!state.settings.highlightTracked) return;
+
+        const selectors = new Set();
+
+        // From managed events
+        if (config.managed_events) {
+            config.managed_events.forEach(evt => {
+                const key = generateKey(evt.type, evt.selector);
+                if (state.trackedKeys.has(key)) {
+                    selectors.add(evt.selector);
+                }
+            });
+        }
+
+        // From current session events
+        state.events.forEach(evt => {
+            if (state.trackedKeys.has(evt.key)) {
+                selectors.add(evt.detail.selector);
+            }
+        });
+
+        // Draw
+        selectors.forEach(selector => {
+            try {
+                document.querySelectorAll(selector).forEach(el => {
+                    if (el.offsetParent === null) return; // Hidden
+                    showStaticHighlight(el);
+                });
+            } catch (e) { console.warn('Invalid selector', selector); }
+        });
+    }
+
+    function showStaticHighlight(el) {
+        const rect = el.getBoundingClientRect();
+        const h = document.createElement('div');
+        h.className = 'clickwise-static-highlight';
+        h.style.top = (window.scrollY + rect.top) + 'px';
+        h.style.left = (window.scrollX + rect.left) + 'px';
+        h.style.width = rect.width + 'px';
+        h.style.height = rect.height + 'px';
+        document.body.appendChild(h);
     }
 
     // Init
