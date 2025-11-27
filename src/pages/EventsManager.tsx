@@ -1,18 +1,29 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge, Loader2, RefreshCw, Download, Plus } from "lucide-react"
+import { Loader2, RefreshCw, Download, Plus } from "lucide-react"
 import { api, type Event, type EventsResponse } from "@/lib/api"
+import { DataTable } from "@/components/data-table/data-table"
+import { getColumns } from "@/components/EventManager/columns"
 
 export function EventsManager() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [eventsData, setEventsData] = useState<EventsResponse>({ tracked: [], ignored: [], sessions: [] })
-    const [selectedEvents, setSelectedEvents] = useState<string[]>([])
     const [refreshing, setRefreshing] = useState(false)
+
+    // Selection state for each tab
+    const [trackedRowSelection, setTrackedRowSelection] = useState({})
+    const [ignoredRowSelection, setIgnoredRowSelection] = useState({})
+
+    // Helper to get selected IDs from row selection state
+    const getSelectedIds = (rowSelection: Record<string, boolean>, data: Event[]) => {
+        return Object.keys(rowSelection)
+            .filter(key => rowSelection[key])
+            .map(index => data[parseInt(index)]?.id)
+            .filter(Boolean)
+    }
 
     useEffect(() => {
         loadEvents()
@@ -24,7 +35,8 @@ export function EventsManager() {
             setError(null)
             const data = await api.getEvents()
             setEventsData(data)
-            setSelectedEvents([])
+            setTrackedRowSelection({})
+            setIgnoredRowSelection({})
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load events')
         } finally {
@@ -38,164 +50,66 @@ export function EventsManager() {
         setRefreshing(false)
     }
 
-    const handleBulkAction = async (action: 'track' | 'ignore' | 'delete') => {
-        if (selectedEvents.length === 0) return
+    const handleBulkAction = async (action: 'track' | 'ignore' | 'delete', ids: string[]) => {
+        if (ids.length === 0) return
 
         try {
-            await api.bulkUpdateEvents(selectedEvents, action)
+            await api.bulkUpdateEvents(ids, action)
             await loadEvents()
         } catch (err) {
             console.error('Bulk action failed:', err)
         }
     }
 
-    const handleEventUpdate = async (eventId: string, updates: { status?: string; alias?: string }) => {
+    const handleEventUpdate = async (event: Event, updates: { status?: string; alias?: string }) => {
         try {
-            await api.updateEvent(eventId, updates)
+            await api.updateEvent(event.id, updates)
             await loadEvents()
         } catch (err) {
             console.error('Event update failed:', err)
         }
     }
 
-    const handleSelectAll = (checked: boolean, events: Event[]) => {
-        if (checked) {
-            setSelectedEvents(prev => [...new Set([...prev, ...events.map(e => e.id)])])
-        } else {
-            const eventIds = new Set(events.map(e => e.id))
-            setSelectedEvents(prev => prev.filter(id => !eventIds.has(id)))
-        }
-    }
+    const columns = useMemo(() => getColumns({
+        onTrack: (event) => handleEventUpdate(event, { status: 'tracked' }),
+        onIgnore: (event) => handleEventUpdate(event, { status: 'ignored' }),
+        onDelete: (event) => handleBulkAction('delete', [event.id]),
+    }), [])
 
-    const handleSelectEvent = (eventId: string, checked: boolean) => {
-        if (checked) {
-            setSelectedEvents(prev => [...prev, eventId])
-        } else {
-            setSelectedEvents(prev => prev.filter(id => id !== eventId))
-        }
-    }
-
-    const renderEventTable = (events: Event[], allowedActions: string[]) => {
-        if (loading) {
-            return (
-                <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <span className="ml-2">Loading events...</span>
-                </div>
-            )
-        }
-
-        if (events.length === 0) {
-            return (
-                <div className="text-center py-8">
-                    <p className="text-muted-foreground">No events found.</p>
-                </div>
-            )
-        }
+    const renderBulkActions = (selectedIds: string[], allowedActions: string[]) => {
+        if (selectedIds.length === 0) return null
 
         return (
-            <>
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                        <Checkbox
-                            checked={events.every(e => selectedEvents.includes(e.id))}
-                            onCheckedChange={(checked) => handleSelectAll(!!checked, events)}
-                        />
-                        <span className="text-sm">Select All</span>
-                    </div>
-                    {selectedEvents.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                                {selectedEvents.length} selected
-                            </span>
-                            {allowedActions.includes('track') && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction('track')}
-                                >
-                                    Track
-                                </Button>
-                            )}
-                            {allowedActions.includes('ignore') && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction('ignore')}
-                                >
-                                    Ignore
-                                </Button>
-                            )}
-                            <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleBulkAction('delete')}
-                            >
-                                Delete
-                            </Button>
-                        </div>
-                    )}
-                </div>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[50px]"></TableHead>
-                            <TableHead>Event Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Selector</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {events.map((event) => (
-                            <TableRow key={event.id}>
-                                <TableCell>
-                                    <Checkbox
-                                        checked={selectedEvents.includes(event.id)}
-                                        onCheckedChange={(checked) => handleSelectEvent(event.id, !!checked)}
-                                    />
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                    {event.alias || event.name}
-                                    {event.alias && (
-                                        <div className="text-xs text-muted-foreground">{event.name}</div>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
-                                        {event.type}
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                                        {event.selector || 'N/A'}
-                                    </code>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex gap-2 justify-end">
-                                        {event.status === 'tracked' ? (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleEventUpdate(event.id, { status: 'ignored' })}
-                                            >
-                                                Untrack
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handleEventUpdate(event.id, { status: 'tracked' })}
-                                            >
-                                                Track
-                                            </Button>
-                                        )}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </>
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                    {selectedIds.length} selected
+                </span>
+                {allowedActions.includes('track') && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBulkAction('track', selectedIds)}
+                    >
+                        Track
+                    </Button>
+                )}
+                {allowedActions.includes('ignore') && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBulkAction('ignore', selectedIds)}
+                    >
+                        Ignore
+                    </Button>
+                )}
+                <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleBulkAction('delete', selectedIds)}
+                >
+                    Delete
+                </Button>
+            </div>
         )
     }
 
@@ -212,6 +126,9 @@ export function EventsManager() {
             </div>
         )
     }
+
+    const trackedSelectedIds = getSelectedIds(trackedRowSelection, eventsData.tracked)
+    const ignoredSelectedIds = getSelectedIds(ignoredRowSelection, eventsData.ignored)
 
     return (
         <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -258,7 +175,15 @@ export function EventsManager() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {renderEventTable(eventsData.tracked, ['ignore'])}
+                            <DataTable
+                                columns={columns}
+                                data={eventsData.tracked}
+                                searchKey="name"
+                                searchPlaceholder="Filter events..."
+                                rowSelection={trackedRowSelection}
+                                onRowSelectionChange={setTrackedRowSelection}
+                                toolbar={renderBulkActions(trackedSelectedIds, ['ignore'])}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -272,19 +197,15 @@ export function EventsManager() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {eventsData.ignored.length === 0 && !loading ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="rounded-full bg-muted p-4 mb-4">
-                                        <Badge className="h-8 w-8 text-muted-foreground" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold">No ignored events</h3>
-                                    <p className="text-sm text-muted-foreground max-w-sm mt-2">
-                                        You haven't ignored any events yet. Events you ignore will appear here.
-                                    </p>
-                                </div>
-                            ) : (
-                                renderEventTable(eventsData.ignored, ['track'])
-                            )}
+                            <DataTable
+                                columns={columns}
+                                data={eventsData.ignored}
+                                searchKey="name"
+                                searchPlaceholder="Filter events..."
+                                rowSelection={ignoredRowSelection}
+                                onRowSelectionChange={setIgnoredRowSelection}
+                                toolbar={renderBulkActions(ignoredSelectedIds, ['track'])}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -329,7 +250,12 @@ export function EventsManager() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderEventTable(session.events, ['track', 'ignore'])}
+                                    <DataTable
+                                        columns={columns}
+                                        data={session.events}
+                                        searchKey="name"
+                                        searchPlaceholder="Filter events..."
+                                    />
                                 </CardContent>
                             </Card>
                         ))
