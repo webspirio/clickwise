@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react'
 import { api } from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface Settings {
     clickwise_rybbit_enabled?: string
@@ -36,15 +37,15 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
     const loadSettings = async () => {
         try {
-            console.log('🔄 SettingsContext: Loading settings...')
+            logger.debug('Loading settings', { context: 'SettingsContext' })
             setLoading(true)
             setError(null)
             const settingsData = await api.getSettings()
-            console.log('✅ SettingsContext: Settings loaded successfully')
             setSettings(settingsData)
+            logger.debug('Settings loaded successfully', { context: 'SettingsContext' })
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to load settings'
-            console.error('❌ SettingsContext: Error loading settings:', errorMessage)
+            logger.error('Error loading settings', err, { context: 'SettingsContext' })
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -56,7 +57,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     }, [])
 
     const refreshSettings = async () => {
-        console.log('🔃 SettingsContext: Refreshing settings...')
+        logger.debug('Refreshing settings', { context: 'SettingsContext' })
         await loadSettings()
     }
 

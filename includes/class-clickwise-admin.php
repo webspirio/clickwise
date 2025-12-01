@@ -48,18 +48,19 @@ class Clickwise_Admin {
 				'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
 				'restUrl' => esc_url_raw( rest_url() ),
 				'restNonce' => wp_create_nonce( 'wp_rest' ),
-				'scriptUrl' => get_option( 'clickwise_script_url' ),
-				'siteId'    => get_option( 'clickwise_site_id' ),
-				'currentUser' => wp_get_current_user(),
+				'scriptUrl' => get_option( 'clickwise_script_url', '' ),
+				'siteId'    => get_option( 'clickwise_site_id', '' ),
 				'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
-				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
-				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
-				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
-				'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
-				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
-				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
-				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
-				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
+				// Rybbit settings - always include with defaults to prevent undefined errors
+				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
+				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
+				'rybbitDomain' => get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' ),
+				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url', '' ),
+				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path', '' ),
+				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id', '' ),
+				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id', '' ),
+				// Google Analytics settings
+				'gaEnabled' => get_option( 'clickwise_ga_enabled', '' ),
 			) ); ?>;
 			</script>
 			<script type="module">
@@ -94,18 +95,19 @@ class Clickwise_Admin {
 				'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
 				'restUrl' => esc_url_raw( rest_url() ),
 				'restNonce' => wp_create_nonce( 'wp_rest' ),
-				'scriptUrl' => get_option( 'clickwise_script_url' ),
-				'siteId'    => get_option( 'clickwise_site_id' ),
-				'currentUser' => wp_get_current_user(),
+				'scriptUrl' => get_option( 'clickwise_script_url', '' ),
+				'siteId'    => get_option( 'clickwise_site_id', '' ),
 				'activeTab' => '',
-				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
-				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
-				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
-				'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
-				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
-				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
-				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
-				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
+				// Rybbit settings - always include with defaults to prevent undefined errors
+				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
+				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
+				'rybbitDomain' => get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' ),
+				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url', '' ),
+				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path', '' ),
+				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id', '' ),
+				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id', '' ),
+				// Google Analytics settings
+				'gaEnabled' => get_option( 'clickwise_ga_enabled', '' ),
 			) ); ?>;
 			</script>
 			<script type="module">
@@ -231,19 +233,19 @@ class Clickwise_Admin {
 					'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
 					'restUrl' => esc_url_raw( rest_url() ),
 					'restNonce' => wp_create_nonce( 'wp_rest' ),
-					'scriptUrl' => get_option( 'clickwise_script_url' ),
-					'siteId'    => get_option( 'clickwise_site_id' ),
-					'currentUser' => wp_get_current_user(),
+					'scriptUrl' => get_option( 'clickwise_script_url', '' ),
+					'siteId'    => get_option( 'clickwise_site_id', '' ),
 					'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
-					'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
-					'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
-					'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
-					'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
-					'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
-					'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
-					'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
-					'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
-					'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
+					// Rybbit settings - always include with defaults to prevent undefined errors
+					'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
+					'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
+					'rybbitDomain' => get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' ),
+					'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url', '' ),
+					'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path', '' ),
+					'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id', '' ),
+					'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id', '' ),
+					// Google Analytics settings
+					'gaEnabled' => get_option( 'clickwise_ga_enabled', '' ),
 				) );
 
 				// Add module type for Vite scripts
@@ -283,11 +285,7 @@ class Clickwise_Admin {
 			'show_in_rest' => true,
 			'default' => '',
 		) );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_url', array(
-			'type' => 'string',
-			'show_in_rest' => true,
-			'default' => '',
-		) );
+
 		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_site_id', array(
 			'type' => 'string',
 			'show_in_rest' => true,
@@ -303,11 +301,7 @@ class Clickwise_Admin {
 			'show_in_rest' => true,
 			'default' => 'https://api.rybbit.io/api',
 		) );
-		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_path', array(
-			'type' => 'string',
-			'show_in_rest' => true,
-			'default' => '/api/script.js',
-		) );
+
 		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_tracking_id', array(
 			'type' => 'string',
 			'show_in_rest' => true,
