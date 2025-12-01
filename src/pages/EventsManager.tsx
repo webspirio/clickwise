@@ -17,13 +17,7 @@ export function EventsManager() {
     const [trackedRowSelection, setTrackedRowSelection] = useState({})
     const [ignoredRowSelection, setIgnoredRowSelection] = useState({})
 
-    // Helper to get selected IDs from row selection state
-    const getSelectedIds = (rowSelection: Record<string, boolean>, data: Event[]) => {
-        return Object.keys(rowSelection)
-            .filter(key => rowSelection[key])
-            .map(index => data[parseInt(index)]?.id)
-            .filter(Boolean)
-    }
+
 
     useEffect(() => {
         loadEvents()
@@ -50,11 +44,19 @@ export function EventsManager() {
         setRefreshing(false)
     }
 
-    const handleBulkAction = async (action: 'track' | 'ignore' | 'delete', ids: string[]) => {
+    const handleBulkAction = async (action: 'track' | 'ignore' | 'delete' | 'untrack', ids: string[]) => {
         if (ids.length === 0) return
 
         try {
-            await api.bulkUpdateEvents(ids, action)
+            if (action === 'delete') {
+                // Handle delete separately as it might not be supported by bulk endpoint
+                await Promise.all(ids.map(id => api.deleteEvent(id)))
+            } else if (action === 'untrack') {
+                // Handle untrack by setting status to pending
+                await Promise.all(ids.map(id => api.updateEvent(id, { status: 'pending' })))
+            } else {
+                await api.bulkUpdateEvents(ids, action)
+            }
             await loadEvents()
         } catch (err) {
             console.error('Bulk action failed:', err)
@@ -76,27 +78,43 @@ export function EventsManager() {
         onDelete: (event) => handleBulkAction('delete', [event.id]),
     }), [])
 
-    const renderBulkActions = (selectedIds: string[], allowedActions: string[]) => {
+    const renderBulkActions = (table: any, allowedActions: string[]) => {
+        const selectedRows = table.getFilteredSelectedRowModel().rows
+        const selectedIds = selectedRows.map((row: any) => row.original.id)
+
         if (selectedIds.length === 0) return null
 
         return (
             <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
+                <div className="h-4 w-[1px] bg-border mx-2" />
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
                     {selectedIds.length} selected
                 </span>
                 {allowedActions.includes('track') && (
                     <Button
                         size="sm"
                         variant="outline"
+                        className="h-8"
                         onClick={() => handleBulkAction('track', selectedIds)}
                     >
                         Track
+                    </Button>
+                )}
+                {allowedActions.includes('untrack') && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                        onClick={() => handleBulkAction('untrack', selectedIds)}
+                    >
+                        Untrack
                     </Button>
                 )}
                 {allowedActions.includes('ignore') && (
                     <Button
                         size="sm"
                         variant="outline"
+                        className="h-8"
                         onClick={() => handleBulkAction('ignore', selectedIds)}
                     >
                         Ignore
@@ -104,7 +122,8 @@ export function EventsManager() {
                 )}
                 <Button
                     size="sm"
-                    variant="destructive"
+                    variant="outline"
+                    className="h-8 text-[#f47046] hover:text-[#f47046] hover:bg-[#f47046]/10 border-[#f47046] hover:border-[#f47046]"
                     onClick={() => handleBulkAction('delete', selectedIds)}
                 >
                     Delete
@@ -126,9 +145,6 @@ export function EventsManager() {
             </div>
         )
     }
-
-    const trackedSelectedIds = getSelectedIds(trackedRowSelection, eventsData.tracked)
-    const ignoredSelectedIds = getSelectedIds(ignoredRowSelection, eventsData.ignored)
 
     return (
         <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -182,7 +198,8 @@ export function EventsManager() {
                                 searchPlaceholder="Filter events..."
                                 rowSelection={trackedRowSelection}
                                 onRowSelectionChange={setTrackedRowSelection}
-                                toolbar={renderBulkActions(trackedSelectedIds, ['ignore'])}
+                                toolbar={(table) => renderBulkActions(table, ['untrack', 'ignore'])}
+                                getRowId={(row) => row.id}
                             />
                         </CardContent>
                     </Card>
@@ -204,7 +221,8 @@ export function EventsManager() {
                                 searchPlaceholder="Filter events..."
                                 rowSelection={ignoredRowSelection}
                                 onRowSelectionChange={setIgnoredRowSelection}
-                                toolbar={renderBulkActions(ignoredSelectedIds, ['track'])}
+                                toolbar={(table) => renderBulkActions(table, ['track'])}
+                                getRowId={(row) => row.id}
                             />
                         </CardContent>
                     </Card>
@@ -255,6 +273,8 @@ export function EventsManager() {
                                         data={session.events}
                                         searchKey="name"
                                         searchPlaceholder="Filter events..."
+                                        toolbar={(table) => renderBulkActions(table, ['track', 'ignore'])}
+                                        getRowId={(row) => row.id}
                                     />
                                 </CardContent>
                             </Card>

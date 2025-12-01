@@ -152,7 +152,7 @@ export const getColumns = ({
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={() => onDelete(event)}
-                                className="text-destructive focus:text-destructive"
+                                className="text-[#f47046] focus:text-[#f47046] focus:bg-[#f47046]/10"
                             >
                                 Delete Event
                             </DropdownMenuItem>
