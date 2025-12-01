@@ -122,6 +122,7 @@ class Clickwise_Analytics {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'print_queued_events' ) );
 		add_shortcode( 'clickwise_event', array( $this, 'render_shortcode' ) );
+		add_filter( 'script_loader_tag', array( $this, 'add_type_attribute' ), 10, 3 );
 	}
 
 	/**
@@ -344,7 +345,32 @@ class Clickwise_Analytics {
 	 * Enqueue the frontend tracking script.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_name, CLICKWISE_URL . 'assets/js/clickwise-tracker.js', array(), $this->version, true );
+		$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
+		if ( ! defined( 'CLICKWISE_REACT_DEV' ) && ( wp_get_environment_type() === 'local' || wp_get_environment_type() === 'development' ) ) {
+			$is_dev = true;
+		}
+
+		if ( $is_dev ) {
+			// In dev mode, we need to inject the Vite client and the frontend entry point
+			// We use wp_head for this to ensure it loads early enough, or we can use enqueue_script with the dev server URL
+			wp_enqueue_script( 'clickwise-vite-client', 'http://localhost:5173/@vite/client', array(), null, false );
+			wp_enqueue_script( 'clickwise-frontend', 'http://localhost:5173/src/frontend.ts', array( 'clickwise-vite-client' ), null, false );
+		} else {
+			// Production Build
+			$manifest_path = CLICKWISE_PATH . 'assets/dist/.vite/manifest.json';
+			if ( file_exists( $manifest_path ) ) {
+				$manifest = json_decode( file_get_contents( $manifest_path ), true );
+				if ( isset( $manifest['src/frontend.ts'] ) ) {
+					$entry = $manifest['src/frontend.ts'];
+					wp_enqueue_script( 'clickwise-frontend', CLICKWISE_URL . 'assets/dist/' . $entry['file'], array(), CLICKWISE_VERSION, true );
+					if ( isset( $entry['css'] ) ) {
+						foreach ( $entry['css'] as $css_file ) {
+							wp_enqueue_style( 'clickwise-frontend-css', CLICKWISE_URL . 'assets/dist/' . $css_file, array(), CLICKWISE_VERSION );
+						}
+					}
+				}
+			}
+		}
 
 		// Pass settings to JS
 		$event_prefixes = get_option( 'clickwise_event_prefixes', 'kb-, wc-, custom-' );
@@ -378,6 +404,33 @@ class Clickwise_Analytics {
 		$ga_enabled = get_option( 'clickwise_ga_enabled' );
 		$ga_measurement_id = get_option( 'clickwise_ga_measurement_id', '' );
 
+		// Localize settings for the frontend script (RybbitSDK)
+		// We use clickwiseSettings to match what the SDK expects
+		wp_localize_script( 'clickwise-frontend', 'clickwiseSettings', array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'clickwise_admin_nonce' ),
+			'restUrl' => esc_url_raw( rest_url() ),
+			'restNonce' => wp_create_nonce( 'wp_rest' ),
+			'scriptUrl' => get_option( 'clickwise_script_url', '' ),
+			'siteId'    => get_option( 'clickwise_site_id', '' ),
+			'activeTab' => '',
+			// Rybbit settings
+			'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
+			'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
+			'rybbitDomain' => get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' ),
+			'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url', '' ),
+			'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path', '' ),
+			'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id', '' ),
+			'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id', '' ),
+			// Google Analytics settings
+			'gaEnabled' => get_option( 'clickwise_ga_enabled', '' ),
+			// Managed events for auto-tracking
+			'managed_events' => $managed_events,
+		) );
+
+		// Also localize for the old tracker if needed, or we can migrate it to use the same object
+		wp_enqueue_script( $this->plugin_name, CLICKWISE_URL . 'assets/js/clickwise-tracker.js', array(), $this->version, true );
+		
 		wp_localize_script( $this->plugin_name, 'clickwise_config', array(
 			'event_rules'        => $event_rules,
 			'track_forms'        => (bool) $track_forms,
@@ -648,5 +701,22 @@ class Clickwise_Analytics {
 		}
 
 		return "<$tag$attr_str>" . do_shortcode( $content ) . "</$tag>";
+	}
+	/**
+	 * Add type="module" to scripts that need it.
+	 */
+	public function add_type_attribute( $tag, $handle, $src ) {
+		if ( 'clickwise-frontend' === $handle || 'clickwise-vite-client' === $handle ) {
+			// Replace type='text/javascript' with type='module' or add it if not present
+			$tag = str_replace( ' type=\'text/javascript\'', ' type=\'module\'', $tag );
+			if ( strpos( $tag, 'type=' ) === false ) {
+				$tag = str_replace( '<script ', '<script type=\'module\' ', $tag );
+			}
+			// Add crossorigin for Vite dev server
+			if ( strpos( $tag, 'crossorigin' ) === false ) {
+				$tag = str_replace( '<script ', '<script crossorigin ', $tag );
+			}
+		}
+		return $tag;
 	}
 }

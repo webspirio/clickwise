@@ -46,10 +46,49 @@ export class RybbitSDK {
             await rybbit.init(config);
             this.isInitialized = true;
             logger.sdkSuccess('Rybbit');
+
+            // Setup automatic tracking for managed events
+            this.setupAutomaticTracking(normalized.managed_events || []);
         } catch (error) {
             logger.sdkError('Rybbit', error);
             this.isEnabled = false;
         }
+    }
+
+    /**
+     * Setup automatic tracking for managed events
+     */
+    private static setupAutomaticTracking(events: any[]): void {
+        if (!events || events.length === 0) return;
+
+        logger.info(`Setting up automatic tracking for ${events.length} events`, { context: 'Rybbit' });
+
+        document.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+
+            // Find closest clickable element
+            const clickable = target.closest('a, button, input[type="submit"], input[type="button"]') as HTMLElement || target;
+
+            events.forEach(event => {
+                if (event.status !== 'tracked') return;
+
+                // Check if element matches the selector
+                try {
+                    if (clickable.matches(event.selector)) {
+                        const eventName = event.alias || event.name;
+                        logger.info(`Tracked element clicked: ${eventName}`, { context: 'Rybbit' });
+
+                        this.event(eventName, {
+                            selector: event.selector,
+                            text: clickable.innerText || '',
+                            page: window.location.pathname
+                        });
+                    }
+                } catch (err) {
+                    // Ignore invalid selectors
+                }
+            });
+        }, true);
     }
 
     /**

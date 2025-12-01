@@ -48,6 +48,9 @@ export interface ClickwiseSettings {
     gaEnabled?: string;
     gaMeasurementId?: string;
     gaApiSecret?: string;
+
+    // Managed events
+    managed_events?: any[];
 }
 
 /**
@@ -59,7 +62,7 @@ function getSetting(
     prefixedKey: keyof ClickwiseSettings,
     legacyKey: keyof ClickwiseSettings
 ): string | undefined {
-    return settings[prefixedKey] || settings[legacyKey];
+    return (settings[prefixedKey] || settings[legacyKey]) as string | undefined;
 }
 
 /**
@@ -89,6 +92,9 @@ export function normalizeSettings(settings: Partial<ClickwiseSettings>): Clickwi
         clickwise_ga_enabled: getSetting(settings, 'clickwise_ga_enabled', 'gaEnabled'),
         clickwise_ga_measurement_id: getSetting(settings, 'clickwise_ga_measurement_id', 'gaMeasurementId'),
         clickwise_ga_api_secret: getSetting(settings, 'clickwise_ga_api_secret', 'gaApiSecret'),
+
+        // Managed events
+        managed_events: settings.managed_events || [],
     };
 }
 
