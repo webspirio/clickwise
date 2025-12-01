@@ -60,7 +60,7 @@ export function Dashboard() {
             setLoading(true)
             setError(null)
 
-            const rybbitTimeRange = api.createTimeRange(
+            const rybbitTimeRange = api.rybbit.createTimeRange(
                 timeRange.preset,
                 timeRange.customStart,
                 timeRange.customEnd
@@ -68,11 +68,11 @@ export function Dashboard() {
 
             // Fetch overview stats
             const [overviewData, pagesData, countriesData, devicesData, browsersData] = await Promise.all([
-                api.getRybbitOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange, settings),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, settings, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, settings, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, settings, { limit: 10 }),
-                api.getRybbitMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, settings, { limit: 10 }),
+                api.rybbit.getOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange, settings),
+                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, settings, { limit: 10 }),
+                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, settings, { limit: 10 }),
+                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, settings, { limit: 10 }),
+                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, settings, { limit: 10 }),
             ])
 
             setRybbitOverview(overviewData)

@@ -53,6 +53,12 @@ class Clickwise_Admin {
 				'currentUser' => wp_get_current_user(),
 				'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
 				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
+				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
+				'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
+				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
+				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
+				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
 				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
 			) ); ?>;
 			</script>
@@ -93,6 +99,12 @@ class Clickwise_Admin {
 				'currentUser' => wp_get_current_user(),
 				'activeTab' => '',
 				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+				'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
+				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
+				'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
+				'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
+				'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
+				'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
 				'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
 			) ); ?>;
 			</script>
@@ -224,6 +236,13 @@ class Clickwise_Admin {
 					'currentUser' => wp_get_current_user(),
 					'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
 					'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled' ),
+					'rybbitScriptUrl' => get_option( 'clickwise_rybbit_script_url' ),
+					'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id' ),
+					'rybbitDomain' => get_option( 'clickwise_rybbit_domain' ),
+					'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
+					'rybbitScriptPath' => get_option( 'clickwise_rybbit_script_path' ),
+					'rybbitTrackingId' => get_option( 'clickwise_rybbit_tracking_id' ),
+					'rybbitWebsiteId' => get_option( 'clickwise_rybbit_website_id' ),
 					'gaEnabled' => get_option( 'clickwise_ga_enabled' ),
 				) );
 
@@ -282,7 +301,7 @@ class Clickwise_Admin {
 		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_domain', array(
 			'type' => 'string',
 			'show_in_rest' => true,
-			'default' => 'https://app.rybbit.io',
+			'default' => 'https://api.rybbit.io/api',
 		) );
 		register_setting( 'clickwise-settings-rybbit', 'clickwise_rybbit_script_path', array(
 			'type' => 'string',
