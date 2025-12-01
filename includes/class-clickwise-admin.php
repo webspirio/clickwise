@@ -109,6 +109,12 @@ class Clickwise_Admin {
 		}
 	}
 
+	public function add_settings_link( $links ) {
+		$settings_link = '<a href="' . admin_url( 'options-general.php?page=clickwise-settings' ) . '">' . __( 'Settings', 'clickwise' ) . '</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
+	}
+
 	public function add_admin_menu() {
 		add_options_page(
 			'Clickwise Analytics',
