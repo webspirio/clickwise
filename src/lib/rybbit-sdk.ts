@@ -1,4 +1,6 @@
 import rybbit from "@rybbit/js";
+import { getRybbitApiBaseUrl, normalizeSettings, isRybbitEnabled } from "./settings";
+import { logger } from "./logger";
 
 export class RybbitSDK {
     private static isInitialized = false;
@@ -9,50 +11,43 @@ export class RybbitSDK {
      */
     public static async init(): Promise<void> {
         if (this.isInitialized) {
-            console.warn("Rybbit SDK is already initialized.");
+            logger.warn("Rybbit SDK is already initialized", { context: 'Rybbit' });
             return;
         }
 
         const settings = window.clickwiseSettings;
 
         // Check if Rybbit is enabled in settings
-        if (!settings.rybbitEnabled) {
-            console.log("Rybbit Analytics is disabled in settings.");
+        if (!isRybbitEnabled(settings)) {
+            logger.info("Rybbit Analytics is disabled in settings", { context: 'Rybbit' });
             return;
         }
 
         this.isEnabled = true;
 
-        let analyticsHost = settings.rybbitDomain || "https://api.rybbit.io/api";
+        const normalized = normalizeSettings(settings);
+        const analyticsHost = getRybbitApiBaseUrl(settings);
+        const siteId = normalized.clickwise_rybbit_website_id || normalized.clickwise_rybbit_site_id;
 
-        // Ensure analyticsHost ends with /api if it's not the default cloud instance
-        // (Assuming cloud instance is handled correctly or user provides full URL)
-        // But based on user error, they provided domain without /api.
-        // Let's robustly handle this: if it doesn't end in /api, append it.
-        if (analyticsHost && !analyticsHost.endsWith('/api')) {
-            analyticsHost = `${analyticsHost.replace(/\/$/, '')}/api`;
+        if (!siteId) {
+            logger.error("Rybbit SDK: Site ID is required but not configured", undefined, { context: 'Rybbit' });
+            this.isEnabled = false;
+            return;
         }
 
         const config = {
-            analyticsHost: analyticsHost,
-            siteId: settings.rybbitWebsiteId || settings.rybbitSiteId,
-            // Optional: Add other configuration options here if needed
-            // debug: process.env.NODE_ENV === 'development',
+            analyticsHost,
+            siteId,
         };
 
-        console.log("Rybbit SDK Init Debug:", {
-            settings: settings,
-            rybbitWebsiteId: settings.rybbitWebsiteId,
-            rybbitSiteId: settings.rybbitSiteId,
-            finalConfig: config
-        });
+        logger.sdkInit('Rybbit', config);
 
         try {
             await rybbit.init(config);
             this.isInitialized = true;
-            console.log("Rybbit SDK initialized successfully.");
+            logger.sdkSuccess('Rybbit');
         } catch (error) {
-            console.error("Failed to initialize Rybbit SDK:", error);
+            logger.sdkError('Rybbit', error);
             this.isEnabled = false;
         }
     }

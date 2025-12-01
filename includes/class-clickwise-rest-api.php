@@ -173,6 +173,91 @@ class Clickwise_Rest_API {
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
 
+		// Rybbit Analytics proxy endpoints (server-side only, API key never exposed)
+		register_rest_route( $this->namespace, '/rybbit/overview', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'get_rybbit_overview' ),
+			'permission_callback' => array( $this, 'check_admin_permissions' ),
+			'args' => array(
+				'site_id' => array(
+					'required' => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'start_date' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'end_date' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'time_zone' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'past_minutes_start' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'past_minutes_end' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'filters' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+			),
+		) );
+
+		register_rest_route( $this->namespace, '/rybbit/metric', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'get_rybbit_metric' ),
+			'permission_callback' => array( $this, 'check_admin_permissions' ),
+			'args' => array(
+				'site_id' => array(
+					'required' => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'parameter' => array(
+					'required' => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'start_date' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'end_date' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'time_zone' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'past_minutes_start' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'past_minutes_end' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'limit' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'page' => array(
+					'required' => false,
+					'sanitize_callback' => 'absint',
+				),
+				'filters' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+			),
+		) );
+
 		register_rest_route( $this->namespace, '/settings', array(
 			'methods' => 'POST',
 			'callback' => array( $this, 'save_clickwise_settings' ),
@@ -548,9 +633,9 @@ class Clickwise_Rest_API {
 
 		foreach ( $handlers as $handler ) {
 			switch ( $handler ) {
-				case 'rybbit':
-					$results['rybbit'] = $this->send_test_event_to_rybbit( $event_name, $test_properties );
-					break;
+				// case 'rybbit':
+				// 	// Handled client-side now
+				// 	break;
 				case 'ga':
 					$results['ga'] = $this->send_test_event_to_ga( $event_name, $test_properties );
 					break;
@@ -654,21 +739,7 @@ class Clickwise_Rest_API {
 		return $data;
 	}
 
-	private function send_test_event_to_rybbit( $event_name, $properties ) {
-		$script_url = get_option( 'clickwise_rybbit_script_url' );
-		$site_id = get_option( 'clickwise_rybbit_site_id' );
 
-		if ( empty( $script_url ) || empty( $site_id ) ) {
-			return array( 'success' => false, 'message' => 'Rybbit not configured' );
-		}
-
-		// In a real implementation, this would send the event to Rybbit
-		return array(
-			'success' => true,
-			'message' => 'Test event sent to Rybbit successfully',
-			'event_name' => $event_name
-		);
-	}
 
 	private function send_test_event_to_ga( $event_name, $properties ) {
 		$measurement_id = get_option( 'clickwise_ga_measurement_id' );
@@ -685,31 +756,64 @@ class Clickwise_Rest_API {
 		);
 	}
 
-	private function test_rybbit_connection() {
-		$script_url = get_option( 'clickwise_rybbit_script_url' );
-		$site_id = get_option( 'clickwise_rybbit_site_id' );
 
-		if ( empty( $script_url ) || empty( $site_id ) ) {
-			return new WP_Error( 'missing_config', 'Script URL and Site ID are required', array( 'status' => 400 ) );
+	private function test_rybbit_connection() {
+		$api_key = get_option( 'clickwise_rybbit_api_key' );
+		$website_id = get_option( 'clickwise_rybbit_website_id' );
+		$domain = get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' );
+
+		if ( empty( $api_key ) ) {
+			return new WP_Error( 'missing_config', 'Rybbit API key is required', array( 'status' => 400 ) );
 		}
 
-		$response = wp_remote_get( $script_url, array(
-			'timeout' => 10,
-			'user-agent' => 'Clickwise Plugin Test'
+		if ( empty( $website_id ) ) {
+			return new WP_Error( 'missing_config', 'Rybbit Website ID is required', array( 'status' => 400 ) );
+		}
+
+		// Build API URL
+		$base_url = rtrim( $domain, '/' );
+		if ( ! str_ends_with( $base_url, '/api' ) ) {
+			$base_url .= '/api';
+		}
+		$url = "{$base_url}/overview/{$website_id}";
+
+		// Make test API request to verify connection
+		$response = wp_remote_get( $url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_key,
+				'Content-Type' => 'application/json',
+			),
+			'timeout' => 15,
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'connection_failed', 'Could not reach Rybbit script: ' . $response->get_error_message(), array( 'status' => 500 ) );
+			return new WP_Error( 'connection_failed', 'Could not reach Rybbit API: ' . $response->get_error_message(), array( 'status' => 500 ) );
 		}
 
 		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( $code === 401 ) {
+			return new WP_Error( 'invalid_api_key', 'Invalid API key. Please check your Rybbit settings.', array( 'status' => 401 ) );
+		}
+
+		if ( $code === 403 ) {
+			return new WP_Error( 'access_denied', 'Access denied. Please check your site permissions.', array( 'status' => 403 ) );
+		}
+
+		if ( $code === 404 ) {
+			return new WP_Error( 'invalid_website_id', 'Website ID not found. Please check your Rybbit settings.', array( 'status' => 404 ) );
+		}
+
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'bad_response', 'Rybbit script returned HTTP ' . $code, array( 'status' => 500 ) );
+			$body = wp_remote_retrieve_body( $response );
+			$error_data = json_decode( $body, true );
+			$error_message = isset( $error_data['message'] ) ? $error_data['message'] : 'Rybbit API returned HTTP ' . $code;
+			return new WP_Error( 'bad_response', $error_message, array( 'status' => $code ) );
 		}
 
 		return rest_ensure_response( array(
 			'success' => true,
-			'message' => 'Rybbit connection successful! Script is accessible and appears valid.'
+			'message' => 'Rybbit Analytics connection successful! API key and Website ID are valid.'
 		) );
 	}
 
@@ -811,21 +915,28 @@ class Clickwise_Rest_API {
 
 	/**
 	 * Get Clickwise settings
+	 * NOTE: API keys and secrets return placeholders for security (actual values never exposed)
 	 */
 	public function get_clickwise_settings( $request ) {
+		// Get actual API key/secret to check if they're set
+		$rybbit_api_key = get_option( 'clickwise_rybbit_api_key' );
+		$ga_api_secret = get_option( 'clickwise_ga_api_secret' );
+
 		$settings = array(
 			'clickwise_rybbit_enabled' => get_option( 'clickwise_rybbit_enabled' ),
 			'clickwise_rybbit_site_id' => get_option( 'clickwise_rybbit_site_id' ),
 			'clickwise_rybbit_script_url' => get_option( 'clickwise_rybbit_script_url' ),
 			'clickwise_rybbit_api_version' => get_option( 'clickwise_rybbit_api_version' ),
-			'clickwise_rybbit_api_key' => get_option( 'clickwise_rybbit_api_key' ),
+			// Return placeholder if key is set, empty string if not (secure - never expose actual key)
+			'clickwise_rybbit_api_key' => ! empty( $rybbit_api_key ) ? '••••••••••••••••' : '',
 			'clickwise_rybbit_domain' => get_option( 'clickwise_rybbit_domain' ),
 			'clickwise_rybbit_script_path' => get_option( 'clickwise_rybbit_script_path' ),
 			'clickwise_rybbit_tracking_id' => get_option( 'clickwise_rybbit_tracking_id' ),
 			'clickwise_rybbit_website_id' => get_option( 'clickwise_rybbit_website_id' ),
 			'clickwise_ga_enabled' => get_option( 'clickwise_ga_enabled' ),
 			'clickwise_ga_measurement_id' => get_option( 'clickwise_ga_measurement_id' ),
-			'clickwise_ga_api_secret' => get_option( 'clickwise_ga_api_secret' ),
+			// Return placeholder if secret is set, empty string if not (secure - never expose actual secret)
+			'clickwise_ga_api_secret' => ! empty( $ga_api_secret ) ? '••••••••••••••••' : '',
 		);
 
 		return rest_ensure_response( $settings );
@@ -833,6 +944,7 @@ class Clickwise_Rest_API {
 
 	/**
 	 * Save Clickwise settings
+	 * NOTE: Placeholder values (••••) are ignored to preserve existing keys
 	 */
 	public function save_clickwise_settings( $request ) {
 		$settings = array(
@@ -852,11 +964,156 @@ class Clickwise_Rest_API {
 
 		foreach ( $settings as $setting ) {
 			if ( $request->has_param( $setting ) ) {
-				update_option( $setting, $request->get_param( $setting ) );
+				$value = $request->get_param( $setting );
+
+				// Skip saving if value is the placeholder (means user didn't change it)
+				if ( $value === '••••••••••••••••' ) {
+					continue;
+				}
+
+				update_option( $setting, $value );
 			}
 		}
 
 		return rest_ensure_response( array( 'success' => true, 'message' => 'Settings saved successfully' ) );
+	}
+
+	/**
+	 * Proxy for Rybbit Overview API - keeps API key server-side
+	 */
+	public function get_rybbit_overview( $request ) {
+		$api_key = get_option( 'clickwise_rybbit_api_key' );
+		$domain = get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' );
+
+		if ( empty( $api_key ) ) {
+			return new WP_Error( 'missing_api_key', 'Rybbit API key is not configured', array( 'status' => 400 ) );
+		}
+
+		$site_id = $request->get_param( 'site_id' );
+
+		// Build API URL
+		$base_url = rtrim( $domain, '/' );
+		if ( ! str_ends_with( $base_url, '/api' ) ) {
+			$base_url .= '/api';
+		}
+		$url = "{$base_url}/overview/{$site_id}";
+
+		// Build query parameters
+		$params = array();
+		$param_keys = array( 'start_date', 'end_date', 'time_zone', 'past_minutes_start', 'past_minutes_end', 'filters' );
+		foreach ( $param_keys as $key ) {
+			$value = $request->get_param( $key );
+			if ( ! empty( $value ) ) {
+				$params[ $key ] = $value;
+			}
+		}
+
+		if ( ! empty( $params ) ) {
+			$url .= '?' . http_build_query( $params );
+		}
+
+		// Make API request
+		$response = wp_remote_get( $url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_key,
+				'Content-Type' => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'api_error', $response->get_error_message(), array( 'status' => 500 ) );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+
+		if ( $status_code >= 400 ) {
+			$error_data = json_decode( $body, true );
+			$error_message = isset( $error_data['message'] ) ? $error_data['message'] : 'Rybbit API error';
+
+			if ( $status_code === 401 ) {
+				$error_message = 'Invalid API key. Please check your Rybbit settings.';
+			} elseif ( $status_code === 403 ) {
+				$error_message = 'Access denied. Please check your site permissions.';
+			} elseif ( $status_code === 429 ) {
+				$error_message = 'Rate limit exceeded. Please wait and try again.';
+			}
+
+			return new WP_Error( 'api_error', $error_message, array( 'status' => $status_code ) );
+		}
+
+		$data = json_decode( $body, true );
+		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * Proxy for Rybbit Metric API - keeps API key server-side
+	 */
+	public function get_rybbit_metric( $request ) {
+		$api_key = get_option( 'clickwise_rybbit_api_key' );
+		$domain = get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' );
+
+		if ( empty( $api_key ) ) {
+			return new WP_Error( 'missing_api_key', 'Rybbit API key is not configured', array( 'status' => 400 ) );
+		}
+
+		$site_id = $request->get_param( 'site_id' );
+
+		// Build API URL
+		$base_url = rtrim( $domain, '/' );
+		if ( ! str_ends_with( $base_url, '/api' ) ) {
+			$base_url .= '/api';
+		}
+		$url = "{$base_url}/metric/{$site_id}";
+
+		// Build query parameters
+		$params = array();
+		$param_keys = array( 'parameter', 'start_date', 'end_date', 'time_zone', 'past_minutes_start', 'past_minutes_end', 'limit', 'page', 'filters' );
+		foreach ( $param_keys as $key ) {
+			$value = $request->get_param( $key );
+			if ( ! empty( $value ) ) {
+				$params[ $key ] = $value;
+			}
+		}
+
+		if ( ! empty( $params ) ) {
+			$url .= '?' . http_build_query( $params );
+		}
+
+		// Make API request
+		$response = wp_remote_get( $url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_key,
+				'Content-Type' => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'api_error', $response->get_error_message(), array( 'status' => 500 ) );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+
+		if ( $status_code >= 400 ) {
+			$error_data = json_decode( $body, true );
+			$error_message = isset( $error_data['message'] ) ? $error_data['message'] : 'Rybbit API error';
+
+			if ( $status_code === 401 ) {
+				$error_message = 'Invalid API key. Please check your Rybbit settings.';
+			} elseif ( $status_code === 403 ) {
+				$error_message = 'Access denied. Please check your site permissions.';
+			} elseif ( $status_code === 429 ) {
+				$error_message = 'Rate limit exceeded. Please wait and try again.';
+			}
+
+			return new WP_Error( 'api_error', $error_message, array( 'status' => $status_code ) );
+		}
+
+		$data = json_decode( $body, true );
+		return rest_ensure_response( $data );
 	}
 }
 

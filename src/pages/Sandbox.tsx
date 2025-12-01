@@ -52,22 +52,45 @@ export function Sandbox() {
 
             addLog(`Sending event "${eventName}" to ${selectedHandlers.length} handler(s)...`, 'info')
 
-            const response = await api.sendTestEvent(eventName, props, selectedHandlers)
-
-            if (response.success) {
-                addLog(`Event sent successfully!`, 'success')
-
-                // Log individual handler results
-                Object.entries(response.results).forEach(([handler, result]: [string, any]) => {
-                    if (result.success) {
-                        addLog(`${handler.toUpperCase()}: ${result.message}`, 'success')
+            // Handle Rybbit (Client-side SDK)
+            if (selectedHandlers.includes('rybbit')) {
+                try {
+                    if (window.RybbitSDK) {
+                        window.RybbitSDK.event(eventName, props)
+                        addLog('RYBBIT: Event triggered via SDK', 'success')
                     } else {
-                        addLog(`${handler.toUpperCase()}: ${result.message}`, 'error')
+                        addLog('RYBBIT: SDK not initialized', 'error')
                     }
-                })
-            } else {
-                addLog('Failed to send event', 'error')
+                } catch (e) {
+                    addLog(`RYBBIT: Failed to trigger SDK event: ${e}`, 'error')
+                }
             }
+
+            // Handle others via Backend
+            const backendHandlers = selectedHandlers.filter(h => h !== 'rybbit')
+            if (backendHandlers.length > 0) {
+                const response = await api.sendTestEvent(eventName, props, backendHandlers)
+
+                if (response.success) {
+                    // Log individual handler results
+                    Object.entries(response.results).forEach(([handler, result]: [string, any]) => {
+                        if (result.success) {
+                            addLog(`${handler.toUpperCase()}: ${result.message}`, 'success')
+                        } else {
+                            addLog(`${handler.toUpperCase()}: ${result.message}`, 'error')
+                        }
+                    })
+                } else {
+                    addLog('Failed to send event to backend handlers', 'error')
+                }
+            }
+
+            if (backendHandlers.length === 0 && !selectedHandlers.includes('rybbit')) {
+                addLog('No handlers processed', 'error')
+            } else if (backendHandlers.length === 0 && selectedHandlers.includes('rybbit')) {
+                addLog('Event processing complete', 'success')
+            }
+
         } catch (error) {
             if (error instanceof SyntaxError) {
                 addLog('Invalid JSON in event properties', 'error')
@@ -126,8 +149,8 @@ export function Sandbox() {
                             <div className="grid gap-3">
                                 {availableHandlers.map((handler) => (
                                     <div key={handler.id} className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${handler.enabled
-                                            ? 'border-border hover:border-primary/50 bg-card/50'
-                                            : 'border-muted bg-muted/30 opacity-60'
+                                        ? 'border-border hover:border-primary/50 bg-card/50'
+                                        : 'border-muted bg-muted/30 opacity-60'
                                         }`}>
                                         <Checkbox
                                             checked={selectedHandlers.includes(handler.id)}

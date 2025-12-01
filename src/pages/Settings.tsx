@@ -19,11 +19,9 @@ export function Settings() {
     // Rybbit settings
     const [rybbitEnabled, setRybbitEnabled] = useState(false)
     const [rybbitSiteId, setRybbitSiteId] = useState('') // Deprecated/Legacy
-    const [rybbitScriptUrl, setRybbitScriptUrl] = useState('') // Deprecated/Legacy
     const [rybbitApiVersion, setRybbitApiVersion] = useState('v2')
     const [rybbitApiKey, setRybbitApiKey] = useState('')
     const [rybbitDomain, setRybbitDomain] = useState('https://app.rybbit.io')
-    const [rybbitScriptPath, setRybbitScriptPath] = useState('/api/script.js')
     const [rybbitTrackingId, setRybbitTrackingId] = useState('')
     const [rybbitWebsiteId, setRybbitWebsiteId] = useState('')
 
@@ -55,35 +53,30 @@ export function Settings() {
             console.log('📋 Settings: Using settings from context:', settings)
 
             // Rybbit settings
+            // Note: API key returns placeholder (••••) if set, for security reasons
             const rybbitEnabled = settings.clickwise_rybbit_enabled === '1'
             const rybbitSiteId = settings.clickwise_rybbit_site_id || ''
-            const rybbitScriptUrl = settings.clickwise_rybbit_script_url || ''
             const rybbitApiVersion = settings.clickwise_rybbit_api_version || 'v2'
             const rybbitApiKey = settings.clickwise_rybbit_api_key || ''
             const rybbitDomain = settings.clickwise_rybbit_domain || 'https://app.rybbit.io'
-            const rybbitScriptPath = settings.clickwise_rybbit_script_path || '/api/script.js'
             const rybbitTrackingId = settings.clickwise_rybbit_tracking_id || ''
             const rybbitWebsiteId = settings.clickwise_rybbit_website_id || ''
 
             console.log('🔧 Settings: Parsed Rybbit settings:', {
                 enabled: rybbitEnabled,
                 siteId: rybbitSiteId,
-                scriptUrl: rybbitScriptUrl,
                 apiVersion: rybbitApiVersion,
                 apiKey: rybbitApiKey ? '[SET]' : '[NOT SET]',
                 domain: rybbitDomain,
-                scriptPath: rybbitScriptPath,
                 trackingId: rybbitTrackingId,
                 websiteId: rybbitWebsiteId,
             })
 
             setRybbitEnabled(rybbitEnabled)
             setRybbitSiteId(rybbitSiteId)
-            setRybbitScriptUrl(rybbitScriptUrl)
             setRybbitApiVersion(rybbitApiVersion)
             setRybbitApiKey(rybbitApiKey)
             setRybbitDomain(rybbitDomain)
-            setRybbitScriptPath(rybbitScriptPath)
             setRybbitTrackingId(rybbitTrackingId)
             setRybbitWebsiteId(rybbitWebsiteId)
 
@@ -119,11 +112,9 @@ export function Settings() {
             const settingsToSave = {
                 clickwise_rybbit_enabled: rybbitEnabled ? '1' : '',
                 clickwise_rybbit_site_id: rybbitSiteId,
-                clickwise_rybbit_script_url: rybbitScriptUrl,
                 clickwise_rybbit_api_version: rybbitApiVersion,
                 clickwise_rybbit_api_key: rybbitApiKey,
                 clickwise_rybbit_domain: rybbitDomain,
-                clickwise_rybbit_script_path: rybbitScriptPath,
                 clickwise_rybbit_tracking_id: rybbitTrackingId,
                 clickwise_rybbit_website_id: rybbitWebsiteId,
                 clickwise_ga_enabled: gaEnabled ? '1' : '',
@@ -135,7 +126,6 @@ export function Settings() {
             console.log('🔧 Settings: Current form state:', {
                 rybbitEnabled,
                 rybbitSiteId,
-                rybbitScriptUrl,
                 rybbitApiVersion,
                 rybbitApiKey: rybbitApiKey ? '[HIDDEN]' : '',
                 gaEnabled,
@@ -274,23 +264,7 @@ export function Settings() {
                                 </p>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="script-path" className="text-foreground">Script Path</Label>
-                                <div className="relative">
-                                    <Code className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
-                                    <Input
-                                        id="script-path"
-                                        type="text"
-                                        value={rybbitScriptPath}
-                                        onChange={(e) => setRybbitScriptPath(e.target.value)}
-                                        className="pl-9"
-                                        placeholder="/api/script.js"
-                                    />
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Path to the tracking script (default: /api/script.js).
-                                </p>
-                            </div>
+
                         </div>
                     </div>
 

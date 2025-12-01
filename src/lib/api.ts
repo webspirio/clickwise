@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 // Types for API responses
 type DashboardStats = {
     total_events: number;
@@ -94,14 +96,17 @@ const getApiUrl = (endpoint: string) => {
     return `${window.clickwiseSettings.restUrl}clickwise/v1/${endpoint}`;
 };
 
-const getHeaders = (contentType = 'application/json') => {
+const getHeaders = (contentType = 'application/json'): Record<string, string> => {
     if (!window.clickwiseSettings) {
         throw new Error('Clickwise settings not found');
     }
-    return {
+    const headers: Record<string, string> = {
         'Content-Type': contentType,
-        'X-WP-Nonce': window.clickwiseSettings.restNonce,
     };
+    if (window.clickwiseSettings.restNonce) {
+        headers['X-WP-Nonce'] = window.clickwiseSettings.restNonce;
+    }
+    return headers;
 };
 
 const handleResponse = async (response: Response) => {
@@ -119,24 +124,22 @@ const getSettings = async () => {
     }
 
     const url = `${window.clickwiseSettings.restUrl}clickwise/v1/settings`;
-    console.log('🔍 API: Getting settings from:', url);
+    logger.apiRequest('GET', url);
 
-    const response = await fetch(url, {
-        headers: {
-            'X-WP-Nonce': window.clickwiseSettings.restNonce,
-        },
-    });
+    const headers: Record<string, string> = {};
+    if (window.clickwiseSettings.restNonce) {
+        headers['X-WP-Nonce'] = window.clickwiseSettings.restNonce;
+    }
 
-    console.log('📥 API: Settings response status:', response.status);
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+
+    logger.apiResponse('GET', url, response.status, data);
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API: Settings fetch failed:', errorText);
         throw new Error('Failed to fetch settings');
     }
 
-    const data = await response.json();
-    console.log('📄 API: Settings loaded:', data);
     return data;
 };
 
@@ -146,34 +149,28 @@ const saveSettings = async (settings: Record<string, any>) => {
     }
 
     const url = `${window.clickwiseSettings.restUrl}clickwise/v1/settings`;
-    console.log('💾 API: Saving settings to:', url);
-    console.log('📤 API: Settings to save:', settings);
+    logger.apiRequest('POST', url, settings);
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+    if (window.clickwiseSettings.restNonce) {
+        headers['X-WP-Nonce'] = window.clickwiseSettings.restNonce;
+    }
 
     const response = await fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': window.clickwiseSettings.restNonce,
-        },
+        headers,
         body: JSON.stringify(settings),
     });
 
-    console.log('📥 API: Save response status:', response.status);
+    const data = await response.json();
+    logger.apiResponse('POST', url, response.status, data);
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API: Settings save failed:', errorText);
-        let errorData;
-        try {
-            errorData = JSON.parse(errorText);
-        } catch (e) {
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        throw new Error(errorData.message || 'Failed to save settings');
+        throw new Error(data.message || 'Failed to save settings');
     }
 
-    const data = await response.json();
-    console.log('✅ API: Settings saved successfully:', data);
     return data;
 };
 
@@ -277,109 +274,45 @@ const testHandler = async (handler: 'rybbit' | 'ga') => {
 };
 
 // Rybbit Analytics API
+// These calls now go through WordPress REST API proxy to keep API key secure
 
 export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, settings: any, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
-
-    const apiKey = settings.clickwise_rybbit_api_key;
-
-    const baseUrl = settings.clickwise_rybbit_domain || 'https://app.rybbit.io';
-
-
-
-    // Use the passed siteId (which should be the website ID from settings)
-
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
 
-
-
-    if (!apiKey || !targetSiteId) {
-
-        throw new Error('Rybbit API key or Website ID not configured');
-
+    if (!targetSiteId) {
+        throw new Error('Rybbit Website ID not configured');
     }
-
-
 
     const params = new URLSearchParams();
-
-
+    params.append('site_id', targetSiteId);
 
     // Add time range parameters
-
     if (timeRange.start_date && timeRange.end_date && timeRange.time_zone) {
-
         params.append('start_date', timeRange.start_date);
-
         params.append('end_date', timeRange.end_date);
-
         params.append('time_zone', timeRange.time_zone);
-
     } else if (timeRange.past_minutes_start && timeRange.past_minutes_end !== undefined) {
-
         params.append('past_minutes_start', timeRange.past_minutes_start.toString());
-
         params.append('past_minutes_end', timeRange.past_minutes_end.toString());
-
     }
-
-
 
     // Add filters if provided
-
     if (filters && filters.length > 0) {
-
         params.append('filters', JSON.stringify(filters));
-
     }
 
-
-
-    // Try Bearer token authentication first
-
-    const response = await fetch(`${baseUrl}/api/overview/${targetSiteId}?${params.toString()}`, {
-
-        headers: {
-
-            'Authorization': `Bearer ${apiKey}`,
-
-            'Content-Type': 'application/json',
-
-        },
-
+    // Call WordPress proxy endpoint (API key stays server-side)
+    const response = await fetch(getApiUrl(`rybbit/overview?${params.toString()}`), {
+        headers: getHeaders(),
     });
 
-
-
     if (!response.ok) {
-
-        if (response.status === 429) {
-
-            throw new Error('Rate limit exceeded. Please wait and try again.');
-
-        }
-
-        if (response.status === 401) {
-
-            throw new Error('Invalid API key. Please check your Rybbit settings.');
-
-        }
-
-        if (response.status === 403) {
-
-            throw new Error('Access denied. Please check your site permissions.');
-
-        }
-
-        throw new Error(`Failed to fetch analytics data: ${response.status}`);
-
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || `Failed to fetch analytics data: ${response.status}`);
     }
 
-
-
     const data = await response.json();
-
     return data.data;
-
 };
 
 const getRybbitMetric = async (
@@ -393,17 +326,14 @@ const getRybbitMetric = async (
         page?: number;
     }
 ): Promise<RybbitMetricResponse> => {
-    const apiKey = settings.clickwise_rybbit_api_key;
-    const baseUrl = settings.clickwise_rybbit_domain || 'https://app.rybbit.io';
-
-    // Use the passed siteId (which should be the website ID from settings)
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
 
-    if (!apiKey || !targetSiteId) {
-        throw new Error('Rybbit API key or Website ID not configured');
+    if (!targetSiteId) {
+        throw new Error('Rybbit Website ID not configured');
     }
 
     const params = new URLSearchParams();
+    params.append('site_id', targetSiteId);
     params.append('parameter', parameter);
 
     // Add time range parameters
@@ -427,25 +357,14 @@ const getRybbitMetric = async (
         params.append('filters', JSON.stringify(options.filters));
     }
 
-    // Try Bearer token authentication first
-    const response = await fetch(`${baseUrl}/api/metric/${targetSiteId}?${params.toString()}`, {
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
+    // Call WordPress proxy endpoint (API key stays server-side)
+    const response = await fetch(getApiUrl(`rybbit/metric?${params.toString()}`), {
+        headers: getHeaders(),
     });
 
     if (!response.ok) {
-        if (response.status === 429) {
-            throw new Error('Rate limit exceeded. Please wait and try again.');
-        }
-        if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your Rybbit settings.');
-        }
-        if (response.status === 403) {
-            throw new Error('Access denied. Please check your site permissions.');
-        }
-        throw new Error(`Failed to fetch metric data: ${response.status}`);
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || `Failed to fetch metric data: ${response.status}`);
     }
 
     const data = await response.json();
