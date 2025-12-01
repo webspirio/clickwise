@@ -6,8 +6,13 @@ import './index.css'
 import { ThemeProvider } from "@/components/theme-provider"
 import { SettingsProvider } from "@/contexts/SettingsContext"
 
+import { RybbitSDK } from './lib/rybbit-sdk'
+
 const rootElement = document.getElementById('clickwise-admin-app')
 if (rootElement) {
+    // Initialize Rybbit SDK
+    RybbitSDK.init();
+
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
             <SettingsProvider>

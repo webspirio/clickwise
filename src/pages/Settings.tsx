@@ -346,11 +346,11 @@ export function Settings() {
                                         value={rybbitWebsiteId}
                                         onChange={(e) => setRybbitWebsiteId(e.target.value)}
                                         className="pl-9"
-                                        placeholder="e.g., 3528"
+                                        placeholder="e.g., 1234"
                                     />
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    The numeric ID from your Rybbit dashboard URL (e.g., app.rybbit.io/3528/main).
+                                    The numeric ID from your Rybbit dashboard URL (e.g., app.rybbit.io/1234/main).
                                 </p>
                             </div>
                         </div>

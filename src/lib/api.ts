@@ -521,9 +521,11 @@ export const api = {
     testHandler,
 
     // Rybbit Analytics
-    getRybbitOverview,
-    getRybbitMetric,
-    createTimeRange,
+    rybbit: {
+        getOverview: getRybbitOverview,
+        getMetric: getRybbitMetric,
+        createTimeRange: createTimeRange,
+    },
 };
 
 // Export types
