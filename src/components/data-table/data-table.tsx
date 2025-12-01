@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
     data: TData[]
     searchKey?: string
     searchPlaceholder?: string
-    toolbar?: React.ReactNode
+    toolbar?: React.ReactNode | ((table: any) => React.ReactNode)
 }
 
 export function DataTable<TData, TValue>({
@@ -45,9 +45,11 @@ export function DataTable<TData, TValue>({
     toolbar,
     rowSelection: controlledRowSelection,
     onRowSelectionChange: setControlledRowSelection,
+    getRowId,
 }: DataTableProps<TData, TValue> & {
     rowSelection?: Record<string, boolean>
     onRowSelectionChange?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+    getRowId?: (originalRow: TData, index: number, parent?: any) => string
 }) {
     const [internalRowSelection, setInternalRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
@@ -80,6 +82,7 @@ export function DataTable<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
+        getRowId,
     })
 
     return (
@@ -96,7 +99,7 @@ export function DataTable<TData, TValue>({
                             className="h-8 w-[150px] lg:w-[250px]"
                         />
                     )}
-                    {toolbar}
+                    {typeof toolbar === 'function' ? toolbar(table) : toolbar}
                 </div>
                 <DataTableViewOptions table={table} />
             </div>
