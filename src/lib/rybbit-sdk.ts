@@ -42,6 +42,53 @@ export class RybbitSDK {
 
         logger.sdkInit('Rybbit', config);
 
+        // Intercept sendBeacon to block admin pageviews
+        if (navigator.sendBeacon) {
+            const originalSendBeacon = navigator.sendBeacon;
+            navigator.sendBeacon = function (url: string | URL, data: BodyInit | null) {
+                // Check if the URL matches Rybbit analytics host
+                if (typeof url === 'string' && url.includes(config.analyticsHost)) {
+                    if (data instanceof Blob) {
+                        // We need to peek into the blob to see if it's a pageview
+                        // Note: This does not consume the blob for the original request if we pass it through
+                        data.text().then(text => {
+                            try {
+                                const payload = JSON.parse(text);
+                                // Check if it's a pageview in admin
+                                if (payload.type === 'pageview' &&
+                                    (payload.pathname.includes('/wp-admin/') || payload.pathname.includes('wp-login.php'))) {
+                                    logger.info("Blocked Rybbit Admin Pageview", { context: 'Rybbit' });
+                                    return; // Block the request
+                                }
+
+                                // If not blocked, we must send it ourselves because we are in an async callback
+                                // and the original sendBeacon has already returned (simulated success).
+                                // We use fetch with keepalive to mimic sendBeacon behavior.
+                                fetch(url, {
+                                    method: 'POST',
+                                    body: text, // Send the text we read
+                                    headers: { 'Content-Type': 'application/json' },
+                                    keepalive: true
+                                }).catch(err => {
+                                    logger.error("Rybbit resend failed", err, { context: 'Rybbit' });
+                                });
+
+                            } catch (e) {
+                                // If parsing fails, fall back to original sendBeacon
+                                // This might be a race condition if sendBeacon expects sync execution,
+                                // but for fire-and-forget it's usually acceptable.
+                                originalSendBeacon.call(navigator, url, data);
+                            }
+                        });
+
+                        // Return true to simulate successful queuing
+                        return true;
+                    }
+                }
+                return originalSendBeacon.call(navigator, url, data);
+            };
+        }
+
         try {
             await rybbit.init(config);
             this.isInitialized = true;
