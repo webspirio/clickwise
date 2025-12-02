@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Check, AlertCircle, Globe, Key, Code } from "lucide-react"
+import { Loader2, Check, Globe, Key, Code } from "lucide-react"
+import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useSettings } from "@/contexts/SettingsContext"
 
@@ -14,7 +15,6 @@ export function Settings() {
     const { settings: contextSettings, refreshSettings } = useSettings()
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
     // Rybbit settings
     const [rybbitEnabled, setRybbitEnabled] = useState(false)
@@ -97,7 +97,7 @@ export function Settings() {
 
         } catch (error) {
             console.error('❌ Settings: Failed to load settings:', error)
-            setMessage({ type: 'error', text: 'Failed to load settings' })
+            toast.error('Failed to load settings')
         } finally {
             setLoading(false)
         }
@@ -107,7 +107,6 @@ export function Settings() {
         try {
             console.log('💾 Settings: Starting save process...')
             setSaving(true)
-            setMessage(null)
 
             const settingsToSave = {
                 clickwise_rybbit_enabled: rybbitEnabled ? '1' : '',
@@ -141,17 +140,11 @@ export function Settings() {
             console.log('🔃 Settings: Context refreshed after save')
 
             window.dispatchEvent(new Event('clickwise-trigger-logo-animation'));
-            setMessage({ type: 'success', text: 'Settings saved successfully!' })
-
-            // Clear message after 3 seconds
-            setTimeout(() => setMessage(null), 3000)
+            toast.success('Settings saved successfully!')
 
         } catch (error) {
             console.error('❌ Settings: Failed to save settings:', error)
-            setMessage({
-                type: 'error',
-                text: error instanceof Error ? error.message : 'Failed to save settings'
-            })
+            toast.error(error instanceof Error ? error.message : 'Failed to save settings')
         } finally {
             setSaving(false)
         }
@@ -160,14 +153,9 @@ export function Settings() {
     const testConnection = async (type: 'rybbit' | 'ga') => {
         try {
             const result = await api.testHandler(type)
-            setMessage({ type: 'success', text: result.message })
-            setTimeout(() => setMessage(null), 5000)
+            toast.success(result.message)
         } catch (error) {
-            setMessage({
-                type: 'error',
-                text: error instanceof Error ? error.message : `${type} connection test failed`
-            })
-            setTimeout(() => setMessage(null), 5000)
+            toast.error(error instanceof Error ? error.message : `${type} connection test failed`)
         }
     }
     if (loading) {
@@ -203,21 +191,7 @@ export function Settings() {
                 </Button>
             </div>
 
-            {message && (
-                <div className={`p-4 rounded-lg ${message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                    <div className="flex items-center">
-                        {message.type === 'success' ? (
-                            <Check className="h-4 w-4 mr-2" />
-                        ) : (
-                            <AlertCircle className="h-4 w-4 mr-2" />
-                        )}
-                        {message.text}
-                    </div>
-                </div>
-            )}
+
 
             <Tabs defaultValue="rybbit" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">

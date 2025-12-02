@@ -9,6 +9,7 @@ import { Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } 
 import { TimeRangeSelector, formatTimeRangeDisplay } from "@/components/TimeRangeSelector"
 import { api, type RybbitOverview, type RybbitMetricResponse } from "@/lib/api"
 import { useSettings } from "@/contexts/SettingsContext"
+import { toast } from "sonner"
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -85,6 +86,7 @@ export function Dashboard() {
             const errorMessage = err instanceof Error ? err.message : 'Failed to load analytics data'
             setError(errorMessage)
             console.error('Dashboard loading error:', err)
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }
