@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Check, AlertCircle, Globe, Key, Code } from "lucide-react"
 import { api } from "@/lib/api"
@@ -250,7 +250,7 @@ export function Settings() {
                             <div className="space-y-2">
                                 <Label htmlFor="rybbit-url" className="text-foreground">Rybbit URL</Label>
                                 <div className="relative">
-                                    <Globe className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
+                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                                     <Input
                                         id="rybbit-url"
                                         value={rybbitDomain}
@@ -277,10 +277,9 @@ export function Settings() {
                             <div className="space-y-2">
                                 <Label htmlFor="api-key" className="text-foreground">API Key</Label>
                                 <div className="relative">
-                                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
+                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10" />
                                     <Input
                                         id="api-key"
-                                        type="password"
                                         value={rybbitApiKey}
                                         onChange={(e) => setRybbitApiKey(e.target.value)}
                                         className="pl-9"
@@ -295,15 +294,16 @@ export function Settings() {
                             <div className="space-y-2">
                                 <Label htmlFor="api-version" className="text-foreground">API Version</Label>
                                 <div className="relative">
-                                    <Code className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
-                                    <Input
-                                        id="api-version"
-                                        type="text"
-                                        value={rybbitApiVersion}
-                                        onChange={(e) => setRybbitApiVersion(e.target.value)}
-                                        className="pl-9"
-                                        placeholder="e.g., v2"
-                                    />
+                                    <Code className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10" />
+                                    <Select value={rybbitApiVersion} onValueChange={setRybbitApiVersion}>
+                                        <SelectTrigger className="pl-9 bg-background/50 dark:bg-input/20">
+                                            <SelectValue placeholder="Select version" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="v1">v1</SelectItem>
+                                            <SelectItem value="v2">v2</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     The API version for Rybbit integration (e.g., 'v2').
@@ -313,10 +313,9 @@ export function Settings() {
                             <div className="space-y-2">
                                 <Label htmlFor="website-id" className="text-foreground">Website ID</Label>
                                 <div className="relative">
-                                    <Globe className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
+                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary z-10" />
                                     <Input
                                         id="website-id"
-                                        type="text"
                                         value={rybbitWebsiteId}
                                         onChange={(e) => setRybbitWebsiteId(e.target.value)}
                                         className="pl-9"
