@@ -6,6 +6,7 @@ import { Loader2, RefreshCw, Download, Plus } from "lucide-react"
 import { api, type Event, type EventsResponse } from "@/lib/api"
 import { DataTable } from "@/components/data-table/data-table"
 import { getColumns } from "@/components/EventManager/columns"
+import { toast } from "sonner"
 
 export function EventsManager() {
     const [loading, setLoading] = useState(true)
@@ -32,7 +33,9 @@ export function EventsManager() {
             setTrackedRowSelection({})
             setIgnoredRowSelection({})
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load events')
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load events'
+            setError(errorMessage)
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -58,8 +61,10 @@ export function EventsManager() {
                 await api.bulkUpdateEvents(ids, action)
             }
             await loadEvents()
+            toast.success(`Successfully ${action === 'delete' ? 'deleted' : action === 'untrack' ? 'untracked' : action + 'ed'} ${ids.length} event${ids.length > 1 ? 's' : ''}`)
         } catch (err) {
             console.error('Bulk action failed:', err)
+            toast.error(err instanceof Error ? err.message : 'Bulk action failed')
         }
     }
 
@@ -67,8 +72,10 @@ export function EventsManager() {
         try {
             await api.updateEvent(event.id, updates)
             await loadEvents()
+            toast.success(`Event ${updates.status === 'tracked' ? 'tracked' : 'ignored'} successfully`)
         } catch (err) {
             console.error('Event update failed:', err)
+            toast.error(err instanceof Error ? err.message : 'Event update failed')
         }
     }
 

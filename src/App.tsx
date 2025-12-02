@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react'
+import { Toaster } from "@/components/ui/sonner"
 import { Header } from '@/components/layout/Header'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Dashboard } from '@/pages/Dashboard'
@@ -46,6 +47,7 @@ function App() {
                     {renderContent()}
                 </div>
             </main>
+            <Toaster />
         </div>
     )
 }
