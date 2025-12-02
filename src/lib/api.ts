@@ -29,6 +29,16 @@ type RybbitMetricItem = {
     pathname?: string;
 };
 
+type RybbitTrackingConfig = {
+    sessionReplay: boolean;
+    webVitals: boolean;
+    trackErrors: boolean;
+    trackOutbound: boolean;
+    trackUrlParams: boolean;
+    trackInitialPageView: boolean;
+    trackSpaNavigation: boolean;
+};
+
 type RybbitMetricResponse = {
     data: RybbitMetricItem[];
     totalCount: number;
@@ -371,6 +381,30 @@ const getRybbitMetric = async (
     return data.data;
 };
 
+const getTrackingConfig = async (siteId: string, settings: any): Promise<RybbitTrackingConfig> => {
+    const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
+    const domain = settings.clickwise_rybbit_domain || 'https://app.rybbit.io';
+
+    if (!targetSiteId) {
+        throw new Error('Rybbit Website ID not configured');
+    }
+
+    // Clean domain to ensure no trailing slash or /api suffix for this specific endpoint structure if needed,
+    // but the requirement says https://rybbit.webspirio.com/api/site/1/tracking-config
+    // So we need {domain}/api/site/{siteId}/tracking-config
+
+    const cleanBase = domain.replace(/\/api\/?$/, '').replace(/\/$/, '');
+    const url = `${cleanBase}/api/site/${targetSiteId}/tracking-config`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch tracking config: ${response.status}`);
+    }
+
+    return response.json();
+};
+
 // Helper function to create time ranges
 const createTimeRange = (preset: 'today' | 'week' | 'month' | '3months' | 'custom', customStart?: string, customEnd?: string): TimeRange => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -443,6 +477,7 @@ export const api = {
     rybbit: {
         getOverview: getRybbitOverview,
         getMetric: getRybbitMetric,
+        getTrackingConfig: getTrackingConfig,
         createTimeRange: createTimeRange,
     },
 };
@@ -457,6 +492,7 @@ export type {
     RybbitOverview,
     RybbitMetricItem,
     RybbitMetricResponse,
+    RybbitTrackingConfig,
     TimeRange,
     RybbitFilter,
 };

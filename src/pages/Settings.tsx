@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Check, Globe, Key, Code } from "lucide-react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
+import { api, RybbitTrackingConfig } from "@/lib/api"
 import { useSettings } from "@/contexts/SettingsContext"
 
 export function Settings() {
@@ -24,6 +24,8 @@ export function Settings() {
     const [rybbitDomain, setRybbitDomain] = useState('https://app.rybbit.io')
     const [rybbitTrackingId, setRybbitTrackingId] = useState('')
     const [rybbitWebsiteId, setRybbitWebsiteId] = useState('')
+    const [trackingConfig, setTrackingConfig] = useState<RybbitTrackingConfig | null>(null)
+    const [loadingConfig, setLoadingConfig] = useState(false)
 
     // GA4 settings
     const [gaEnabled, setGaEnabled] = useState(false)
@@ -158,6 +160,29 @@ export function Settings() {
             toast.error(error instanceof Error ? error.message : `${type} connection test failed`)
         }
     }
+
+    const checkTrackingConfig = async () => {
+        if (!rybbitWebsiteId) {
+            toast.error('Website ID is required to check configuration')
+            return
+        }
+
+        try {
+            setLoadingConfig(true)
+            const config = await api.rybbit.getTrackingConfig(rybbitWebsiteId, {
+                clickwise_rybbit_domain: rybbitDomain
+            })
+            setTrackingConfig(config)
+            toast.success('Tracking configuration loaded')
+        } catch (error) {
+            console.error('Failed to load tracking config:', error)
+            toast.error('Failed to load tracking configuration')
+            setTrackingConfig(null)
+        } finally {
+            setLoadingConfig(false)
+        }
+    }
+
     if (loading) {
         return (
             <div className="p-8 space-y-8 max-w-5xl mx-auto">
@@ -240,6 +265,68 @@ export function Settings() {
 
 
                         </div>
+                    </div>
+
+                    {/* Tracking Config Display */}
+                    <div className="glass-card p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+                                <Globe className="w-5 h-5 text-primary" />
+                                Remote Configuration
+                            </h3>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={checkTrackingConfig}
+                                disabled={loadingConfig || !rybbitWebsiteId}
+                            >
+                                {loadingConfig ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : (
+                                    <Check className="h-4 w-4 mr-2" />
+                                )}
+                                Check Config
+                            </Button>
+                        </div>
+
+                        {!trackingConfig && !loadingConfig && (
+                            <p className="text-sm text-muted-foreground">
+                                Click "Check Config" to view the active tracking configuration from the server.
+                            </p>
+                        )}
+
+                        {trackingConfig && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Session Replay</span>
+                                    <Switch checked={trackingConfig.sessionReplay} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Web Vitals</span>
+                                    <Switch checked={trackingConfig.webVitals} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Track Errors</span>
+                                    <Switch checked={trackingConfig.trackErrors} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Track Outbound</span>
+                                    <Switch checked={trackingConfig.trackOutbound} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Track URL Params</span>
+                                    <Switch checked={trackingConfig.trackUrlParams} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">Initial Page View</span>
+                                    <Switch checked={trackingConfig.trackInitialPageView} disabled />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                                    <span className="text-sm font-medium">SPA Navigation</span>
+                                    <Switch checked={trackingConfig.trackSpaNavigation} disabled />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="glass-card p-6">
