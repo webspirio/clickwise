@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue> {
     searchKey?: string
     searchPlaceholder?: string
     toolbar?: React.ReactNode | ((table: any) => React.ReactNode)
+    onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +47,7 @@ export function DataTable<TData, TValue>({
     rowSelection: controlledRowSelection,
     onRowSelectionChange: setControlledRowSelection,
     getRowId,
+    onRowClick,
 }: DataTableProps<TData, TValue> & {
     rowSelection?: Record<string, boolean>
     onRowSelectionChange?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
@@ -129,6 +131,8 @@ export function DataTable<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
+                                    onClick={() => onRowClick?.(row.original)}
+                                    className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
