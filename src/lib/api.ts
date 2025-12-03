@@ -119,10 +119,19 @@ const getHeaders = (contentType = 'application/json'): Record<string, string> =>
     return headers;
 };
 
+export class ApiError extends Error {
+    data: any;
+    constructor(message: string, data?: any) {
+        super(message);
+        this.name = 'ApiError';
+        this.data = data;
+    }
+}
+
 const handleResponse = async (response: Response) => {
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        throw new ApiError(errorData.message || `HTTP ${response.status}`, errorData);
     }
     return response.json();
 };
@@ -275,10 +284,11 @@ const getRecordingStatus = async () => {
 };
 
 // Test Handler API
-const testHandler = async (handler: 'rybbit' | 'ga') => {
+const testHandler = async (handler: 'rybbit' | 'ga', config?: Record<string, any>) => {
     const response = await fetch(getApiUrl(`test/${handler}`), {
         method: 'POST',
         headers: getHeaders(),
+        body: config ? JSON.stringify(config) : undefined,
     });
     return handleResponse(response);
 };
