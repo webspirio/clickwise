@@ -99,13 +99,18 @@
 
   /* Dark mode background gradient */
   .dark body {
-    background-color: hsla(196, 80%, 15%, 1);
+    background-color: hsla(196, 90%, 5%, 1);
     background-image:
-      radial-gradient(at 0% 0%, hsla(196, 80%, 25%, 1) 0, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(189, 94%, 20%, 1) 0, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(196, 80%, 25%, 1) 0, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(189, 94%, 20%, 1) 0, transparent 50%);
+      /* Noise Texture for "Texture" */
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E"),
+      /* Vibrant Gradients - Strictly Cyan (185-200) */
+      radial-gradient(circle at 20% 20%, hsla(190, 100%, 30%, 0.4) 0px, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsla(200, 100%, 25%, 0.4) 0px, transparent 50%),
+      radial-gradient(circle at 80% 80%, hsla(185, 100%, 25%, 0.4) 0px, transparent 50%),
+      radial-gradient(circle at 20% 80%, hsla(195, 100%, 30%, 0.4) 0px, transparent 50%);
     background-attachment: fixed;
+    background-size: 200px 200px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   }
 
   /* Glassmorphism Utilities */
