@@ -7,12 +7,24 @@ import { api, type Event, type EventsResponse } from "@/lib/api"
 import { DataTable } from "@/components/data-table/data-table"
 import { getColumns } from "@/components/EventManager/columns"
 import { toast } from "sonner"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 
 export function EventsManager() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [eventsData, setEventsData] = useState<EventsResponse>({ tracked: [], ignored: [], sessions: [] })
     const [refreshing, setRefreshing] = useState(false)
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Selection state for each tab
     const [trackedRowSelection, setTrackedRowSelection] = useState({})
@@ -207,6 +219,10 @@ export function EventsManager() {
                                 onRowSelectionChange={setTrackedRowSelection}
                                 toolbar={(table) => renderBulkActions(table, ['untrack', 'ignore'])}
                                 getRowId={(row) => row.id}
+                                onRowClick={(event) => {
+                                    setSelectedEvent(event)
+                                    setIsModalOpen(true)
+                                }}
                             />
                         </CardContent>
                     </Card>
@@ -230,6 +246,10 @@ export function EventsManager() {
                                 onRowSelectionChange={setIgnoredRowSelection}
                                 toolbar={(table) => renderBulkActions(table, ['track'])}
                                 getRowId={(row) => row.id}
+                                onRowClick={(event) => {
+                                    setSelectedEvent(event)
+                                    setIsModalOpen(true)
+                                }}
                             />
                         </CardContent>
                     </Card>
@@ -282,6 +302,10 @@ export function EventsManager() {
                                         searchPlaceholder="Filter events..."
                                         toolbar={(table) => renderBulkActions(table, ['track', 'ignore'])}
                                         getRowId={(row) => row.id}
+                                        onRowClick={(event) => {
+                                            setSelectedEvent(event)
+                                            setIsModalOpen(true)
+                                        }}
                                     />
                                 </CardContent>
                             </Card>
@@ -289,6 +313,78 @@ export function EventsManager() {
                     )}
                 </TabsContent>
             </Tabs>
-        </div>
+
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Event Details</DialogTitle>
+                        <DialogDescription>
+                            View and manage details for this event.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedEvent && (
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Name</Label>
+                                <div className="col-span-3 font-medium">{selectedEvent.name}</div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Selector</Label>
+                                <div className="col-span-3 font-mono text-xs bg-muted p-2 rounded break-all">
+                                    {selectedEvent.selector}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Type</Label>
+                                <div className="col-span-3">
+                                    <Badge variant="outline">{selectedEvent.type}</Badge>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Status</Label>
+                                <div className="col-span-3">
+                                    <Badge variant={selectedEvent.status === 'tracked' ? 'default' : selectedEvent.status === 'ignored' ? 'secondary' : 'outline'}>
+                                        {selectedEvent.status}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        {selectedEvent?.status !== 'tracked' && (
+                            <Button onClick={() => {
+                                if (selectedEvent) {
+                                    handleEventUpdate(selectedEvent, { status: 'tracked' })
+                                    setIsModalOpen(false)
+                                }
+                            }}>
+                                Track Event
+                            </Button>
+                        )}
+                        {selectedEvent?.status !== 'ignored' && (
+                            <Button variant="secondary" onClick={() => {
+                                if (selectedEvent) {
+                                    handleEventUpdate(selectedEvent, { status: 'ignored' })
+                                    setIsModalOpen(false)
+                                }
+                            }}>
+                                Ignore Event
+                            </Button>
+                        )}
+                        <Button
+                            variant="destructive"
+                            onClick={() => {
+                                if (selectedEvent) {
+                                    handleBulkAction('delete', [selectedEvent.id])
+                                    setIsModalOpen(false)
+                                }
+                            }}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div >
     )
 }
