@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,13 @@ export function Sandbox() {
     const [logs, setLogs] = useState<Array<{ timestamp: string; message: string; icon: string; color: string; type: 'info' | 'success' | 'error' }>>([])
     const [selectedHandlers, setSelectedHandlers] = useState<string[]>(['rybbit'])
     const [isSending, setIsSending] = useState(false)
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+    }, [logs])
 
     // Get handler status from global settings
     const rybbitEnabled = window.clickwiseSettings?.rybbitEnabled === '1'
@@ -37,7 +44,7 @@ export function Sandbox() {
             error: 'text-red-400'
         }[type]
 
-        setLogs(prev => [{ timestamp, message, icon, color, type }, ...prev.slice(0, 49)]) // Keep last 50 logs
+        setLogs(prev => [...prev, { timestamp, message, icon, color, type }].slice(-50)) // Keep last 50 logs
     }
 
     const handleSend = async () => {
@@ -235,7 +242,7 @@ export function Sandbox() {
                         </Button>
                     </CardHeader>
                     <CardContent className="flex-1 min-h-[300px]">
-                        <div className="bg-slate-950 text-slate-50 p-4 rounded-lg h-full overflow-y-auto font-mono text-sm shadow-inner border border-white/10">
+                        <div ref={scrollRef} className="bg-slate-950 text-slate-50 p-4 rounded-lg h-full max-h-[600px] overflow-y-auto font-mono text-sm shadow-inner border border-white/10">
                             {logs.length === 0 ? (
                                 <div className="h-full flex items-center justify-center text-slate-500 italic">
                                     Ready to capture events...
