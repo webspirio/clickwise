@@ -15,6 +15,7 @@ export function Settings() {
     const { settings: contextSettings, refreshSettings } = useSettings()
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
+    const [errors, setErrors] = useState<Record<string, string>>({})
 
     // Rybbit settings
     const [rybbitEnabled, setRybbitEnabled] = useState(false)
@@ -153,11 +154,51 @@ export function Settings() {
     }
 
     const testConnection = async (type: 'rybbit' | 'ga') => {
+        setErrors({})
         try {
-            const result = await api.testHandler(type)
+            let config: Record<string, any> = {}
+            if (type === 'rybbit') {
+                config = {
+                    website_id: rybbitWebsiteId,
+                    domain: rybbitDomain,
+                    api_version: rybbitApiVersion
+                }
+                // Only send API key if it's not the placeholder
+                if (rybbitApiKey !== '••••••••••••••••') {
+                    config.api_key = rybbitApiKey
+                }
+            } else {
+                config = {
+                    measurement_id: gaMeasurementId
+                }
+                // Only send API secret if it's not the placeholder
+                if (gaApiSecret !== '••••••••••••••••') {
+                    config.api_secret = gaApiSecret
+                }
+            }
+
+            const result = await api.testHandler(type, config)
             toast.success(result.message)
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : `${type} connection test failed`)
+        } catch (error: any) {
+            const message = error instanceof Error ? error.message : `${type} connection test failed`
+            toast.error(message)
+
+            // Handle field-specific errors
+            if (error.data?.data?.field) {
+                const field = error.data.data.field;
+                setErrors(prev => ({ ...prev, [field]: message }));
+            } else {
+                // Fallback to message matching if no field data
+                if (message.toLowerCase().includes('api key')) {
+                    setErrors(prev => ({ ...prev, api_key: message }))
+                } else if (message.toLowerCase().includes('website id')) {
+                    setErrors(prev => ({ ...prev, website_id: message }))
+                } else if (message.toLowerCase().includes('measurement id')) {
+                    setErrors(prev => ({ ...prev, measurement_id: message }))
+                } else if (message.toLowerCase().includes('domain')) {
+                    setErrors(prev => ({ ...prev, domain: message }))
+                }
+            }
         }
     }
 
@@ -253,11 +294,15 @@ export function Settings() {
                                     <Input
                                         id="rybbit-url"
                                         value={rybbitDomain}
-                                        onChange={(e) => setRybbitDomain(e.target.value)}
-                                        className="pl-9"
+                                        onChange={(e) => {
+                                            setRybbitDomain(e.target.value)
+                                            if (errors.domain) setErrors(prev => ({ ...prev, domain: '' }))
+                                        }}
+                                        className={`pl-9 ${errors.domain ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                         placeholder="https://app.rybbit.io"
                                     />
                                 </div>
+                                {errors.domain && <p className="text-xs text-red-500 font-medium">{errors.domain}</p>}
                                 <p className="text-xs text-muted-foreground">
                                     The base URL of your Rybbit instance.
                                 </p>
@@ -342,11 +387,15 @@ export function Settings() {
                                     <Input
                                         id="api-key"
                                         value={rybbitApiKey}
-                                        onChange={(e) => setRybbitApiKey(e.target.value)}
-                                        className="pl-9"
+                                        onChange={(e) => {
+                                            setRybbitApiKey(e.target.value)
+                                            if (errors.api_key) setErrors(prev => ({ ...prev, api_key: '' }))
+                                        }}
+                                        className={`pl-9 ${errors.api_key ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                         placeholder="Enter your API Key"
                                     />
                                 </div>
+                                {errors.api_key && <p className="text-xs text-red-500 font-medium">{errors.api_key}</p>}
                                 <p className="text-xs text-muted-foreground">
                                     Found in your Rybbit Account settings. Required for dashboard data.
                                 </p>
@@ -378,11 +427,15 @@ export function Settings() {
                                     <Input
                                         id="website-id"
                                         value={rybbitWebsiteId}
-                                        onChange={(e) => setRybbitWebsiteId(e.target.value)}
-                                        className="pl-9"
+                                        onChange={(e) => {
+                                            setRybbitWebsiteId(e.target.value)
+                                            if (errors.website_id) setErrors(prev => ({ ...prev, website_id: '' }))
+                                        }}
+                                        className={`pl-9 ${errors.website_id ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                         placeholder="e.g., 1234"
                                     />
                                 </div>
+                                {errors.website_id && <p className="text-xs text-red-500 font-medium">{errors.website_id}</p>}
                                 <p className="text-xs text-muted-foreground">
                                     The numeric ID from your Rybbit dashboard URL (e.g., app.rybbit.io/1234/main).
                                 </p>
@@ -429,8 +482,13 @@ export function Settings() {
                                     id="ga4-measurement-id"
                                     placeholder="G-XXXXXXXXXX"
                                     value={gaMeasurementId}
-                                    onChange={(e) => setGaMeasurementId(e.target.value)}
+                                    onChange={(e) => {
+                                        setGaMeasurementId(e.target.value)
+                                        if (errors.measurement_id) setErrors(prev => ({ ...prev, measurement_id: '' }))
+                                    }}
+                                    className={errors.measurement_id ? 'border-red-500 focus-visible:ring-red-500' : ''}
                                 />
+                                {errors.measurement_id && <p className="text-xs text-red-500 font-medium">{errors.measurement_id}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="ga4-api-secret">API Secret (Optional)</Label>

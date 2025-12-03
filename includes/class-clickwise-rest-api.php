@@ -157,6 +157,32 @@ class Clickwise_Rest_API {
 			'methods' => 'POST',
 			'callback' => array( $this, 'test_handler_connection' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
+			'args' => array(
+				'api_key' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'website_id' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'domain' => array(
+					'required' => false,
+					'sanitize_callback' => 'esc_url_raw',
+				),
+				'api_version' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'measurement_id' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'api_secret' => array(
+					'required' => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+			),
 		) );
 
 		// Debug endpoint for settings
@@ -685,9 +711,9 @@ class Clickwise_Rest_API {
 
 		switch ( $handler ) {
 			case 'rybbit':
-				return $this->test_rybbit_connection();
+				return $this->test_rybbit_connection( $request );
 			case 'ga':
-				return $this->test_ga_connection();
+				return $this->test_ga_connection( $request );
 			default:
 				return new WP_Error( 'invalid_handler', 'Invalid handler specified', array( 'status' => 400 ) );
 		}
@@ -757,17 +783,28 @@ class Clickwise_Rest_API {
 	}
 
 
-	private function test_rybbit_connection() {
-		$api_key = get_option( 'clickwise_rybbit_api_key' );
-		$website_id = get_option( 'clickwise_rybbit_website_id' );
-		$domain = get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' );
+	private function test_rybbit_connection( $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		if ( empty( $api_key ) ) {
+			$api_key = get_option( 'clickwise_rybbit_api_key' );
+		}
+
+		$website_id = $request->get_param( 'website_id' );
+		if ( empty( $website_id ) ) {
+			$website_id = get_option( 'clickwise_rybbit_website_id' );
+		}
+
+		$domain = $request->get_param( 'domain' );
+		if ( empty( $domain ) ) {
+			$domain = get_option( 'clickwise_rybbit_domain', 'https://app.rybbit.io' );
+		}
 
 		if ( empty( $api_key ) ) {
-			return new WP_Error( 'missing_config', 'Rybbit API key is required', array( 'status' => 400 ) );
+			return new WP_Error( 'missing_config', 'Rybbit API key is required', array( 'status' => 400, 'field' => 'api_key' ) );
 		}
 
 		if ( empty( $website_id ) ) {
-			return new WP_Error( 'missing_config', 'Rybbit Website ID is required', array( 'status' => 400 ) );
+			return new WP_Error( 'missing_config', 'Rybbit Website ID is required', array( 'status' => 400, 'field' => 'website_id' ) );
 		}
 
 		// Build API URL
@@ -787,91 +824,59 @@ class Clickwise_Rest_API {
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'connection_failed', 'Could not reach Rybbit API: ' . $response->get_error_message(), array( 'status' => 500 ) );
+			return new WP_Error( 'connection_failed', 'Could not reach Rybbit API: ' . $response->get_error_message(), array( 'status' => 500, 'field' => 'domain' ) );
 		}
 
 		$code = wp_remote_retrieve_response_code( $response );
 
 		if ( $code === 401 ) {
-			return new WP_Error( 'invalid_api_key', 'Invalid API key. Please check your Rybbit settings.', array( 'status' => 401 ) );
+			return new WP_Error( 'invalid_api_key', 'Invalid API key. Please check your Rybbit settings.', array( 'status' => 401, 'field' => 'api_key' ) );
 		}
 
 		if ( $code === 403 ) {
-			return new WP_Error( 'access_denied', 'Access denied. Please check your site permissions.', array( 'status' => 403 ) );
+			return new WP_Error( 'access_denied', 'Access denied. Please check your site permissions.', array( 'status' => 403, 'field' => 'website_id' ) );
 		}
 
 		if ( $code === 404 ) {
-			return new WP_Error( 'invalid_website_id', 'Website ID not found. Please check your Rybbit settings.', array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', 'Website ID not found.', array( 'status' => 404, 'field' => 'website_id' ) );
 		}
 
-		if ( $code < 200 || $code >= 300 ) {
-			$body = wp_remote_retrieve_body( $response );
-			$error_data = json_decode( $body, true );
-			$error_message = isset( $error_data['message'] ) ? $error_data['message'] : 'Rybbit API returned HTTP ' . $code;
-			return new WP_Error( 'bad_response', $error_message, array( 'status' => $code ) );
+		if ( $code >= 400 ) {
+			return new WP_Error( 'api_error', "Rybbit API returned error: $code", array( 'status' => $code ) );
 		}
 
-		return rest_ensure_response( array(
+		return array(
 			'success' => true,
-			'message' => 'Rybbit Analytics connection successful! API key and Website ID are valid.'
-		) );
+			'message' => 'Connection to Rybbit successful!',
+			'data' => json_decode( wp_remote_retrieve_body( $response ), true )
+		);
 	}
 
-	private function test_ga_connection() {
-		$measurement_id = get_option( 'clickwise_ga_measurement_id' );
-		$api_secret = get_option( 'clickwise_ga_api_secret' );
+	private function test_ga_connection( $request ) {
+		$measurement_id = $request->get_param( 'measurement_id' );
+		if ( empty( $measurement_id ) ) {
+			$measurement_id = get_option( 'clickwise_ga_measurement_id' );
+		}
+
+		$api_secret = $request->get_param( 'api_secret' );
+		if ( empty( $api_secret ) ) {
+			$api_secret = get_option( 'clickwise_ga_api_secret' );
+		}
 
 		if ( empty( $measurement_id ) ) {
-			return new WP_Error( 'missing_config', 'Measurement ID is required', array( 'status' => 400 ) );
+			return new WP_Error( 'missing_config', 'GA4 Measurement ID is required', array( 'status' => 400, 'field' => 'measurement_id' ) );
 		}
 
-		if ( ! preg_match( '/^G-[A-Z0-9]{10}$/', $measurement_id ) ) {
-			return new WP_Error( 'invalid_format', 'Invalid Measurement ID format. Should be G-XXXXXXXXXX', array( 'status' => 400 ) );
+		// For GA4, we can't easily "test" the connection without sending an event,
+		// but we can validate the format of the Measurement ID.
+		if ( ! preg_match( '/^G-[A-Z0-9]+$/', $measurement_id ) ) {
+			return new WP_Error( 'invalid_format', 'Invalid Measurement ID format. Should start with G-', array( 'status' => 400, 'field' => 'measurement_id' ) );
 		}
 
-		// Send test event
-		$test_data = array(
-			'client_id' => wp_generate_uuid4(),
-			'events' => array(
-				array(
-					'name' => 'clickwise_test_event',
-					'params' => array(
-						'event_category' => 'test',
-						'event_label' => 'api_test',
-						'value' => 1
-					)
-				)
-			)
-		);
-
-		$url = 'https://www.google-analytics.com/mp/collect?measurement_id=' . urlencode( $measurement_id );
-		if ( ! empty( $api_secret ) ) {
-			$url .= '&api_secret=' . urlencode( $api_secret );
-		}
-
-		$response = wp_remote_post( $url, array(
-			'timeout' => 10,
-			'headers' => array(
-				'Content-Type' => 'application/json'
-			),
-			'body' => json_encode( $test_data )
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'connection_failed', 'Could not reach Google Analytics: ' . $response->get_error_message(), array( 'status' => 500 ) );
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'bad_response', 'Google Analytics returned HTTP ' . $code, array( 'status' => 500 ) );
-		}
-
-		return rest_ensure_response( array(
+		return array(
 			'success' => true,
-			'message' => empty( $api_secret )
-				? 'Google Analytics connection successful! Test event sent (no API secret - cannot verify delivery).'
-				: 'Google Analytics connection successful! Test event sent and verified.'
-		) );
+			'message' => 'GA4 configuration format is valid (connection not verified)',
+		);
 	}
 
 	/**
