@@ -26,7 +26,7 @@ class Clickwise_Admin {
 	public function inject_vite_scripts() {
 		// Only on settings page
 		$screen = get_current_screen();
-		if ( ! $screen || 'settings_page_clickwise-settings' !== $screen->id ) {
+		if ( ! $screen || 'toplevel_page_clickwise-settings' !== $screen->id ) {
 			return;
 		}
 
@@ -124,18 +124,20 @@ class Clickwise_Admin {
 	}
 
 	public function add_settings_link( $links ) {
-		$settings_link = '<a href="' . admin_url( 'options-general.php?page=clickwise-settings' ) . '">' . __( 'Settings', 'clickwise' ) . '</a>';
+		$settings_link = '<a href="' . admin_url( 'admin.php?page=clickwise-settings' ) . '">' . __( 'Settings', 'clickwise' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
 	}
 
 	public function add_admin_menu() {
-		add_options_page(
+		add_menu_page(
 			'Clickwise Analytics',
-			'Clickwise Analytics',
+			'Clickwise',
 			'manage_options',
 			'clickwise-settings',
-			array( $this, 'display_options_page' )
+			array( $this, 'display_options_page' ),
+			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( CLICKWISE_URL . 'assets/images/icon-simple-128x128.svg' ) ),
+			30
 		);
 	}
 
@@ -155,7 +157,7 @@ class Clickwise_Admin {
 		$wp_admin_bar->add_node( array(
 			'id'    => 'clickwise-analytics',
 			'title' => $title,
-			'href'  => admin_url( 'options-general.php?page=clickwise-settings&tab=events_manager' ),
+			'href'  => admin_url( 'admin.php?page=clickwise-settings&tab=events_manager' ),
 			'meta'  => $meta
 		) );
 
@@ -183,13 +185,13 @@ class Clickwise_Admin {
 			'id'     => 'clickwise-manage-events',
 			'parent' => 'clickwise-analytics',
 			'title'  => 'Manage Events',
-			'href'   => admin_url( 'options-general.php?page=clickwise-settings&tab=events_manager' ),
+			'href'   => admin_url( 'admin.php?page=clickwise-settings&tab=events_manager' ),
 		) );
 	}
 
 	public function enqueue_admin_scripts( $hook = null ) {
 		// Enqueue on settings page AND frontend (for admin bar)
-		if ( 'settings_page_clickwise-settings' === $hook || ! is_admin() ) {
+		if ( 'toplevel_page_clickwise-settings' === $hook || ! is_admin() ) {
 			if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
 
 				$is_dev = defined( 'CLICKWISE_REACT_DEV' ) && CLICKWISE_REACT_DEV;
@@ -199,7 +201,7 @@ class Clickwise_Admin {
 					$is_dev = true;
 				}
 
-				if ( $is_dev && 'settings_page_clickwise-settings' === $hook ) {
+				if ( $is_dev && 'toplevel_page_clickwise-settings' === $hook ) {
 					// Vite Dev Server - Scripts and settings are injected directly in admin_head via inject_vite_scripts()
 					// Nothing to do here for the settings page
 					return;
