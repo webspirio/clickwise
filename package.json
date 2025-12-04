@@ -2,12 +2,13 @@
     "name": "clickwise-analytics",
     "version": "2.0.0",
     "description": "Clickwise Analytics for WordPress",
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
-},
-"keywords": [
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "vite preview"
+    },
+    "keywords": [
     "wordpress",
     "clickwise",
     "rybbit",
