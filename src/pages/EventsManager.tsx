@@ -315,7 +315,7 @@ export function EventsManager() {
             </Tabs>
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="sm:max-w-[600px] !bg-white/70 dark:!bg-card/10 backdrop-blur-md border-white/20 dark:border-white/10 shadow-lg">
                     <DialogHeader>
                         <DialogTitle>Event Details</DialogTitle>
                         <DialogDescription>
