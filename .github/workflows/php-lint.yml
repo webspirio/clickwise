@@ -1,0 +1,40 @@
+name: Lint PHP
+
+on:
+  push:
+    branches:
+      - main
+      - trunk
+      - 'release/**'
+      - 'feature/**'
+    paths:
+      - '**.php'
+  pull_request:
+    paths:
+      - '**.php'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: "Lint: PHP ${{ matrix.php_version }}"
+    strategy:
+      matrix:
+        php_version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php_version }}
+          coverage: none
+
+      - name: Lint PHP files
+        run: find . -name "*.php" -print0 | xargs -0 -n1 php -l

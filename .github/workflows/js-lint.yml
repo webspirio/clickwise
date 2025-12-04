@@ -1,0 +1,50 @@
+name: LintJS
+
+on:
+  push:
+    branches:
+      - main
+      - trunk
+      - 'release/**'
+      - 'feature/**'
+    paths:
+      - '**.js'
+      - '**.ts'
+      - '**.tsx'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.eslintrc.json'
+  pull_request:
+    paths:
+      - '**.js'
+      - '**.ts'
+      - '**.tsx'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.eslintrc.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm-lint:
+    runs-on: ubuntu-latest
+    name: "LintJS"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up node and enable caching of dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Javascript lint
+        run: npm run lint

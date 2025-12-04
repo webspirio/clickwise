@@ -1,0 +1,45 @@
+name: PHPCS
+
+on:
+  push:
+    branches:
+      - main
+      - trunk
+      - 'release/**'
+      - 'feature/**'
+    paths:
+      - '**.php'
+      - 'phpcs.xml'
+  pull_request:
+    paths:
+      - '**.php'
+      - 'phpcs.xml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checkcs:
+    name: 'Check code style'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: cs2pr, phpcs
+
+      - name: Check PHP code style
+        id: phpcs
+        run: phpcs --report-full --report-checkstyle=./phpcs-report.xml
+
+      - name: Show PHPCS results in PR
+        if: ${{ always() && steps.phpcs.outcome == 'failure' }}
+        run: cs2pr ./phpcs-report.xml
