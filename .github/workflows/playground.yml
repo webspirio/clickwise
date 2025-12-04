@@ -1,0 +1,55 @@
+name: Playground
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+
+jobs:
+  playground:
+    name: Create Playground Link
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create Zip
+        run: |
+          mkdir -p build/clickwise
+          # Copy main files
+          cp clickwise.php build/clickwise/
+          cp readme.txt build/clickwise/
+          cp LICENSE build/clickwise/
+          # Copy directories
+          cp -r includes build/clickwise/
+          cp -r assets build/clickwise/
+          
+          cd build
+          zip -r ../clickwise.zip clickwise
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickwise-plugin
+          path: clickwise.zip
+          retention-days: 1
+
+      - name: Add Comment
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            ## 🎡 WordPress Playground
+            
+            You can easily [test this pull request on the WordPress Playground](https://playground.wordpress.net/#{"landingPage":"/wp-admin/","features":{"networking":true},"steps":[{"step":"defineWpConfigConsts","consts":{"IS_PLAYGROUND_PREVIEW":true}},{"step":"login","username":"admin","password":"password"},{"step":"installPlugin","pluginZipFile":{"resource":"url","url":"https://wp-playground.webspirio.workers.dev/${{ github.server_url }}/${{ github.repository }}/archive/${{ github.sha }}.zip"},"options":{"activate":true}}]}), or [download the source zip file](${{ github.server_url }}/${{ github.repository }}/archive/${{ github.sha }}.zip).
+            
+            **Note**: The Playground link uses the source code directly. Since this plugin requires a build step, some assets might be missing in the Playground preview. For a full test, please download the `clickwise-plugin` artifact from the Summary tab of this run.

@@ -47,10 +47,30 @@ jobs:
         cd build
         zip -r ../clickwise.zip clickwise
 
+    - name: Generate Release Notes
+      id: release_notes
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data } = await github.rest.repos.generateReleaseNotes({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: context.ref.replace('refs/tags/', '')
+          });
+          return data.body;
+        result-encoding: string
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: clickwise.zip
-        generate_release_notes: true
+        body: |
+          ## 🎡 WordPress Playground
+
+          You can [test this release on the WordPress Playground](https://playground.wordpress.net/#{%22landingPage%22:%22/wp-admin/%22,%22features%22:{%22networking%22:true},%22steps%22:[{%22step%22:%22defineWpConfigConsts%22,%22consts%22:{%22IS_PLAYGROUND_PREVIEW%22:true}},{%22step%22:%22login%22,%22username%22:%22admin%22,%22password%22:%22password%22},{%22step%22:%22installPlugin%22,%22pluginZipFile%22:{%22resource%22:%22url%22,%22url%22:%22https://wp-playground.webspirio.workers.dev/https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/clickwise.zip%22},%22options%22:{%22activate%22:true}}]}).
+
+          ---
+
+          ${{ steps.release_notes.outputs.result }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
