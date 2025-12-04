@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,14 +33,7 @@ export function Settings() {
     const [gaMeasurementId, setGaMeasurementId] = useState('')
     const [gaApiSecret, setGaApiSecret] = useState('')
 
-    useEffect(() => {
-        console.log('🚀 Settings: Component mounted or context settings updated, loading settings...')
-        if (contextSettings) {
-            loadSettings()
-        }
-    }, [contextSettings])
-
-    const loadSettings = async () => {
+    const loadSettings = useCallback(async () => {
         try {
             console.log('🔄 Settings: Loading settings...')
             setLoading(true)
@@ -104,7 +97,14 @@ export function Settings() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [contextSettings, refreshSettings])
+
+    useEffect(() => {
+        console.log('🚀 Settings: Component mounted or context settings updated, loading settings...')
+        if (contextSettings) {
+            loadSettings()
+        }
+    }, [contextSettings, loadSettings])
 
     const saveSettings = async () => {
         try {
@@ -156,7 +156,7 @@ export function Settings() {
     const testConnection = async (type: 'rybbit' | 'ga') => {
         setErrors({})
         try {
-            let config: Record<string, any> = {}
+            let config: Record<string, unknown> = {}
             if (type === 'rybbit') {
                 config = {
                     website_id: rybbitWebsiteId,
@@ -179,7 +179,7 @@ export function Settings() {
 
             const result = await api.testHandler(type, config)
             toast.success(result.message)
-        } catch (error: any) {
+        } catch (error: unknown) {
             const message = error instanceof Error ? error.message : `${type} connection test failed`
             toast.error(message)
 

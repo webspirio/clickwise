@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,7 +11,7 @@ import { api, type RybbitOverview, type RybbitMetricResponse } from "@/lib/api"
 import { useSettings } from "@/contexts/SettingsContext"
 import { toast } from "sonner"
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; name: string }> }) => {
     if (active && payload && payload.length) {
         return (
             <div className="p-2 text-xs text-cyan-50 rounded-lg shadow-lg bg-card/80 backdrop-blur-sm border border-border">
@@ -44,13 +44,7 @@ export function Dashboard() {
         preset: 'week'
     })
 
-    useEffect(() => {
-        if (settings) {
-            loadDashboardData()
-        }
-    }, [timeRange, settings])
-
-    const loadDashboardData = async () => {
+    const loadDashboardData = useCallback(async () => {
         if (!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_website_id) {
             setError('Rybbit API key or Website ID not configured. Please check your settings.')
             setLoading(false)
@@ -90,7 +84,13 @@ export function Dashboard() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [timeRange, settings])
+
+    useEffect(() => {
+        if (settings) {
+            loadDashboardData()
+        }
+    }, [loadDashboardData, settings])
 
     const refreshData = async () => {
         setRefreshing(true)

@@ -130,7 +130,7 @@
         eventListeners = [];
     }
 
-    function handleMouseOut(e) {
+    function handleMouseOut() {
         hideHighlighter();
     }
 
@@ -176,7 +176,7 @@
         // For now, we don't auto-record hovers, just highlight
     }
 
-    function handleScroll(e) {
+    function handleScroll() {
         if (!state.isRecording) return;
         // Record scroll depth every 25%
         const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -269,10 +269,11 @@
                 path.unshift(selector);
                 break;
             } else {
-                let sib = el;
+                let sib = el.previousElementSibling;
                 let nth = 1;
-                while (sib = sib.previousElementSibling) {
+                while (sib) {
                     if (sib.nodeName.toLowerCase() == selector) nth++;
+                    sib = sib.previousElementSibling;
                 }
                 if (nth != 1) selector += ":nth-of-type(" + nth + ")";
             }
@@ -295,10 +296,6 @@
         return el.tagName.toLowerCase();
     }
 
-    function getLabel(el) {
-        if (el.labels && el.labels.length > 0) return el.labels[0].innerText;
-        return null;
-    }
 
     /**
      * Overlay UI
@@ -390,7 +387,7 @@
         makeResizable(overlay);
     }
 
-    function addEventToUI(evt, animate) {
+    function addEventToUI(evt) {
         const li = document.createElement('li');
         li.className = 'clickwise-event-item';
 
@@ -569,7 +566,7 @@
     function loadOverlayData() {
         try {
             return JSON.parse(localStorage.getItem('clickwise_overlay_data'));
-        } catch (e) { return null; }
+        } catch { return null; }
     }
 
     function saveSettings() {
@@ -579,7 +576,7 @@
     function loadSettings() {
         try {
             return JSON.parse(localStorage.getItem('clickwise_recorder_settings')) || {};
-        } catch (e) { return {}; }
+        } catch { return {}; }
     }
 
     function toggleHighlight() {
@@ -624,14 +621,6 @@
         }
     }
 
-    function debounce(func, wait) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
     // Draggable & Resizable (Simplified for brevity, fully implemented in original)
     function makeDraggable(elmnt, handle) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -661,7 +650,7 @@
         }
     }
 
-    function makeResizable(elmnt) {
+    function makeResizable() {
         // ... (Similar to original implementation)
     }
 
@@ -731,7 +720,7 @@
                     if (el.offsetParent === null) return; // Hidden
                     showStaticHighlight(el);
                 });
-            } catch (e) { console.warn('Invalid selector', selector); }
+            } catch { console.warn('Invalid selector', selector); }
         });
     }
 

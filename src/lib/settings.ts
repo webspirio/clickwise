@@ -50,7 +50,7 @@ export interface ClickwiseSettings {
     gaApiSecret?: string;
 
     // Managed events
-    managed_events?: any[];
+    managed_events?: Array<Record<string, unknown>>;
 }
 
 /**

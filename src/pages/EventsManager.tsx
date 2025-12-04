@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -59,7 +59,7 @@ export function EventsManager() {
         setRefreshing(false)
     }
 
-    const handleBulkAction = async (action: 'track' | 'ignore' | 'delete' | 'untrack', ids: string[]) => {
+    const handleBulkAction = useCallback(async (action: 'track' | 'ignore' | 'delete' | 'untrack', ids: string[]) => {
         if (ids.length === 0) return
 
         try {
@@ -78,9 +78,9 @@ export function EventsManager() {
             console.error('Bulk action failed:', err)
             toast.error(err instanceof Error ? err.message : 'Bulk action failed')
         }
-    }
+    }, [])
 
-    const handleEventUpdate = async (event: Event, updates: { status?: string; alias?: string }) => {
+    const handleEventUpdate = useCallback(async (event: Event, updates: { status?: string; alias?: string }) => {
         try {
             await api.updateEvent(event.id, updates)
             await loadEvents()
@@ -89,17 +89,17 @@ export function EventsManager() {
             console.error('Event update failed:', err)
             toast.error(err instanceof Error ? err.message : 'Event update failed')
         }
-    }
+    }, [])
 
     const columns = useMemo(() => getColumns({
         onTrack: (event) => handleEventUpdate(event, { status: 'tracked' }),
         onIgnore: (event) => handleEventUpdate(event, { status: 'ignored' }),
         onDelete: (event) => handleBulkAction('delete', [event.id]),
-    }), [])
+    }), [handleEventUpdate, handleBulkAction])
 
-    const renderBulkActions = (table: any, allowedActions: string[]) => {
+    const renderBulkActions = (table: { getFilteredSelectedRowModel: () => { rows: Array<{ original: { id: string } }> } }, allowedActions: string[]) => {
         const selectedRows = table.getFilteredSelectedRowModel().rows
-        const selectedIds = selectedRows.map((row: any) => row.original.id)
+        const selectedIds = selectedRows.map((row) => row.original.id)
 
         if (selectedIds.length === 0) return null
 
@@ -277,7 +277,7 @@ export function EventsManager() {
                             </CardContent>
                         </Card>
                     ) : (
-                        eventsData.sessions.map((session: any) => (
+                        eventsData.sessions.map((session: { id: string; [key: string]: unknown }) => (
                             <Card key={session.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react'
 import { api } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
@@ -56,10 +56,10 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         loadSettings()
     }, [])
 
-    const refreshSettings = async () => {
+    const refreshSettings = useCallback(async () => {
         logger.debug('Refreshing settings', { context: 'SettingsContext' })
         await loadSettings()
-    }
+    }, [])
 
     const value = useMemo(
         () => ({
@@ -68,7 +68,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
             error,
             refreshSettings
         }),
-        [settings, loading, error]
+        [settings, loading, error, refreshSettings]
     )
 
     return (
@@ -78,6 +78,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSettings() {
     const context = useContext(SettingsContext)
     if (context === undefined) {

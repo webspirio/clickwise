@@ -78,7 +78,7 @@
                             if (regex.test(eventName)) {
                                 return true;
                             }
-                        } catch (e) {
+                        } catch {
                             // Invalid regex, skip
                         }
                         break;
@@ -90,7 +90,7 @@
                             if (patternRegex.test(eventName)) {
                                 return true;
                             }
-                        } catch (e) {
+                        } catch {
                             // Invalid pattern, skip
                         }
                         break;

@@ -2,6 +2,9 @@ import rybbit from "@rybbit/js";
 import { getRybbitApiBaseUrl, normalizeSettings, isRybbitEnabled } from "./settings";
 import { logger } from "./logger";
 
+// Type for sendBeacon data parameter
+type BeaconData = Blob | ArrayBuffer | FormData | URLSearchParams | string | null;
+
 export class RybbitSDK {
     private static isInitialized = false;
     private static isEnabled = false;
@@ -45,7 +48,7 @@ export class RybbitSDK {
         // Intercept sendBeacon to block admin pageviews
         if (navigator.sendBeacon) {
             const originalSendBeacon = navigator.sendBeacon;
-            navigator.sendBeacon = function (url: string | URL, data: BodyInit | null) {
+            navigator.sendBeacon = function (url: string | URL, data: BeaconData) {
                 // Check if the URL matches Rybbit analytics host
                 if (typeof url === 'string' && url.includes(config.analyticsHost)) {
                     if (data instanceof Blob) {
@@ -73,7 +76,7 @@ export class RybbitSDK {
                                     logger.error("Rybbit resend failed", err, { context: 'Rybbit' });
                                 });
 
-                            } catch (e) {
+                            } catch {
                                 // If parsing fails, fall back to original sendBeacon
                                 // This might be a race condition if sendBeacon expects sync execution,
                                 // but for fire-and-forget it's usually acceptable.
@@ -105,7 +108,7 @@ export class RybbitSDK {
     /**
      * Setup automatic tracking for managed events
      */
-    private static setupAutomaticTracking(events: any[]): void {
+    private static setupAutomaticTracking(events: Array<Record<string, unknown>>): void {
         if (!events || events.length === 0) return;
 
         logger.info(`Setting up automatic tracking for ${events.length} events`, { context: 'Rybbit' });
@@ -129,7 +132,7 @@ export class RybbitSDK {
                             page: window.location.pathname
                         });
                     }
-                } catch (err) {
+                } catch {
                     // Ignore invalid selectors
                 }
             });
@@ -150,7 +153,7 @@ export class RybbitSDK {
      * @param name Event name
      * @param properties Event properties
      */
-    public static event(name: string, properties?: Record<string, any>): void {
+    public static event(name: string, properties?: Record<string, unknown>): void {
         if (!this.isEnabled) return;
         rybbit.event(name, properties);
     }

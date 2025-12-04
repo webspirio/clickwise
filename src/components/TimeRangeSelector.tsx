@@ -30,16 +30,23 @@ const presetOptions = [
     { value: 'custom' as const, label: 'Custom range', description: 'Select specific start and end dates' }
 ]
 
+// Helper to get default dates
+const getDefaultDates = () => ({
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+})
+
 export function TimeRangeSelector({ value, onChange, className }: TimeRangeProps) {
     const [isOpen, setIsOpen] = useState(false)
 
     const handlePresetChange = (preset: TimeRangePreset) => {
         if (preset === 'custom') {
             // Keep existing custom dates if switching to custom
+            const defaults = getDefaultDates()
             onChange({
                 preset,
-                customStart: value.customStart || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                customEnd: value.customEnd || new Date().toISOString().split('T')[0]
+                customStart: value.customStart || defaults.start,
+                customEnd: value.customEnd || defaults.end
             })
         } else {
             onChange({ preset })
@@ -124,6 +131,7 @@ export function TimeRangeSelector({ value, onChange, className }: TimeRangeProps
 }
 
 // Helper function to format time range for display
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatTimeRangeDisplay(timeRange: {
     preset: TimeRangePreset
     customStart?: string

@@ -172,7 +172,7 @@ jQuery(document).ready(function($) {
                         updatePageContent($responseHtml);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function(xhr) {
                     let errorMessage = 'Failed to save settings';
 
                     if (xhr.status === 403) {

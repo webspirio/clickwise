@@ -120,8 +120,8 @@ const getHeaders = (contentType = 'application/json'): Record<string, string> =>
 };
 
 export class ApiError extends Error {
-    data: any;
-    constructor(message: string, data?: any) {
+    data: unknown;
+    constructor(message: string, data?: unknown) {
         super(message);
         this.name = 'ApiError';
         this.data = data;
@@ -162,7 +162,7 @@ const getSettings = async () => {
     return data;
 };
 
-const saveSettings = async (settings: Record<string, any>) => {
+const saveSettings = async (settings: Record<string, unknown>) => {
     if (!window.clickwiseSettings) {
         throw new Error('Clickwise settings not found');
     }
@@ -254,7 +254,7 @@ const deleteEvent = async (eventId: string) => {
 };
 
 // Sandbox API
-const sendTestEvent = async (eventName: string, properties: Record<string, any>, handlers: string[]) => {
+const sendTestEvent = async (eventName: string, properties: Record<string, unknown>, handlers: string[]) => {
     const response = await fetch(getApiUrl('sandbox/send'), {
         method: 'POST',
         headers: getHeaders(),
@@ -284,7 +284,7 @@ const getRecordingStatus = async () => {
 };
 
 // Test Handler API
-const testHandler = async (handler: 'rybbit' | 'ga', config?: Record<string, any>) => {
+const testHandler = async (handler: 'rybbit' | 'ga', config?: Record<string, unknown>) => {
     const response = await fetch(getApiUrl(`test/${handler}`), {
         method: 'POST',
         headers: getHeaders(),
@@ -296,7 +296,7 @@ const testHandler = async (handler: 'rybbit' | 'ga', config?: Record<string, any
 // Rybbit Analytics API
 // These calls now go through WordPress REST API proxy to keep API key secure
 
-export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, settings: any, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
+export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, settings: Record<string, unknown>, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
 
     if (!targetSiteId) {
@@ -339,7 +339,7 @@ const getRybbitMetric = async (
     siteId: string,
     parameter: string,
     timeRange: TimeRange,
-    settings: any,
+    settings: Record<string, unknown>,
     options?: {
         filters?: RybbitFilter[];
         limit?: number;
@@ -391,7 +391,7 @@ const getRybbitMetric = async (
     return data.data;
 };
 
-const getTrackingConfig = async (siteId: string, settings: any): Promise<RybbitTrackingConfig> => {
+const getTrackingConfig = async (siteId: string, settings: Record<string, unknown>): Promise<RybbitTrackingConfig> => {
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
     const domain = settings.clickwise_rybbit_domain || 'https://app.rybbit.io';
 

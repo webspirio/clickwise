@@ -9,7 +9,7 @@ jQuery(document).ready(function ($) {
     function initTabTransitions() {
         // Get current tab from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const currentTab = urlParams.get('tab') || 'general';
+        urlParams.get('tab') || 'general';
 
         // Add click handlers to nav tabs
         $('.clickwise-nav .clickwise-nav-item').on('click', function (e) {
@@ -172,44 +172,44 @@ jQuery(document).ready(function ($) {
         }
     }
 
-    // Rotating tips functionality
-    function initRotatingTips() {
-        const funTips = [
-            'Analytics are like coffee - the more data points, the better the buzz! ☕',
-            'Fun fact: The average user clicks 2,617 times per day. Are you tracking them? 🖱️',
-            'A website without analytics is like driving with your eyes closed... but less fun! 🚗',
-            'Pro tip: Users spend 70% of their time above the fold. Track those clicks! 📊',
-            'Event tracking is like being a digital detective - every click tells a story! 🕵️',
-            'Remember: Data without action is just expensive storage! 💾',
-            'Your bounce rate called - it wants you to track more engagement events! 📞',
-            "Analytics rule #1: If it moves, track it. If it doesn't move, track why not! 🎯",
-            'Users are like cats - they do unexpected things. Analytics help you understand why! 🐱',
-            'Good analytics are like a GPS for your website - they show you where users really go! 🗺️',
-            'Did you know? Properly tracked events can increase conversion rates by up to 30%! 📈',
-            'Hot tip: The best analytics setup is the one you actually use! 🔥',
-            'Analytics wisdom: Every click is a conversation with your users. Listen carefully! 👂'
-        ];
-
-        const tipElement = $('#clickwise-rotating-tip');
-        if (tipElement.length === 0) return;
-
-        let currentTipIndex = 0;
-
-        function rotateTip() {
-            tipElement.fadeOut(300, function () {
-                currentTipIndex = (currentTipIndex + 1) % funTips.length;
-                tipElement.text(funTips[currentTipIndex]).fadeIn(300);
-            });
-        }
-
-        // Rotate tips every 15 seconds
-        setInterval(rotateTip, 15000);
-
-        // Add click handler to manually cycle through tips
-        $('.clickwise-fun-fact').css('cursor', 'pointer').attr('title', 'Click for another tip!');
-        $('.clickwise-fun-fact').on('click', function (e) {
-            e.preventDefault();
-            rotateTip();
-        });
-    }
+    // Rotating tips functionality (currently unused)
+    // function initRotatingTips() {
+    //     const funTips = [
+    //         'Analytics are like coffee - the more data points, the better the buzz! ☕',
+    //         'Fun fact: The average user clicks 2,617 times per day. Are you tracking them? 🖱️',
+    //         'A website without analytics is like driving with your eyes closed... but less fun! 🚗',
+    //         'Pro tip: Users spend 70% of their time above the fold. Track those clicks! 📊',
+    //         'Event tracking is like being a digital detective - every click tells a story! 🕵️',
+    //         'Remember: Data without action is just expensive storage! 💾',
+    //         'Your bounce rate called - it wants you to track more engagement events! 📞',
+    //         "Analytics rule #1: If it moves, track it. If it doesn't move, track why not! 🎯",
+    //         'Users are like cats - they do unexpected things. Analytics help you understand why! 🐱',
+    //         'Good analytics are like a GPS for your website - they show you where users really go! 🗺️',
+    //         'Did you know? Properly tracked events can increase conversion rates by up to 30%! 📈',
+    //         'Hot tip: The best analytics setup is the one you actually use! 🔥',
+    //         'Analytics wisdom: Every click is a conversation with your users. Listen carefully! 👂'
+    //     ];
+    //
+    //     const tipElement = $('#clickwise-rotating-tip');
+    //     if (tipElement.length === 0) return;
+    //
+    //     let currentTipIndex = 0;
+    //
+    //     function rotateTip() {
+    //         tipElement.fadeOut(300, function () {
+    //             currentTipIndex = (currentTipIndex + 1) % funTips.length;
+    //             tipElement.text(funTips[currentTipIndex]).fadeIn(300);
+    //         });
+    //     }
+    //
+    //     // Rotate tips every 15 seconds
+    //     setInterval(rotateTip, 15000);
+    //
+    //     // Add click handler to manually cycle through tips
+    //     $('.clickwise-fun-fact').css('cursor', 'pointer').attr('title', 'Click for another tip!');
+    //     $('.clickwise-fun-fact').on('click', function (e) {
+    //         e.preventDefault();
+    //         rotateTip();
+    //     });
+    // }
 });

@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
     data: TData[]
     searchKey?: string
     searchPlaceholder?: string
-    toolbar?: React.ReactNode | ((table: any) => React.ReactNode)
+    toolbar?: React.ReactNode | ((table: { getFilteredSelectedRowModel: () => { rows: Array<{ original: { id: string } }> } }) => React.ReactNode)
     onRowClick?: (row: TData) => void
 }
 
@@ -51,7 +51,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue> & {
     rowSelection?: Record<string, boolean>
     onRowSelectionChange?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
-    getRowId?: (originalRow: TData, index: number, parent?: any) => string
+    getRowId?: (originalRow: TData, index: number, parent?: TData) => string
 }) {
     const [internalRowSelection, setInternalRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
@@ -64,6 +64,7 @@ export function DataTable<TData, TValue>({
     const rowSelection = controlledRowSelection ?? internalRowSelection
     const setRowSelection = setControlledRowSelection ?? setInternalRowSelection
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data,
         columns,

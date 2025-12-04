@@ -5,6 +5,6 @@ export { };
 declare global {
     interface Window {
         clickwiseSettings: ClickwiseSettings;
-        RybbitSDK: any;
+        RybbitSDK: typeof import('@/lib/rybbit-sdk').RybbitSDK;
     }
 }

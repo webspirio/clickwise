@@ -239,7 +239,7 @@ jQuery(document).ready(function ($) {
                 .replace(/: (\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
                 .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
                 .replace(/: (null)/g, ': <span class="json-null">$1</span>');
-        } catch (e) {
+        } catch {
             return JSON.stringify(data);
         }
     }
@@ -261,19 +261,15 @@ jQuery(document).ready(function ($) {
 
         loadClickwiseScript().then(function () {
             button.text('Sending...');
-            try {
-                window.rybbit.event('test_event', {
-                    source: 'wordpress_admin_test',
-                    timestamp: Date.now()
-                });
+            window.rybbit.event('test_event', {
+                source: 'wordpress_admin_test',
+                timestamp: Date.now()
+            });
 
-                setTimeout(function () {
-                    button.prop('disabled', false).text('Send Test Event');
-                    resultSpan.css('color', 'green').text('Event initiated via browser script!');
-                }, 500);
-            } catch (e) {
-                throw e;
-            }
+            setTimeout(function () {
+                button.prop('disabled', false).text('Send Test Event');
+                resultSpan.css('color', 'green').text('Event initiated via browser script!');
+            }, 500);
         }).catch(function (err) {
             button.prop('disabled', false).text('Send Test Event');
             resultSpan.css('color', 'red').text(err);
@@ -394,7 +390,7 @@ jQuery(document).ready(function ($) {
             if (propsStr) {
                 props = JSON.parse(propsStr);
             }
-        } catch (e) {
+        } catch {
             showSandboxNotification('Invalid JSON in properties.', 'error');
 
             // Shake the send button and properties textarea
@@ -460,7 +456,6 @@ jQuery(document).ready(function ($) {
         var button = $(this);
         var key = button.data('key');
         var status = button.data('status');
-        var row = button.closest('tr');
 
         $.post(clickwise_admin.ajax_url, {
             action: 'clickwise_update_event_status',
@@ -475,31 +470,6 @@ jQuery(document).ready(function ($) {
             }
         });
     });
-
-    // --- Modal Logic ---
-    var initialModalState = {};
-    var modalMouseDownTarget = null;
-
-    function getModalState() {
-        return {
-            alias: $('#modal-event-alias').val(),
-            status: $('#modal-event-status').val()
-        };
-    }
-
-    function hasUnsavedChanges() {
-        var currentState = getModalState();
-        return JSON.stringify(currentState) !== JSON.stringify(initialModalState);
-    }
-
-    function closeModal() {
-        if (hasUnsavedChanges()) {
-            if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
-                return;
-            }
-        }
-        $('#clickwise-event-modal').fadeOut();
-    }
 
     function parsePotentialJSON(input) {
         try {
@@ -524,7 +494,7 @@ jQuery(document).ready(function ($) {
                 return parsePotentialJSON(parsed);
             }
             return parsed;
-        } catch (e) {
+        } catch {
             return input;
         }
     }
@@ -534,7 +504,7 @@ jQuery(document).ready(function ($) {
             json = JSON.stringify(json, null, 2);
         }
         json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
             var cls = 'number';
             if (/^"/.test(match)) {
                 if (/:$/.test(match)) {
@@ -557,7 +527,6 @@ jQuery(document).ready(function ($) {
         var key = button.data('key');
         var eventName = button.data('name');
         var action = button.data('action');
-        var currentStatus = button.data('status');
 
         if (!eventName) {
             alert('Event name not found.');
@@ -839,7 +808,7 @@ jQuery(document).ready(function ($) {
             var raw = event.example_detail || event.example; // Try new column name first, fallback to old
             var parsed = raw ? parsePotentialJSON(raw) : {};
             detailHtml = syntaxHighlight(parsed);
-        } catch (e) {
+        } catch {
             detailHtml = event.example_detail || event.example || '{}';
         }
         $('#modal-event-detail').html(detailHtml);
@@ -878,7 +847,7 @@ jQuery(document).ready(function ($) {
             var raw = event.example_detail || event.example; // Try new column name first, fallback to old
             var parsed = raw ? parsePotentialJSON(raw) : {};
             detailHtml = syntaxHighlight(parsed);
-        } catch (e) {
+        } catch {
             detailHtml = event.example_detail || event.example || '{}';
         }
         $('#modal-event-detail').html(detailHtml);
@@ -1226,7 +1195,7 @@ window.initClickwiseSyntaxHighlighter = function () {
                 json = JSON.stringify(json, null, 2);
             }
             json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
                 var cls = 'number';
                 if (/^"/.test(match)) {
                     if (/:$/.test(match)) {
@@ -1342,7 +1311,7 @@ jQuery(document).ready(function ($) {
                     try {
                         // Force stop current animation
                         anim.endElement();
-                    } catch (e) {
+                    } catch {
                         // Animation might not be running, that's fine
                     }
                 });
@@ -1578,7 +1547,7 @@ jQuery(document).ready(function ($) {
 
         var feedback = null;
         if (window.ClickwiseButtonFeedback) {
-            feedback = new ClickwiseButtonFeedback(btn);
+            feedback = new window.ClickwiseButtonFeedback(btn);
             feedback.loading('Testing...');
         } else {
             btn.disabled = true;
@@ -1650,7 +1619,7 @@ jQuery(document).ready(function ($) {
 
         var feedback = null;
         if (window.ClickwiseButtonFeedback) {
-            feedback = new ClickwiseButtonFeedback(btn);
+            feedback = new window.ClickwiseButtonFeedback(btn);
             feedback.loading('Loading...');
         } else {
             btn.disabled = true;
@@ -1662,7 +1631,7 @@ jQuery(document).ready(function ($) {
 
         if (handler === "rybbit") {
             // Use existing loadClickwiseScript
-            loadClickwiseScript().then(function () {
+            window.loadClickwiseScript().then(function () {
                 if (feedback) {
                     feedback.loading('Sending...');
                 } else {
@@ -1748,12 +1717,12 @@ jQuery(document).ready(function ($) {
     // Initialize field states when page loads
     var rybbitCheckbox = document.querySelector('input[name="clickwise_rybbit_enabled"]');
     if (rybbitCheckbox) {
-        toggleRybbitFields(rybbitCheckbox.checked);
+        window.toggleRybbitFields(rybbitCheckbox.checked);
     }
 
     var gaCheckbox = document.querySelector('input[name="clickwise_ga_enabled"]');
     if (gaCheckbox) {
-        toggleGAFields(gaCheckbox.checked);
+        window.toggleGAFields(gaCheckbox.checked);
     }
 
     // --- Remote Configuration Fetching ---

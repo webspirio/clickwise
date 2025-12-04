@@ -12,7 +12,7 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogOptions {
     context?: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
 }
 
 class Logger {
@@ -45,7 +45,7 @@ class Logger {
     /**
      * Sanitize data before logging (remove sensitive information)
      */
-    private sanitizeData(data: any): any {
+    private sanitizeData(data: unknown): unknown {
         if (!data || typeof data !== 'object') return data;
 
         const sensitiveKeys = ['api_key', 'apiKey', 'password', 'secret', 'token', 'nonce', 'restNonce'];
@@ -129,7 +129,7 @@ class Logger {
     /**
      * Log API request (sanitized)
      */
-    apiRequest(method: string, url: string, data?: any): void {
+    apiRequest(method: string, url: string, data?: unknown): void {
         if (!this.isDebugMode) return;
 
         this.debug(`API ${method} ${url}`, {
@@ -141,7 +141,7 @@ class Logger {
     /**
      * Log API response (sanitized)
      */
-    apiResponse(method: string, url: string, status: number, data?: any): void {
+    apiResponse(method: string, url: string, status: number, data?: unknown): void {
         if (!this.isDebugMode) return;
 
         const level = status >= 400 ? 'error' : 'debug';
@@ -163,7 +163,7 @@ class Logger {
     /**
      * Log SDK initialization
      */
-    sdkInit(name: string, config: any): void {
+    sdkInit(name: string, config: unknown): void {
         if (!this.isDebugMode) return;
 
         this.info(`${name} SDK initializing`, {
