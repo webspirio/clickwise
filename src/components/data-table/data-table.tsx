@@ -14,6 +14,8 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
+    Row,
+    Table as TableType,
 } from "@tanstack/react-table"
 
 import {
@@ -34,7 +36,7 @@ interface DataTableProps<TData, TValue> {
     data: TData[]
     searchKey?: string
     searchPlaceholder?: string
-    toolbar?: React.ReactNode | ((table: { getFilteredSelectedRowModel: () => { rows: Array<{ original: { id: string } }> } }) => React.ReactNode)
+    toolbar?: React.ReactNode | ((table: TableType<TData>) => React.ReactNode)
     onRowClick?: (row: TData) => void
 }
 
@@ -51,7 +53,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue> & {
     rowSelection?: Record<string, boolean>
     onRowSelectionChange?: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
-    getRowId?: (originalRow: TData, index: number, parent?: TData) => string
+    getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
 }) {
     const [internalRowSelection, setInternalRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
