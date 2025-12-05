@@ -80,11 +80,12 @@ export function Sandbox() {
 
                 if (response.success) {
                     // Log individual handler results
-                    Object.entries(response.results).forEach(([handler, result]: [string, { success: boolean; message: string }]) => {
-                        if (result.success) {
-                            addLog(`${handler.toUpperCase()}: ${result.message}`, 'success')
+                    Object.entries(response.results).forEach(([handler, result]) => {
+                        const handlerResult = result as { success: boolean; message: string };
+                        if (handlerResult.success) {
+                            addLog(`${handler.toUpperCase()}: ${handlerResult.message}`, 'success')
                         } else {
-                            addLog(`${handler.toUpperCase()}: ${result.message}`, 'error')
+                            addLog(`${handler.toUpperCase()}: ${handlerResult.message}`, 'error')
                         }
                     })
                 } else {

@@ -277,7 +277,7 @@ export function EventsManager() {
                             </CardContent>
                         </Card>
                     ) : (
-                        eventsData.sessions.map((session: { id: string; [key: string]: unknown }) => (
+                        eventsData.sessions.map((session: { id: string; timestamp: unknown; events: Event[]; [key: string]: unknown }) => (
                             <Card key={session.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
@@ -286,7 +286,7 @@ export function EventsManager() {
                                                 Recording Session
                                             </CardTitle>
                                             <CardDescription>
-                                                {new Date(parseInt(session.timestamp) * 1000).toLocaleString()} • {session.events.length} events
+                                                {new Date(parseInt(String(session.timestamp)) * 1000).toLocaleString()} • {session.events.length} events
                                             </CardDescription>
                                         </div>
                                         <Button variant="outline" size="sm">
@@ -297,7 +297,7 @@ export function EventsManager() {
                                 <CardContent>
                                     <DataTable
                                         columns={columns}
-                                        data={session.events}
+                                        data={session.events as Event[]}
                                         searchKey="name"
                                         searchPlaceholder="Filter events..."
                                         toolbar={(table) => renderBulkActions(table, ['track', 'ignore'])}
