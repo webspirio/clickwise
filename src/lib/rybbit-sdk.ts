@@ -121,13 +121,13 @@ export class RybbitSDK {
 
                 // Check if element or any parent matches the selector
                 try {
-                    const matchedElement = target.closest(event.selector) as HTMLElement;
+                    const matchedElement = target.closest(String(event.selector)) as HTMLElement;
                     if (matchedElement) {
-                        const eventName = event.alias || event.name;
+                        const eventName = String(event.alias || event.name);
                         logger.info(`Tracked element clicked: ${eventName}`, { context: 'Rybbit' });
 
                         this.event(eventName, {
-                            selector: event.selector,
+                            selector: String(event.selector),
                             text: matchedElement.innerText || '',
                             page: window.location.pathname
                         });
@@ -153,7 +153,7 @@ export class RybbitSDK {
      * @param name Event name
      * @param properties Event properties
      */
-    public static event(name: string, properties?: Record<string, unknown>): void {
+    public static event(name: string, properties?: Record<string, string | number | boolean | (string | number | boolean)[]>): void {
         if (!this.isEnabled) return;
         rybbit.event(name, properties);
     }

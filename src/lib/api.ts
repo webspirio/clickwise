@@ -304,7 +304,7 @@ export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, se
     }
 
     const params = new URLSearchParams();
-    params.append('site_id', targetSiteId);
+    params.append('site_id', String(targetSiteId));
 
     // Add time range parameters
     if (timeRange.start_date && timeRange.end_date && timeRange.time_zone) {
@@ -353,7 +353,7 @@ const getRybbitMetric = async (
     }
 
     const params = new URLSearchParams();
-    params.append('site_id', targetSiteId);
+    params.append('site_id', String(targetSiteId));
     params.append('parameter', parameter);
 
     // Add time range parameters
@@ -403,7 +403,7 @@ const getTrackingConfig = async (siteId: string, settings: Record<string, unknow
     // but the requirement says https://rybbit.webspirio.com/api/site/1/tracking-config
     // So we need {domain}/api/site/{siteId}/tracking-config
 
-    const cleanBase = domain.replace(/\/api\/?$/, '').replace(/\/$/, '');
+    const cleanBase = String(domain).replace(/\/api\/?$/, '').replace(/\/$/, '');
     const url = `${cleanBase}/api/site/${targetSiteId}/tracking-config`;
 
     const response = await fetch(url);

@@ -49,14 +49,14 @@ class Logger {
         if (!data || typeof data !== 'object') return data;
 
         const sensitiveKeys = ['api_key', 'apiKey', 'password', 'secret', 'token', 'nonce', 'restNonce'];
-        const sanitized = { ...data };
+        const sanitized: Record<string, unknown> = { ...data };
 
         for (const key of Object.keys(sanitized)) {
             const lowerKey = key.toLowerCase();
             if (sensitiveKeys.some(sensitive => lowerKey.includes(sensitive))) {
                 sanitized[key] = '[REDACTED]';
             } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-                sanitized[key] = this.sanitizeData(sanitized[key]);
+                sanitized[key] = this.sanitizeData(sanitized[key] as Record<string, unknown>);
             }
         }
 
@@ -134,7 +134,7 @@ class Logger {
 
         this.debug(`API ${method} ${url}`, {
             context: 'API',
-            data: data ? this.sanitizeData(data) : undefined
+            data: data ? this.sanitizeData(data) as Record<string, unknown> : undefined
         });
     }
 
@@ -150,12 +150,12 @@ class Logger {
         if (level === 'error') {
             this.error(message, undefined, {
                 context: 'API',
-                data: data ? this.sanitizeData(data) : undefined
+                data: data ? this.sanitizeData(data) as Record<string, unknown> : undefined
             });
         } else {
             this.debug(message, {
                 context: 'API',
-                data: data ? this.sanitizeData(data) : undefined
+                data: data ? this.sanitizeData(data) as Record<string, unknown> : undefined
             });
         }
     }
@@ -168,7 +168,7 @@ class Logger {
 
         this.info(`${name} SDK initializing`, {
             context: 'SDK',
-            data: this.sanitizeData(config)
+            data: this.sanitizeData(config) as Record<string, unknown>
         });
     }
 
