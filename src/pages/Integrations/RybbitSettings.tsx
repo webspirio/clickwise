@@ -112,8 +112,9 @@ export function RybbitSettings() {
 
             const result = await api.testHandler('rybbit', config)
             toast.success(result.message)
-        } catch (error: any) {
-            const message = error instanceof Error ? error.message : `Rybbit connection test failed`
+        } catch (err: unknown) {
+            const error = err as { message?: string; data?: { data?: { field?: string } } }
+            const message = error.message || `Rybbit connection test failed`
             toast.error(message)
 
             if (error.data?.data?.field) {
