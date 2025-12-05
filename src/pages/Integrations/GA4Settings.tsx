@@ -13,7 +13,6 @@ export function GA4Settings() {
     const { settings: contextSettings, refreshSettings } = useSettings()
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
-    const [errors, setErrors] = useState<Record<string, string>>({})
 
     // GA4 settings
     const [gaEnabled, setGaEnabled] = useState(false)
@@ -76,34 +75,6 @@ export function GA4Settings() {
             toast.error(error instanceof Error ? error.message : 'Failed to save settings')
         } finally {
             setSaving(false)
-        }
-    }
-
-    const testConnection = async () => {
-        setErrors({})
-        try {
-            const config: Record<string, unknown> = {
-                measurement_id: gaMeasurementId
-            }
-            // Only send API secret if it's not the placeholder
-            if (gaApiSecret !== '••••••••••••••••') {
-                config.api_secret = gaApiSecret
-            }
-
-            const result = await api.testHandler('ga', config)
-            toast.success(result.message)
-        } catch (error: any) {
-            const message = error instanceof Error ? error.message : `GA4 connection test failed`
-            toast.error(message)
-
-            if (error.data?.data?.field) {
-                const field = error.data.data.field;
-                setErrors(prev => ({ ...prev, [field]: message }));
-            } else {
-                if (message.toLowerCase().includes('measurement id')) {
-                    setErrors(prev => ({ ...prev, measurement_id: message }))
-                }
-            }
         }
     }
 
@@ -182,9 +153,7 @@ export function GA4Settings() {
                                 placeholder="G-XXXXXXXXXX"
                                 value={gaMeasurementId}
                                 disabled
-                                className={errors.measurement_id ? 'border-red-500 focus-visible:ring-red-500' : ''}
                             />
-                            {errors.measurement_id && <p className="text-xs text-red-500 font-medium">{errors.measurement_id}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="ga4-api-secret">API Secret (Optional)</Label>
