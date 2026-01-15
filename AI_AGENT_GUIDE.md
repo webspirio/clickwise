@@ -1,6 +1,6 @@
-# AI Agent Guidelines for Clickwise Analytics
+# AI Agent Guidelines for Clickwise
 
-Welcome, AI Agent. This document is your primary source of truth for developing, maintaining, and improving the Clickwise Analytics project. Follow these guidelines to ensure consistency, security, and a premium user experience.
+Welcome, AI Agent. This document is your primary source of truth for developing, maintaining, and improving the Clickwise project. Follow these guidelines to ensure consistency, security, and a premium user experience.
 
 ## 1. Core Philosophy
 

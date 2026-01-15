@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Clickwise Analytics
+ * Plugin Name: Clickwise
  * Plugin URI: https://github.com/webspirio/clickwise-wp
  * Description: An advanced event manager for WordPress with seamless Rybbit and Google Analytics integration.
  * Version: 2.0.0

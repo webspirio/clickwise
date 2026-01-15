@@ -1,4 +1,4 @@
-# Clickwise Analytics for WordPress
+# Clickwise for WordPress
 
 **Privacy-focused WordPress analytics plugin with advanced event tracking and live recording features.**
 
@@ -37,7 +37,7 @@ Connect your WordPress site to [Rybbit Analytics](https://rybbit.com) for compre
 
 1. **Install** from WordPress plugins or [GitHub](https://github.com/webspirio/clickwise-wp)
 2. **Activate** the plugin
-3. **Configure** at Settings → Clickwise Analytics
+3. **Configure** at Settings → Clickwise
    - Add your Rybbit Script URL
    - Add your Site ID
    - Click "Test Connection"

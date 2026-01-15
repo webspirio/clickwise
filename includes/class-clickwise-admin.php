@@ -131,7 +131,7 @@ class Clickwise_Admin {
 
 	public function add_admin_menu() {
 		add_menu_page(
-			'Clickwise Analytics',
+			'Clickwise',
 			'Clickwise',
 			'manage_options',
 			'clickwise-settings',
@@ -147,7 +147,7 @@ class Clickwise_Admin {
 		}
 
 		$is_recording = get_user_meta( get_current_user_id(), 'clickwise_recording_mode', true );
-		$title = $is_recording ? '● Recording Events' : 'Clickwise Analytics';
+		$title = $is_recording ? '● Recording Events' : 'Clickwise';
 		
 		$meta = array();
 		if ( $is_recording ) {

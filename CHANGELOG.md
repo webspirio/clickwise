@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Clickwise Analytics for WordPress plugin will be documented in this file.
+All notable changes to the Clickwise for WordPress plugin will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-11-20
 
 ### Added
-- **Initial Release**: First stable version of Clickwise Analytics for WordPress
+- **Initial Release**: First stable version of Clickwise for WordPress
 - **Core Tracking Features**:
   - Automatic pageview tracking
   - Single Page Application (SPA) support with History API tracking

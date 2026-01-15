@@ -1,6 +1,6 @@
-# Contributing to Clickwise Analytics for WordPress
+# Contributing to Clickwise for WordPress
 
-Thank you for your interest in contributing to Clickwise Analytics for WordPress! We welcome contributions from the community.
+Thank you for your interest in contributing to Clickwise for WordPress! We welcome contributions from the community.
 
 ## How to Contribute
 
@@ -70,4 +70,4 @@ Feel free to reach out:
 
 ---
 
-**Thank you for helping make Clickwise Analytics for WordPress better!**
+**Thank you for helping make Clickwise for WordPress better!**

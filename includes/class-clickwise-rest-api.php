@@ -1,7 +1,7 @@
 <?php
 
 /**
- * REST API endpoints for Clickwise Analytics
+ * REST API endpoints for Clickwise
  *
  * @link       https://webspirio.com
  * @since      1.0.0

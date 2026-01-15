@@ -1,6 +1,6 @@
-# Clickwise Analytics WordPress Plugin Assets
+# Clickwise WordPress Plugin Assets
 
-This directory contains all the visual assets for the Clickwise Analytics WordPress plugin, designed for WordPress Plugin Directory submission and general branding purposes.
+This directory contains all the visual assets for the Clickwise WordPress plugin, designed for WordPress Plugin Directory submission and general branding purposes.
 
 ## WordPress Plugin Directory Assets
 

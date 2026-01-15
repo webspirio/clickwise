@@ -1,4 +1,4 @@
-=== Clickwise Analytics ===
+=== Clickwise ===
 Contributors: webspirio
 Donate link: https://webspirio.com/
 Tags: analytics, tracking, events, forms, privacy
@@ -15,7 +15,7 @@ Connect your WordPress site to Rybbit Analytics for privacy-focused event tracki
 
 **Important: This plugin requires a Rybbit Analytics instance (self-hosted or managed service).**
 
-Clickwise Analytics for WordPress is a powerful, user-friendly plugin that seamlessly integrates Rybbit's analytics platform with your WordPress site. Built by **Webspirio**, this plugin provides comprehensive tracking capabilities with an advanced Event Manager for monitoring and managing user interactions.
+Clickwise for WordPress is a powerful, user-friendly plugin that seamlessly integrates Rybbit's analytics platform with your WordPress site. Built by **Webspirio**, this plugin provides comprehensive tracking capabilities with an advanced Event Manager for monitoring and managing user interactions.
 
 **Third-Party Integration Notice:** This is an unofficial integration plugin developed by Webspirio, not an official Rybbit Analytics plugin. For more information about Rybbit Analytics, visit: [https://rybbit.com](https://rybbit.com)
 
@@ -29,10 +29,10 @@ Clickwise Analytics for WordPress is a powerful, user-friendly plugin that seaml
 * **Control**: You have full control over what data is collected and where it's stored
 * **Terms**: Refer to your Rybbit instance provider's terms of service
 
-For more information about Clickwise Analytics, visit: [https://clickwise.com](https://clickwise.com)
+For more information about Clickwise, visit: [https://clickwise.com](https://clickwise.com)
 
 Learn more about the service:
-* Clickwise Analytics: [https://clickwise.com](https://clickwise.com)
+* Clickwise: [https://clickwise.com](https://clickwise.com)
 * Documentation: [https://clickwise.com/docs](https://clickwise.com/docs)
 
 By installing, activating, and configuring this plugin with your Clickwise instance details, you consent to sending analytics data to your specified Clickwise server.
@@ -76,7 +76,7 @@ By installing, activating, and configuring this plugin with your Clickwise insta
 
 * **Marketers** who need detailed insights into user behavior
 * **Developers** building data-driven WordPress applications
-* **Agencies** managing multiple WordPress sites with Clickwise Analytics
+* **Agencies** managing multiple WordPress sites with Clickwise
 * **Site Owners** who want privacy-focused analytics with full control
 
 == Installation ==
@@ -85,18 +85,18 @@ By installing, activating, and configuring this plugin with your Clickwise insta
 
 1. Install the plugin through the WordPress plugins screen
 2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Navigate to **Settings > Clickwise Analytics** to configure
+3. Navigate to **Settings > Clickwise** to configure
 
 = From GitHub =
 
 1. Download the latest release from [GitHub](https://github.com/webspirio/clickwise-wp)
 2. Upload the `clickwise-wp` folder to `/wp-content/plugins/`
 3. Activate the plugin through the 'Plugins' menu in WordPress
-4. Navigate to **Settings > Clickwise Analytics** to configure
+4. Navigate to **Settings > Clickwise** to configure
 
 = Initial Setup =
 
-1. Go to **Settings > Clickwise Analytics > General**
+1. Go to **Settings > Clickwise > General**
 2. Enter your **Script URL** (provided by your Clickwise instance)
 3. Enter your **Site ID** (found in your Clickwise dashboard)
 4. Click **Test Connection** to verify the setup
@@ -104,7 +104,7 @@ By installing, activating, and configuring this plugin with your Clickwise insta
 
 == Frequently Asked Questions ==
 
-= What is Clickwise Analytics? =
+= What is Clickwise? =
 
 Clickwise is a privacy-focused analytics platform. This plugin connects your WordPress site to your Clickwise instance to track user interactions and behavior.
 
@@ -118,7 +118,7 @@ No. All analytics data is sent exclusively to YOUR Rybbit Analytics instance tha
 
 = Can I use this alongside Google Analytics or other analytics tools? =
 
-Yes! This plugin works alongside other analytics solutions without conflicts. However, this plugin only sends data to Clickwise Analytics—not to Google Analytics or other platforms.
+Yes! This plugin works alongside other analytics solutions without conflicts. However, this plugin only sends data to Clickwise—not to Google Analytics or other platforms.
 
 = How are events recorded? =
 
@@ -176,7 +176,7 @@ Absolutely! Visit our [GitHub repository](https://github.com/webspirio/clickwise
 == Upgrade Notice ==
 
 = 1.0.0 =
-Initial release of Clickwise Analytics for WordPress by Webspirio. Full-featured analytics integration with advanced event management.
+Initial release of Clickwise for WordPress by Webspirio. Full-featured analytics integration with advanced event management.
 
 == External Services ==
 
@@ -198,7 +198,7 @@ This plugin connects to an external service - your Rybbit Analytics instance.
 **Service Activation**: 
 By entering your Clickwise instance details (Script URL and Site ID) in the plugin settings and activating tracking, you consent to sending data to the configured Clickwise service.
 
-For Clickwise Analytics service information, visit: [https://clickwise.com](https://clickwise.com)
+For Clickwise service information, visit: [https://clickwise.com](https://clickwise.com)
 
 == Privacy Policy ==
 

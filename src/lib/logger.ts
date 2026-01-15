@@ -1,5 +1,5 @@
 /**
- * Centralized logging utility for Clickwise Analytics
+ * Centralized logging utility for Clickwise
  *
  * Features:
  * - Environment-aware logging (disabled in production)

@@ -1,5 +1,5 @@
 /**
- * Webspirio Clickwise Analytics Tracker
+ * Webspirio Clickwise Tracker
  * Author: Webspirio (Oleksandr Chornous)
  * Contact: contact@webspirio.com
  * Copyright (c) 2025 Webspirio
@@ -960,14 +960,14 @@ jQuery(document).ready(function ($) {
             if (response.success) {
                 // Show success message briefly before reload
                 button.text('Success!');
-                setTimeout(function() {
+                setTimeout(function () {
                     location.reload();
                 }, 500);
             } else {
                 alert('Error: ' + (response.data || 'Unknown error occurred'));
                 button.prop('disabled', false).text('Apply');
             }
-        }).fail(function(xhr, textStatus, errorThrown) {
+        }).fail(function (xhr, textStatus, errorThrown) {
             console.error('Bulk action failed:', textStatus, errorThrown);
             alert('Request failed: ' + errorThrown);
             button.prop('disabled', false).text('Apply');

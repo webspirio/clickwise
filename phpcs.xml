@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Clickwise">
-	<description>Clickwise Analytics PHPCS Rules</description>
+	<description>Clickwise PHPCS Rules</description>
 
 	<file>.</file>
 

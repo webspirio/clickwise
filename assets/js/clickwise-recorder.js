@@ -1,5 +1,5 @@
 /**
- * Webspirio Clickwise Analytics - Recorder
+ * Webspirio Clickwise - Recorder
  * Handles Recording Mode, Overlay UI, and Smart Event Capture
  */
 (function () {
@@ -616,7 +616,7 @@
                 toggleLink.innerText = 'Start Recording';
                 toggleLink.style.color = '#4caf50'; // Green
             }
-            if (topLevelLink) topLevelLink.innerText = 'Clickwise Analytics';
+            if (topLevelLink) topLevelLink.innerText = 'Clickwise';
             if (topLevelItem) topLevelItem.classList.remove('clickwise-recording-active');
         }
     }

@@ -1,5 +1,5 @@
 /**
- * Webspirio Clickwise Analytics Tracker
+ * Webspirio Clickwise Tracker
  * Author: Webspirio (Oleksandr Chornous)
  * Contact: contact@webspirio.com
  * Copyright (c) 2025 Webspirio

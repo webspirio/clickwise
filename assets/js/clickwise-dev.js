@@ -1,5 +1,5 @@
 /**
- * Webspirio Clickwise Analytics - Dev Mode
+ * Webspirio Clickwise - Dev Mode
  * Handles Toasts and Console Logging
  */
 (function () {
@@ -25,7 +25,7 @@
         if (window.rybbit.event && !window.rybbit.event.isPatched) {
             var originalEvent = window.rybbit.event;
             window.rybbit.event = function (name, params) {
-                console.group('Clickwise Analytics Event');
+                console.group('Clickwise Event');
                 console.log('Event Name:', name);
                 console.log('Parameters:', params);
                 console.groupEnd();
