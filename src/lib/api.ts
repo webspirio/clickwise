@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { getMockRybbitOverview, getMockRybbitMetric } from './mock-data';
 
 // Types for API responses
 type DashboardStats = {
@@ -299,6 +300,12 @@ const testHandler = async (handler: 'rybbit' | 'ga', config?: Record<string, unk
 export const getRybbitOverview = async (siteId: string, timeRange: TimeRange, settings: Record<string, unknown>, filters?: RybbitFilter[]): Promise<RybbitOverview> => {
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
 
+    // Check for playground mode
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((settings as any).isPlayground || (window as any).clickwiseSettings?.isPlayground) {
+        return getMockRybbitOverview();
+    }
+
     if (!targetSiteId) {
         throw new Error('Rybbit Website ID not configured');
     }
@@ -347,6 +354,12 @@ const getRybbitMetric = async (
     }
 ): Promise<RybbitMetricResponse> => {
     const targetSiteId = siteId || settings.clickwise_rybbit_website_id;
+
+    // Check for playground mode
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((settings as any).isPlayground || (window as any).clickwiseSettings?.isPlayground) {
+        return getMockRybbitMetric(parameter);
+    }
 
     if (!targetSiteId) {
         throw new Error('Rybbit Website ID not configured');

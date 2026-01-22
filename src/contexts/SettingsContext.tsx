@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger'
 
 interface Settings {
     [key: string]: unknown
+    isPlayground?: boolean
     clickwise_rybbit_enabled?: string
     clickwise_rybbit_site_id?: string
     clickwise_rybbit_script_url?: string

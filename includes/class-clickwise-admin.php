@@ -51,6 +51,7 @@ class Clickwise_Admin {
 				'scriptUrl' => get_option( 'clickwise_script_url', '' ),
 				'siteId'    => get_option( 'clickwise_site_id', '' ),
 				'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
+				'isPlayground' => defined( 'IS_PLAYGROUND_PREVIEW' ) && IS_PLAYGROUND_PREVIEW,
 				// Rybbit settings - always include with defaults to prevent undefined errors
 				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
 				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
@@ -98,6 +99,7 @@ class Clickwise_Admin {
 				'scriptUrl' => get_option( 'clickwise_script_url', '' ),
 				'siteId'    => get_option( 'clickwise_site_id', '' ),
 				'activeTab' => '',
+				'isPlayground' => defined( 'IS_PLAYGROUND_PREVIEW' ) && IS_PLAYGROUND_PREVIEW,
 				// Rybbit settings - always include with defaults to prevent undefined errors
 				'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
 				'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),
@@ -238,6 +240,7 @@ class Clickwise_Admin {
 					'scriptUrl' => get_option( 'clickwise_script_url', '' ),
 					'siteId'    => get_option( 'clickwise_site_id', '' ),
 					'activeTab' => isset( $_GET['tab'] ) ? $_GET['tab'] : 'general',
+					'isPlayground' => defined( 'IS_PLAYGROUND_PREVIEW' ) && IS_PLAYGROUND_PREVIEW,
 					// Rybbit settings - always include with defaults to prevent undefined errors
 					'rybbitEnabled' => get_option( 'clickwise_rybbit_enabled', '' ),
 					'rybbitSiteId' => get_option( 'clickwise_rybbit_site_id', '' ),

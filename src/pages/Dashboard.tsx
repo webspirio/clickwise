@@ -45,7 +45,10 @@ export function Dashboard() {
     })
 
     const loadDashboardData = useCallback(async () => {
-        if (!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_website_id) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const isPlayground = (settings as any)?.isPlayground;
+
+        if ((!settings?.clickwise_rybbit_api_key || !settings?.clickwise_rybbit_website_id) && !isPlayground) {
             setError('Rybbit API key or Website ID not configured. Please check your settings.')
             setLoading(false)
             return
@@ -63,11 +66,11 @@ export function Dashboard() {
 
             // Fetch overview stats
             const [overviewData, pagesData, countriesData, devicesData, browsersData] = await Promise.all([
-                api.rybbit.getOverview(settings.clickwise_rybbit_website_id, rybbitTimeRange, settings),
-                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'pathname', rybbitTimeRange, settings, { limit: 10 }),
-                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'country', rybbitTimeRange, settings, { limit: 10 }),
-                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'device_type', rybbitTimeRange, settings, { limit: 10 }),
-                api.rybbit.getMetric(settings.clickwise_rybbit_website_id, 'browser', rybbitTimeRange, settings, { limit: 10 }),
+                api.rybbit.getOverview(settings?.clickwise_rybbit_website_id || '', rybbitTimeRange, settings as any),
+                api.rybbit.getMetric(settings?.clickwise_rybbit_website_id || '', 'pathname', rybbitTimeRange, settings as any, { limit: 10 }),
+                api.rybbit.getMetric(settings?.clickwise_rybbit_website_id || '', 'country', rybbitTimeRange, settings as any, { limit: 10 }),
+                api.rybbit.getMetric(settings?.clickwise_rybbit_website_id || '', 'device_type', rybbitTimeRange, settings as any, { limit: 10 }),
+                api.rybbit.getMetric(settings?.clickwise_rybbit_website_id || '', 'browser', rybbitTimeRange, settings as any, { limit: 10 }),
             ])
 
             setRybbitOverview(overviewData)
@@ -145,7 +148,15 @@ export function Dashboard() {
             <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight text-foreground">Analytics Dashboard</h2>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-3xl font-bold tracking-tight text-foreground">Analytics Dashboard</h2>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {(settings as any)?.isPlayground && (
+                                <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
+                                    Demo Mode
+                                </Badge>
+                            )}
+                        </div>
                         <p className="text-muted-foreground mt-1">
                             Real-time insights from your website - {formatTimeRangeDisplay(timeRange)}
                         </p>
